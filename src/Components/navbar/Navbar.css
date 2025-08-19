@@ -1,26 +1,43 @@
-@import url('https://fonts.googleapis.com/css2?family=Cairo&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Cairo&display=swap");
 
 a {
   text-decoration: none;
 }
 
 .navbar {
-  background-color: #2A7371;
-  font-family: 'Cairo', sans-serif;
+  background-color: #2a7371; /* اللون التركوازي */
+  font-family: "Cairo", sans-serif;
 }
-
+.navbar-nav {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 12px;
+  align-items: center;
+  margin-right: 40px;
+  padding: 0;
+}
 .navbar .nav-link {
-  color: rgb(235, 198, 143);
+  color: rgb(235, 198, 143); /* النصوص بيضاء */
+}
+.navbar .nav-link:hover {
+  color: #e0f7f7; /* درجة أفتح */
+}
+.navbar .container-fluid {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* يوصل العناصر لأقصى اليسار واليمين الفيزيائي */
+  direction: ltr; /* نعطي الحاوية اتجاه LTR لنجعل "start = left" بشكل ثابت */
 }
 
-.navbar .nav-link:hover {
-  color: #e0f7f7;
+/* نضمن أن محتوى الـ collapse (القائمة والأزرار) يظهر أولاً ويأخذ المساحة */
+#navbarSupportedContent {
+  direction: rtl; /* لكن داخل القائمة نفسها نخلي النص عربي يظهر كـ RTL */
 }
 
 .btn-translate {
-  background-color: #2A7371;
-  color: #2A7371;
-  border: 2px solid rgb(235,198,143);
+  background-color: #2a7371;
+  color: #2a7371;
+  border: 2px solid rgb(235, 198, 143);
   border-radius: 5px;
   padding: 5px 5px;
   margin-right: 10px;
@@ -30,120 +47,91 @@ a {
 
 .btn-translate:hover {
   background-color: white;
-  color: #2A7371;
+  color: #2a7371;
 }
 
 .btn-custom {
-  background-color: #2A7371;
-  color: rgb(235,198,143);
-  border: 2px solid rgb(235,198,143);
-  border-radius: 5px;
-  padding: 10px 20px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  transition: 0.3s;
+  background-color: #2a7371; /* الخلفية */
+  color: rgb(235, 198, 143); /* لون النص */
+  border: 2px solid rgb(235, 198, 143); /* الحد */
+  border-radius: 5px; /* الحواف الدائرية */
+  padding: 10px 20px; /* المساحة الداخلية */
+  cursor: pointer; /* مؤشر الماوس */
+  display: inline-flex; /* لتنسيق الأيقونة مع النص */
+  align-items: center; /* محاذاة الأيقونة مع النص */
+  gap: 5px; /* مسافة بين النص والأيقونة */
+  transition: 0.3s; /* تأثير سلس عند Hover */
+  
 }
 
+/* Hover */
 .btn-custom:hover {
-  background-color: white;
-  color: #2A7371;
+  background-color: white; /* خلفية بيضاء عند المرور بالماوس */
+  color: #2a7371; /* النص والأيقونة يبقوا أخضر */
 }
 
+/* للتأكد أن أي SVG يرث لون النص */
 .btn-custom svg {
   fill: currentColor;
   stroke: currentColor;
 }
-
 .logo {
-  width: 120px;
+  width: 120px; /* حجم المربع اللي بدك ياه */
   height: 75px;
   display: flex;
   justify-content: center;
   align-items: center;
   margin-right: auto;
 }
-
 .logo img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: contain; /* أو cover حسب اللي بدك إياه */
 }
 
-.navbar-toggler {
-  background-color: rgb(235,198,143);
-}
-
-/* تعديل ترتيب العناصر داخل collapse */
-.collapse.navbar-collapse.show {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 20px;
-}
-
-/* ترتيب قائمة الروابط */
-.navbar-nav {
-  display: flex;
-  flex-direction: row;
-  gap: 20px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-/* ترتيب أزرار التسجيل */
-.login {
-  display: flex;
-  gap: 15px;
-}
-
-/* شاشات صغيرة */
-@media (max-width: 991px) {
-  .collapse.navbar-collapse {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .navbar-nav {
-    flex-direction: column;
-    width: 100%;
-    gap: 10px;
-    margin-top: 10px;
-  }
+ .navbar-toggler {
+    background-color: rgb(235, 198, 143) !important; /* الخلفية */
+  outline: none !important;
+  box-shadow: none!important;
+  direction: rtl;
   
+}
 
-  .login {
-    flex-direction: column;
-    width: 100%;
-    gap: 10px;
-    margin-top: 15px;
-  }
-  .nav-link, .btn-custom {
-    width: 100%;
-    text-align: right;
-    padding: 10px 15px;
-  }
-
+.login {
+  direction: rtl;
 }
 @media (max-width: 991px) {
-
-.btn-custom{
+  .navbar .container-fluid {
+    direction: rtl; /* نحتفظ بترتيب العرض */
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .btn-custom {
+    order: 1;
+  }
+  #navbarSupportedContent {
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start !important; /* اجعل الروابط تبدأ من اليسار الفيزيائي */
+    direction: rtl; /* لكن نصوص الروابط تبقى RTL داخليًا */
+  }
+  .login {
+    flex-direction: column !important;
+    gap: 10px !important;
     height: 50%;
     width: 50%;
+    margin-right: 5px;
   }
-}
-@media (min-width: 992px) {
-  .logo {
-    margin-left: 0 !important;
-    margin-right: auto !important; /* يخليه يبعد لأقصى يسار */
-  }
-  .login {
-    margin-left: auto !important; /* يخلي أزرار التسجيل يبعدوا لأقصى يمين */
+  .navbar-nav {
+    flex-direction: column !important;
+    gap: 10px;
+    margin-top: 2px;
     margin-right: 0;
+   align-items: flex-start;
+padding-right: 2px;
   }
-  .navbar-nav{
-    margin: 0 auto;
+
+  .nav-link {
+    padding: 8px 0;
   }
 }
