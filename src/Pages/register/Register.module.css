@@ -1,0 +1,30 @@
+.container{
+        background-color: #2A7371;       /* الخلفية */
+margin: 0;
+padding: 0;
+height: 100vh;
+position: relative;
+
+}
+.textBeige{
+
+color: rgb(235,198,143);/* أزرق عند الكبس/الهوفر */
+
+}
+
+
+.myBtn{
+      border: 1px solid #ccc;   /* خط خفيف رمادي */
+  transition: all 0.3s ease; /* حركة ناعمة */
+  border-radius: 5px;
+  background-color: rgb(235,198,143);/* أزرق عند الكبس/الهوفر */
+  color: rgb(98, 98, 98) ;            
+  border-color:rgb(138, 137, 137);
+      box-shadow: 0 0 0 0.8px rgb(138, 137, 137);
+
+}
+.customInput{
+    border-color: rgb(235,198,143) !important ;
+    box-shadow: 0 0 0 0.8px rgb(235,198,143) !important;
+   
+}

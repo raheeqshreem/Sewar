@@ -1,0 +1,149 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo&display=swap');
+
+a {
+  text-decoration: none;
+}
+
+.navbar {
+  background-color: #2A7371;
+  font-family: 'Cairo', sans-serif;
+}
+
+.navbar .nav-link {
+  color: rgb(235, 198, 143);
+}
+
+.navbar .nav-link:hover {
+  color: #e0f7f7;
+}
+
+.btn-translate {
+  background-color: #2A7371;
+  color: #2A7371;
+  border: 2px solid rgb(235,198,143);
+  border-radius: 5px;
+  padding: 5px 5px;
+  margin-right: 10px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn-translate:hover {
+  background-color: white;
+  color: #2A7371;
+}
+
+.btn-custom {
+  background-color: #2A7371;
+  color: rgb(235,198,143);
+  border: 2px solid rgb(235,198,143);
+  border-radius: 5px;
+  padding: 10px 20px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: 0.3s;
+}
+
+.btn-custom:hover {
+  background-color: white;
+  color: #2A7371;
+}
+
+.btn-custom svg {
+  fill: currentColor;
+  stroke: currentColor;
+}
+
+.logo {
+  width: 120px;
+  height: 75px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: auto;
+}
+
+.logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.navbar-toggler {
+  background-color: rgb(235,198,143);
+}
+
+/* تعديل ترتيب العناصر داخل collapse */
+.collapse.navbar-collapse.show {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 20px;
+}
+
+/* ترتيب قائمة الروابط */
+.navbar-nav {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ترتيب أزرار التسجيل */
+.login {
+  display: flex;
+  gap: 15px;
+}
+
+/* شاشات صغيرة */
+@media (max-width: 991px) {
+  .collapse.navbar-collapse {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .navbar-nav {
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  
+
+  .login {
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+    margin-top: 15px;
+  }
+  .nav-link, .btn-custom {
+    width: 100%;
+    text-align: right;
+    padding: 10px 15px;
+  }
+
+}
+@media (max-width: 991px) {
+
+.btn-custom{
+    height: 50%;
+    width: 50%;
+  }
+}
+@media (min-width: 992px) {
+  .logo {
+    margin-left: 0 !important;
+    margin-right: auto !important; /* يخليه يبعد لأقصى يسار */
+  }
+  .login {
+    margin-left: auto !important; /* يخلي أزرار التسجيل يبعدوا لأقصى يمين */
+    margin-right: 0;
+  }
+  .navbar-nav{
+    margin: 0 auto;
+  }
+}
