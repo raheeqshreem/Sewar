@@ -4,7 +4,19 @@ import { useForm } from 'react-hook-form';
 import logoo from './../../assets/logoo.jpeg'
 import styles from'./Register.module.css'; // ملف CSS
 import { useNavigate } from 'react-router-dom';
+import React,{ useEffect } from 'react';
 function Register() {
+  
+    useEffect(() => {
+      // نضيف class من الـ CSS Module للـ body
+      document.body.classList.add(styles.loginBody);
+  
+      // ننظف بعد ما يخرج المستخدم من الصفحة
+      return () => {
+        document.body.classList.remove(styles.loginBody);
+      };
+    }, []);
+  
 
 const {register,handleSubmit,reset,formState:{errors}} = useForm({mode:'onChange'});
 const navigate=  useNavigate();
@@ -14,7 +26,7 @@ reset();
 navigate("/signin")
 }
 
-  return <div className={`${styles.container} position-relative`}>
+  return <div className={`${styles.container} ${styles.loginBody} position-relative`}>
      <img src={logoo} className="card-img" alt="..." style={{width:"700px",height:"auto"}} />
  <div className="card-img-overlay d-flex flex-column  justify-content-lg-center justify-content-end align-items-end p-3 vh-100"> 
   <div className="w-100 d-flex justify-content-end  ">

@@ -33,7 +33,15 @@ form{
 }
 @media(max-width:600px){
     form{
-        margin-bottom: 500px;
+        margin-bottom: 100px;
 }
+.card-img img{
+    width: 50% !important;
+    height: 50% !important;
+
+}
+}
+.loginBody{
+      background-color: #2a7371; /* الخلفية */
 
 }
