@@ -1,7 +1,8 @@
 import React from 'react'
+import "./Home.css";
 
 export default function Home() {
   return (
-    <div>Home</div>
+    <div className=" container long-page "><h1>Sewar</h1></div>
   )
 }

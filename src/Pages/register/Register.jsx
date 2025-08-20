@@ -1,7 +1,7 @@
 
 
 import { useForm } from 'react-hook-form';
-import login from './../../assets/login.png'
+import logoo from './../../assets/logoo.jpeg'
 import styles from'./Register.module.css'; // ملف CSS
 import { useNavigate } from 'react-router-dom';
 function Register() {
@@ -15,9 +15,9 @@ navigate("/signin")
 }
 
   return <div className={`${styles.container} position-relative`}>
-  <img src={login} className="card-img" alt="..." />
+     <img src={logoo} className="card-img" alt="..." style={{width:"700px",height:"auto"}} />
  <div className="card-img-overlay d-flex flex-column  justify-content-lg-center justify-content-end align-items-end p-3 vh-100"> 
-  <div className="w-100 d-flex justify-content-end">
+  <div className="w-100 d-flex justify-content-end  ">
 
 
 <form className={styles.formBox} style={{ maxWidth: "400px", width: "90%" }} onSubmit={handleSubmit(registerForm)}>

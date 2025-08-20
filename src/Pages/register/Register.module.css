@@ -8,7 +8,7 @@ position: relative;
 }
 .textBeige{
 
-color: rgb(235,198,143);/* أزرق عند الكبس/الهوفر */
+color: beige;/* أزرق عند الكبس/الهوفر */
 
 }
 
@@ -17,14 +17,23 @@ color: rgb(235,198,143);/* أزرق عند الكبس/الهوفر */
       border: 1px solid #ccc;   /* خط خفيف رمادي */
   transition: all 0.3s ease; /* حركة ناعمة */
   border-radius: 5px;
-  background-color: rgb(235,198,143);/* أزرق عند الكبس/الهوفر */
+  background-color: beige;/* أزرق عند الكبس/الهوفر */
   color: rgb(98, 98, 98) ;            
   border-color:rgb(138, 137, 137);
       box-shadow: 0 0 0 0.8px rgb(138, 137, 137);
 
 }
 .customInput{
-    border-color: rgb(235,198,143) !important ;
-    box-shadow: 0 0 0 0.8px rgb(235,198,143) !important;
+    border-color: beige !important ;
+    box-shadow: 0 0 0 0.8px beige!important;
    
+}
+form{
+    margin-right: 50px;
+}
+@media(max-width:600px){
+    form{
+        margin-bottom: 500px;
+}
+
 }

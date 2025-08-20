@@ -11,6 +11,8 @@ import Feedback from "./Pages/feedback/Feedback";
 import Inquiry from "./Pages/inquiry/Inquiry";
 import File from "./Pages/file/File";
 import Loader from "./Components/loader/Loader";
+import '@fortawesome/fontawesome-free/css/all.min.css';
+import "./App.css";
 
 
 function App() {
@@ -19,7 +21,7 @@ function App() {
   
   
 <Routes>
-   <Route path='/' element={ <> <Navbar/><Home/><Footer/></>}></Route>
+   <Route path='/' element={ <> <Navbar/> <Home/><Footer/></>}></Route>
    <Route path='/signin' element={<Login/>}></Route>
    <Route path='/signup' element={<Register/>}></Route>
    <Route path='/user' element={<> <Navbar/><Profile/><Footer/></>}></Route>
@@ -29,9 +31,7 @@ function App() {
    <Route path='/inquiry' element={<> <Navbar/><Inquiry/><Footer/></>}></Route>
    <Route path='/file' element={<> <Navbar/><File/><Footer/></>}></Route>
 
-
 </Routes>
-
   
   
     </>

@@ -7,17 +7,21 @@ a {
 .navbar {
   background-color: #2a7371; /* اللون التركوازي */
   font-family: "Cairo", sans-serif;
+  
+  font-weight: 500;
+ text-shadow: 0.5px 0.5px 1px #0e0e0e;
 }
 .navbar-nav {
   display: flex !important;
   flex-direction: row !important;
   gap: 12px;
   align-items: center;
-  margin-right: 40px;
+  margin-right: 60px;
   padding: 0;
 }
 .navbar .nav-link {
-  color: rgb(235, 198, 143); /* النصوص بيضاء */
+  color:beige;
+ /* النصوص بيضاء */
 }
 .navbar .nav-link:hover {
   color: #e0f7f7; /* درجة أفتح */
@@ -30,30 +34,14 @@ a {
 }
 
 /* نضمن أن محتوى الـ collapse (القائمة والأزرار) يظهر أولاً ويأخذ المساحة */
-#navbarSupportedContent {
-  direction: rtl; /* لكن داخل القائمة نفسها نخلي النص عربي يظهر كـ RTL */
-}
-
-.btn-translate {
-  background-color: #2a7371;
-  color: #2a7371;
-  border: 2px solid rgb(235, 198, 143);
-  border-radius: 5px;
-  padding: 5px 5px;
-  margin-right: 10px;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-.btn-translate:hover {
-  background-color: white;
-  color: #2a7371;
+.offcanvas-body {
+  direction: rtl;
 }
 
 .btn-custom {
   background-color: #2a7371; /* الخلفية */
-  color: rgb(235, 198, 143); /* لون النص */
-  border: 2px solid rgb(235, 198, 143); /* الحد */
+  color: beige; /* لون النص */
+  border: 2px solid beige ;/* الحد */
   border-radius: 5px; /* الحواف الدائرية */
   padding: 10px 20px; /* المساحة الداخلية */
   cursor: pointer; /* مؤشر الماوس */
@@ -61,7 +49,16 @@ a {
   align-items: center; /* محاذاة الأيقونة مع النص */
   gap: 5px; /* مسافة بين النص والأيقونة */
   transition: 0.3s; /* تأثير سلس عند Hover */
-  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 150px;
+  height: 50px;
+  padding: 10px;
+  box-sizing: border-box;
+  border: 2px solid beige;
+  gap: 8px; /* لتباعد الأيقونة عن النص */
+
 }
 
 /* Hover */
@@ -82,23 +79,46 @@ a {
   justify-content: center;
   align-items: center;
   margin-right: auto;
+  overflow: hidden;
 }
 .logo img {
   width: 100%;
   height: 100%;
   object-fit: contain; /* أو cover حسب اللي بدك إياه */
 }
-
- .navbar-toggler {
-    background-color: rgb(235, 198, 143) !important; /* الخلفية */
-  outline: none !important;
-  box-shadow: none!important;
+.navbar-toggler {
+  background-color:beige; /* لون النص */
   direction: rtl;
-  
 }
-
 .login {
   direction: rtl;
+}
+.btn-primary {
+  visibility: hidden;
+  background-color:beige !important; /* الخلفية */
+  outline: none !important;
+  box-shadow: none !important;
+}
+.btn-primary:hover {
+  background-color: beige;
+}
+.toggleLogo {
+  display: none;
+}
+.toggleLogo img {
+  display: none;
+}
+.no-scrollbar {
+  /* لمتصفحات Firefox */
+  scrollbar-width: none;
+
+  /* لمتصفحات Internet Explorer و Edge القديم */
+  -ms-overflow-style: none;
+}
+
+/* لمتصفحات Chrome, Safari, Edge الجديد, Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 @media (max-width: 991px) {
   .navbar .container-fluid {
@@ -106,32 +126,67 @@ a {
     flex-wrap: wrap;
     gap: 8px;
   }
-  .btn-custom {
-    order: 1;
+  .btn-primary {
+    visibility: visible;
+    direction: ltr;
   }
-  #navbarSupportedContent {
+
+  #offcanvasRight {
+    background-color: #2a7371;
     width: 100%;
     flex-direction: column;
     align-items: flex-start !important; /* اجعل الروابط تبدأ من اليسار الفيزيائي */
+    width: max-content;
     direction: rtl; /* لكن نصوص الروابط تبقى RTL داخليًا */
   }
-  .login {
+   .login {
+    display: flex;
     flex-direction: column !important;
     gap: 10px !important;
-    height: 50%;
-    width: 50%;
-    margin-right: 5px;
+    height: 50% ;
+    width: 50% ;
+    border: 2px beige;
+    box-sizing: border-box;
   }
+
+ 
   .navbar-nav {
     flex-direction: column !important;
     gap: 10px;
-    margin-top: 2px;
-    margin-right: 0;
-   align-items: flex-start;
-padding-right: 2px;
+    margin-top: 15px;
+    margin-right: 10px;
+    align-items: flex-start;
   }
-
   .nav-link {
     padding: 8px 0;
+    width: max-content;
+    align-items: center;
+    padding-left: 40px;
+  }
+  .btn-custom {
+    order: 1;
+    width: max-content;
+    padding-left: 40px;
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 150px;
+  height: 40px;
+  padding: 10px;
+  box-sizing: border-box;
+  border: 2px solid beige;
+  gap: 8px; /* لتباعد الأيقونة عن النص */
+
+  }
+
+  .offcanvas-backdrop {
+    /* تطبيق فلتر البلور على الخلفية */
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px); /* لدعم متصفح سفاري */
+
+    /* تغيير الخلفية من اللون الأسود الكامل إلى لون شبه شفاف */
+    /* يمكنك تعديل قيمة 0.4 لجعلها أغمق أو أفتح */
+    background-color: rgba(0, 0, 0, 0.4) !important;
   }
 }

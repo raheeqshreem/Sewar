@@ -1,0 +1,80 @@
+@import url("https://fonts.googleapis.com/css2?family=Cairo&display=swap");
+.footer {
+  background-color: #2a7371;
+color: beige;
+  text-align: center;       /* النصوص على اليمين */
+  box-shadow: 0 1px 5px beige;
+  font-family: "Cairo", sans-serif;
+          direction: rtl;
+           text-shadow: 0.5px 0.5px 1px #0e0e0e;
+
+
+}
+.me p{
+    text-align: center;
+    margin-top: 30px;
+               text-shadow: 0.5px 0.5px 1px #0e0e0e;
+
+}
+
+.NameClinic{
+display: flex;
+justify-content: center;
+align-items: center;
+           text-shadow: 1px 1px 2px #0e0e0e;
+
+
+ }
+         
+.Clinicc   p{
+           text-shadow: 1px 1px 2px #0e0e0e;
+font-size: 17px;
+}
+.Clinic   p{
+           text-shadow: 1px 1px 2px #0e0e0e;
+font-size: 17px;
+}
+
+.Clinicc {
+margin-right: 80px;
+margin-top: 40px;
+transition: transform 0.5s ease;
+
+}
+.Clinicc :hover{
+
+  transform: scale(1.3);
+  cursor: pointer;
+}
+
+
+
+@media (max-width: 991px) {
+.Clinicc{
+display: flex;
+justify-content: center;
+align-items: center;
+           text-shadow: 1px 1px 2px #0e0e0e;
+}
+.me h5{
+display: flex;
+justify-content: center;
+align-items: center;
+}
+.me p{
+display: flex;
+justify-content: center;
+align-items: center;
+}
+}
+
+.Clinic i{
+transition: transform 0.5s ease;
+
+}
+.Clinic i:hover{
+
+  transform: scale(1.3);
+  cursor: pointer;
+}
+
