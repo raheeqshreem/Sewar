@@ -27,7 +27,7 @@ navigate("/signin")
 }
 
   return <div className={`${styles.container} ${styles.loginBody} position-relative`}>
-     <img src={logoo} className="card-img" alt="..." style={{width:"700px",height:"auto"}} />
+     <img src={logoo} className={`${styles.cardImg}`} alt="..."  />
  <div className="card-img-overlay d-flex flex-column  justify-content-lg-center justify-content-end align-items-end p-3 vh-100"> 
   <div className="w-100 d-flex justify-content-end  ">
 

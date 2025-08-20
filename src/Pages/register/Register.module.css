@@ -35,13 +35,19 @@ form{
     form{
         margin-bottom: 100px;
 }
-.card-img img{
-    width: 50% !important;
-    height: 50% !important;
+.cardImg img{
+    width: 50px !important;
+    height: auto!important;
 
 }
 }
 .loginBody{
       background-color: #2a7371; /* الخلفية */
+
+
+}
+.cardImg img{
+    width: 700px ;
+    height:auto ;
 
 }
