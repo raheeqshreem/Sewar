@@ -5,7 +5,7 @@ const Footer = () => {
 
 
 const [copied, setCopied] = useState(false);
-  const textToCopy = "هذا النص اللي هيتنسخ";
+  const textToCopy = "0592245331";
  const copyWithFallback = (text) => {
     // فالنشاط: نسخة قديمة باستخدام textarea + execCommand
     const ta = document.createElement("textarea");
@@ -44,82 +44,93 @@ const [copied, setCopied] = useState(false);
 
 
   return (
-    <footer className={styles.footer}>
-      <div className={`container p-4 `}>
-        <div className="row text-center text-md-start">
+  <footer className={styles.footer}>
+  <div className="container pt-4">
+<div className={`${styles.content}`}>
+      {/* القسم الأول - يمين */}
+      <div className={`${styles.me1} col-md-6 mb-3`}>
+        <h5 className={styles.NameClinic} >
+          مركز سوار للعلاج الطبيعي  
+          <i className="fa-solid fa-2x fa-hands-holding-child" style={{ marginRight: "10px" }}></i>
+        </h5>
+        <p style={{ lineHeight: "2" }}>
+          نسعى لتقديم العلاج الطبيعي بأعلى جودة 
+          وبأحدث الأساليب , خدمات متكاملة لكل الأعمار بحب واحترافية
+        </p>
 
- <div className={`${styles.me} col-md-4 mb-3`}>
-            <h5 className={`  ${styles.NameClinic} style={{fontWeight:'bold'}}`}>  مركز سوار للعلاج الطبيعي  <i className="fa-solid  fa-2x fa-hands-holding-child" style={{marginRight:'10px'}}></i>  </h5>
-            <p style={{lineHeight: "2"}}>نسعى لتقديم العلاج الطبيعي بأعلى جودة 
-            وبأحدث الأساليب , خدمات متكاملة لكل الأعمار بحب و احترافية  </p>
-            
-            <div className={`${styles.Clinicc} col-md-4 mb-3`} style={{ display: "flex", gap: "15px" }}>
-  <a 
-    href="https://www.facebook.com/share/1AxQqLCF2q/" 
-    target="_blank" 
-    rel="noopener noreferrer"
-    style={{ color: "inherit" }}
-  >
-    <i className="fa-brands fa-2x fa-square-facebook"></i>
-  </a>
-
-  <a 
-    href="https://www.instagram.com/sewarshrim?igsh=MWtmMWJkbHppcmU1Yw==" 
-    target="_blank" 
-    rel="noopener noreferrer"
-    style={{ color: "inherit" }}
-  >
-    <i className="fa-brands fa-2x fa-square-instagram"></i>
-  </a>
-
-  <a 
-    href="https://wa.me/970592245331" 
-    target="_blank" 
-    rel="noopener noreferrer"
-    style={{ color: "inherit" }}
-  >
-    <i className="fa-brands fa-2x fa-square-whatsapp"></i>
-  </a>
-</div>
-          </div>
-
- <div className={`${styles.Clinic} col-md-4 mb-3`}>
-            
-           <p>   0592-245-331 <i className="fa-solid fa-2x fa-phone-volume" style={{marginRight:'10px' , marginTop:'20px'}}></i><br /></p>
-           <a 
-  href="mailto:Sewarshrim@gmail.com?subject=مرحبا&body=مرحبًا، أرسل لك هذا الرابط: https://example.com" 
-  style={{ color: "inherit" }}
->
-  Sewarshrim@gmail.com 
-  <i className="fa-solid fa-2x fa-envelope" style={{ marginRight: '10px', marginTop: '20px' }}></i>
-  <br />
-</a>
-<a 
-  href="https://maps.app.goo.gl/gZkrJZn8erxjPxTV7" 
-  target="_blank" 
-  rel="noopener noreferrer"
-  style={{ 
-     
-    color: "inherit", 
-    textDecoration: "none", 
-    marginTop: "20px",
-    cursor: "pointer"
-  }}
->
-  <span>Qalqilya-Khillet Yaseen</span>
-  <i className="fa-solid fa-2x fa-location-dot" ></i>
-</a>            
-          </div>
-         
-
-
-         
-        </div>
-        <div className=" text-center mt-3">
-          <small className={`${styles.NameClinic}`}>جميع الحقوق محفوظة   2025 © </small>
+        <div className={styles.Clinicc} style={{ display: "flex", gap: "15px" }}>
+          <a href="https://www.facebook.com/share/1AxQqLCF2q/" target="_blank" rel="noopener noreferrer">
+            <i className="fa-brands fa-2x fa-square-facebook"></i>
+          </a>
+          <a href="https://www.instagram.com/sewarshrim?igsh=MWtmMWJkbHppcmU1Yw==" target="_blank" rel="noopener noreferrer">
+            <i className="fa-brands fa-2x fa-square-instagram"></i>
+          </a>
+          <a href="https://wa.me/970592245331" target="_blank" rel="noopener noreferrer">
+            <i className="fa-brands fa-2x fa-square-whatsapp"></i>
+          </a>
         </div>
       </div>
-    </footer>
+            {/*القسم الثاني - وسط */}
+
+    <div className={`${styles.me2} `}>
+      <h3 style={{ fontWeight: "bold", marginBottom: "15px" }}>ساعات العمل</h3>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+        <span>الاثنين</span>
+        <span>8:00-3:00</span>
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+        <span>الثلاثاء</span>
+        <span></span>
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+        <span>الأربعاء</span>
+        <span>8:00-3:00</span>
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px", fontWeight: "bold", borderBottom: "1px solid #718096", paddingBottom: "8px" }}>
+        <span>الخميس</span>
+        <span>8:00-3:00</span>
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px", alignItems: "center" }}>
+        <span>الجمعة</span>
+        <span style={{ backgroundColor: "#718096", color: "#f7fafc", padding: "2px 8px", borderRadius: "4px", fontSize: "12px" }}>CLOSED</span>
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+        <span>السبت</span>
+        <span>8:00-3:00</span>
+      </div>
+      <div style={{ }}>
+        <span>الأحد</span>
+        <span>8:00-3:00</span>
+      </div>
+    </div>
+ 
+
+
+      {/* القسم الثالث - يسار */}
+      <div className={`${styles.me3} col-md-6 mb-3`}>
+        <div className={styles.contactItem}>
+          <span>0592-245-331</span>
+                    <i className="fa-solid   fa-phone-volume"></i>
+
+        </div>
+        <div className={styles.contactItem}>
+          <span>Qalqilya-Khillet Yaseen</span>
+                    <i className="fa-solid   fa-location-dot"></i>
+
+        </div>
+        <div className={styles.contactItem}>
+          <a href="mailto:Sewarshrim@gmail.com">Sewarshrim@gmail.com</a>
+                    <i className="fa-solid   fa-envelope"></i>
+
+        </div>
+      </div>
+    
+</div>
+    <div className="text-center mt-3">
+      <small className={styles.NameClinic}>جميع الحقوق محفوظة 2025 ©</small>
+    </div>
+  </div>
+</footer>
   );
 };
 

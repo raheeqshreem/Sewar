@@ -7,15 +7,13 @@ color: beige;
   font-family: "Cairo", sans-serif;
           direction: rtl;
            text-shadow: 0.5px 0.5px 1px #0e0e0e;
-
+         
 
 }
 
 
-
 .Clinicc {
-/*margin-right: 80px;
-margin-top: 40px;*/
+
 transition: transform 0.5s ease;
 
 }
@@ -27,72 +25,97 @@ transition: transform 0.5s ease;
 
 
 
-@media (max-width: 991px) {
+/*@media (max-width: 991px) {
 .Clinicc{
 display: flex;
 justify-content: center;
 align-items: center;
            text-shadow: 1px 1px 2px #0e0e0e;
 }
-.me h5{
-display: flex;
-justify-content: center;
-align-items: center;
-}
-.me p{
-display: flex;
-justify-content: center;
-align-items: center;
-}
-}
 
-
-
-
-
-.me {
-  display: flex;
-  flex-direction: column; /* ترتيب العناصر عموديًا */
-  align-items: center; /* كل شيء على نفس المحاذاة الأفقية */
-  gap: 20px;               /* مسافة ثابتة بين h5 و p و div أيقونات */
-}
-
-.Clinicc{
-  margin-left: 90px !important;
-
-}
 .Clinicc i {
   font-size: 3rem;
-}
-.Clinic i{
+}}*/
+.contactItem i{
 transition: transform 0.5s ease;
 
 }
-.Clinic i:hover{
-
+.contactItem i:hover{
   transform: scale(1.3);
   cursor: pointer;
 }
 
 
 
-.Clinic p,
-.Clinic a {
-        /* محاذاة الأيقونة والنص عموديًا بنفس المستوى */
-  gap: 10px;                 /* مسافة بين النص والأيقونة */
-  margin: 10px 0;    
-  text-shadow: 1px 1px 2px #0e0e0e;
-font-size: 17px;    
-  cursor: pointer;
-    /* مسافة رأسية بين كل سطر */
+
+/*...............................................................*/
+/*.me {
+  display: flex;
+  flex-direction: column; /* العناصر فوق بعض */
+  /*  align-items: center;    /* توسيط أفقي */
+/*  justify-content: center; /* توسيط عمودي داخل الحاوية */
+/*  gap: 15px;              /* المسافة بين العناصر */
+/*  text-align: center;     /* النصوص في الوسط */
+/*  padding: 20px;          /* مسافة داخلية */
+
+
+.Clinicc {
+  display: flex;
+  gap: 15px;             /* المسافة بين الأيقونات */
+  justify-content: center; /* توسيط الأيقونات */
+}
+/*...............................................*/
+.content{
+  background-color: aliceblue;
+  display: flex;
 }
 
-.Clinic i {
-  font-size: 1.5rem;         /* حجم الأيقونات ثابت */
-  margin: 0;                 /* نتخلص من أي margin زائد */
+.me1{
+  background-color: blueviolet;
+  flex: 1 1 0;
+  box-sizing: border-box;
+    width: 100%;
+
 }
-.Clinic{
+.me2{
+  flex: 1 1 0;
+  box-sizing: border-box;
+  background-color: burlywood;
+    width: 100%;
+
+}
+
+
+.me3 {
+  background-color: #070707;
+  flex: 1 1 0;
+  box-sizing: border-box;
+  width: 100%;
+  /*flex-direction: column; /* العناصر فوق بعض */
+  /*align-items: center;    /* توسيط أفقي */
+ /* justify-content: center; /* توسيط عمودي داخل الحاوية */
+  /*gap: 20px;              /* المسافة بين العناصر */
+  /*text-align: center;     /* النصوص في الوسط */
+/* padding: 20px;} */
+}
+.me1 h5{
+  fontWeight:bold;
+}
+.contactItem {
   display: flex;
-  flex-direction: column;
-gap: 2px;
+  align-items: center; /* تجعل النص والأيقونة بمحاذاة واحدة */
+  gap: 10px; /* المسافة بين الأيقونة والنص */
+}
+.contactItem i {
+  font-size: 20px; /* حجم الأيقونة */
+  width: 25px; /* لضبط كل الأيقونات على نفس العرض */
+  text-align: center;
+}
+.contactItem span,
+.contactItem a {
+  font-size: 20px;
+  color: beige;
+             text-shadow: 1px 1px 2px #0e0e0e;
+
+  text-decoration: none;
 }
