@@ -10,34 +10,12 @@ color: beige;
 
 
 }
-.me p{
-    text-align: center;
-    margin-top: 30px;
-               text-shadow: 0.5px 0.5px 1px #0e0e0e;
-
-}
-
-.NameClinic{
-display: flex;
-justify-content: center;
-align-items: center;
-           text-shadow: 1px 1px 2px #0e0e0e;
 
 
- }
-         
-.Clinicc   p{
-           text-shadow: 1px 1px 2px #0e0e0e;
-font-size: 17px;
-}
-.Clinic   p{
-           text-shadow: 1px 1px 2px #0e0e0e;
-font-size: 17px;
-}
 
 .Clinicc {
-margin-right: 80px;
-margin-top: 40px;
+/*margin-right: 80px;
+margin-top: 40px;*/
 transition: transform 0.5s ease;
 
 }
@@ -68,6 +46,24 @@ align-items: center;
 }
 }
 
+
+
+
+
+.me {
+  display: flex;
+  flex-direction: column; /* ترتيب العناصر عموديًا */
+  align-items: center; /* كل شيء على نفس المحاذاة الأفقية */
+  gap: 20px;               /* مسافة ثابتة بين h5 و p و div أيقونات */
+}
+
+.Clinicc{
+  margin-left: 90px !important;
+
+}
+.Clinicc i {
+  font-size: 3rem;
+}
 .Clinic i{
 transition: transform 0.5s ease;
 
@@ -78,3 +74,25 @@ transition: transform 0.5s ease;
   cursor: pointer;
 }
 
+
+
+.Clinic p,
+.Clinic a {
+        /* محاذاة الأيقونة والنص عموديًا بنفس المستوى */
+  gap: 10px;                 /* مسافة بين النص والأيقونة */
+  margin: 10px 0;    
+  text-shadow: 1px 1px 2px #0e0e0e;
+font-size: 17px;    
+  cursor: pointer;
+    /* مسافة رأسية بين كل سطر */
+}
+
+.Clinic i {
+  font-size: 1.5rem;         /* حجم الأيقونات ثابت */
+  margin: 0;                 /* نتخلص من أي margin زائد */
+}
+.Clinic{
+  display: flex;
+  flex-direction: column;
+gap: 2px;
+}
