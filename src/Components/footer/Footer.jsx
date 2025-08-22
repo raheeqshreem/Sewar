@@ -1,136 +1,155 @@
-import styles from "./Footer.module.css";
-import 'bootstrap-icons/font/bootstrap-icons.css';
 import React, { useState } from "react";
+import toast from "react-hot-toast";
+import styles from "./Footer.module.css";
+import "bootstrap-icons/font/bootstrap-icons.css";
+import {
+  FaFacebookSquare,
+  FaInstagramSquare,
+  FaWhatsappSquare,
+  FaFacebook,
+  FaInstagram,
+  FaWhatsapp,
+} from "react-icons/fa";
+
 const Footer = () => {
-
-
-const [copied, setCopied] = useState(false);
-  const textToCopy = "0592245331";
- const copyWithFallback = (text) => {
-    // فالنشاط: نسخة قديمة باستخدام textarea + execCommand
-    const ta = document.createElement("textarea");
-    ta.value = text;
-    ta.setAttribute("readonly", "");
-    ta.style.position = "fixed"; // عشان ما يسببش scroll
-    ta.style.left = "-9999px";
-    document.body.appendChild(ta);
-    ta.select();
-    try {
-      document.execCommand("copy");
-    } catch (err) {
-      console.error("Fallback: copy failed", err);
-    }
-    document.body.removeChild(ta);
-  };
+  const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
+    const textToCopy = "0592-245-331";
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        // أفضل طريقة لو متاحة
         await navigator.clipboard.writeText(textToCopy);
       } else {
-        // لو مش مدعوم استخدم fallback
-        copyWithFallback(textToCopy);
+        const ta = document.createElement("textarea");
+        ta.value = textToCopy;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
       }
+      toast.success("تم نسخ الرقم بنجاح!");
       setCopied(true);
-      setTimeout(() => setCopied(false), 1500); // رجّع الحالة بعد 1.5 ثانية
+      setTimeout(() => setCopied(false), 1500);
     } catch (err) {
       console.error("Copy failed:", err);
-      // تقدر تظهر رسالة خطأ للمستخدم هنا
+      toast.error("فشل النسخ");
     }
   };
 
-
-
-
   return (
-  <footer className={styles.footer}>
-  <div className="container pt-4">
-<div className={`${styles.content}`}>
-      {/* القسم الأول - يمين */}
-      <div className={`${styles.me1} col-md-6 mb-3`}>
-        <h5 className={styles.NameClinic} >
-          مركز سوار للعلاج الطبيعي  
-          <i className="fa-solid fa-2x fa-hands-holding-child" style={{ marginRight: "10px" }}></i>
-        </h5>
-        <p style={{ lineHeight: "2" }}>
-          نسعى لتقديم العلاج الطبيعي بأعلى جودة 
-          وبأحدث الأساليب , خدمات متكاملة لكل الأعمار بحب واحترافية
-        </p>
+    <footer className={styles.footer}>
+      <div className="container p-4">
+        <div className="row">
+          {/* Section 1: About */}
+          <div className={`${styles.aboutSection} col-md-4 mb-4`}
+          style={{ alignItems: "center", display: "flex" ,gap: "2rem" }}>
+            <h5 className={styles.NameClinic}>
+              مركز سوار للعلاج الطبيعي
+              <i className="fa-solid fa-hands-holding-child me-2"></i>
+            </h5>
+            <p className={styles.clinicDescription}>
+              نسعى لتقديم العلاج الطبيعي بأعلى جودة وبأحدث الأساليب , خدمات
+              متكاملة لكل الأعمار بحب واحترافية.
+            </p>
+          </div>
 
-        <div className={styles.Clinicc} style={{ display: "flex", gap: "15px" }}>
-          <a href="https://www.facebook.com/share/1AxQqLCF2q/" target="_blank" rel="noopener noreferrer">
-            <i className="fa-brands fa-2x fa-square-facebook"></i>
-          </a>
-          <a href="https://www.instagram.com/sewarshrim?igsh=MWtmMWJkbHppcmU1Yw==" target="_blank" rel="noopener noreferrer">
-            <i className="fa-brands fa-2x fa-square-instagram"></i>
-          </a>
-          <a href="https://wa.me/970592245331" target="_blank" rel="noopener noreferrer">
-            <i className="fa-brands fa-2x fa-square-whatsapp"></i>
-          </a>
+          {/* Section 2: Business Hours */}
+          <div className={`${styles.hoursSection} col-md-4 mb-4`}
+          style={{ alignItems: "center", display: "flex", flexDirection: "column" ,gap: "2rem"}}
+          >
+            <h3 className={styles.sectionTitle}>
+              ساعات العمل
+              <i className="fa-solid fa-clock ms-2"></i>
+            </h3>
+            <div className={styles.timeItem}>
+              <span>
+                من الأحد إلى الخميس:
+              </span>
+              <span>8:00 - 3:00</span>
+            </div>
+            <div className={styles.socialContainer}>
+              {/* Facebook Icon */}{" "}
+              <a
+                href="https://www.facebook.com/share/1AxQqLCF2q/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+               {" "}
+                <div className={styles.iconWrapper}>
+                   {/* الخلفية البيضاء */}
+                  {" "}
+                  <FaFacebook
+                    className={`${styles.icon} ${styles.iconBackground}`}
+                  />
+                   {/* الأيقونة الملونة */} {" "}
+                  <FaFacebookSquare
+                    className={`${styles.icon} ${styles.iconForeground} ${styles.facebook}`}
+                  />
+                </div>
+              </a>
+              {/* Instagram Icon */}
+              <a
+                href="https://www.instagram.com/sewarshrim?igsh=MWtmMWJkbHppcmU1Yw=="
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <div className={styles.iconWrapper}>
+                  <FaInstagram
+                    className={`${styles.icon} ${styles.iconBackground}`}
+                  />
+                  <FaInstagramSquare
+                    className={`${styles.icon} ${styles.iconForeground} ${styles.instagram}`}
+                  />
+                </div>
+              </a>
+              {/* WhatsApp Icon */}
+              <a
+                href="https://wa.me/970592245331"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <div className={styles.iconWrapper}>
+                  <FaWhatsapp
+                    className={`${styles.icon} ${styles.iconBackground}`}
+                  />
+                  <FaWhatsappSquare
+                    className={`${styles.icon} ${styles.iconForeground} ${styles.whatsapp}`}
+                  />
+                </div>
+              </a>
+            </div>
+          </div>
+
+          {/* Section 3: Contact Info */}
+          <div className={`${styles.contactSection} col-md-4 mb-4`}
+          style={{ alignItems: "end", display: "flex", flexDirection: "column" ,gap: "2rem"}} >
+            <div className={styles.contactItem}>
+              <button onClick={handleCopy} className={styles.copyButton}>
+                {copied ? "تم النسخ ✅" : "0592-245-331"}
+              </button>
+              <i className="fa-solid fa-phone-volume ms-2"></i>
+            </div>
+            <div className={styles.contactItem}>
+              <span>Qalqilya-Khillet Yaseen</span>
+              <i className="fa-solid fa-location-dot ms-2"></i>
+            </div>
+            <div className={styles.contactItem}>
+              <a
+                href="mailto:Sewarshrim@gmail.com"
+                className={styles.emailLink}
+              >
+                Sewarshrim@gmail.com
+              </a>
+              <i className="fa-solid fa-envelope ms-2"></i>
+            </div>
+          </div>
+        </div>
+
+        <div className="text-center mt-3 pt-3">
+          <small className={styles.copyright}>جميع الحقوق محفوظة © 2025</small>
         </div>
       </div>
-            {/*القسم الثاني - وسط */}
-
-    <div className={`${styles.me2} `}>
-      <h3 style={{ fontWeight: "bold", marginBottom: "15px" }}>ساعات العمل</h3>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-        <span>الاثنين</span>
-        <span>8:00-3:00</span>
-      </div>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-        <span>الثلاثاء</span>
-        <span></span>
-      </div>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-        <span>الأربعاء</span>
-        <span>8:00-3:00</span>
-      </div>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px", fontWeight: "bold", borderBottom: "1px solid #718096", paddingBottom: "8px" }}>
-        <span>الخميس</span>
-        <span>8:00-3:00</span>
-      </div>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px", alignItems: "center" }}>
-        <span>الجمعة</span>
-        <span style={{ backgroundColor: "#718096", color: "#f7fafc", padding: "2px 8px", borderRadius: "4px", fontSize: "12px" }}>CLOSED</span>
-      </div>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-        <span>السبت</span>
-        <span>8:00-3:00</span>
-      </div>
-      <div style={{ }}>
-        <span>الأحد</span>
-        <span>8:00-3:00</span>
-      </div>
-    </div>
- 
-
-
-      {/* القسم الثالث - يسار */}
-      <div className={`${styles.me3} col-md-6 mb-3`}>
-        <div className={styles.contactItem}>
-          <span>0592-245-331</span>
-                    <i className="fa-solid   fa-phone-volume"></i>
-
-        </div>
-        <div className={styles.contactItem}>
-          <span>Qalqilya-Khillet Yaseen</span>
-                    <i className="fa-solid   fa-location-dot"></i>
-
-        </div>
-        <div className={styles.contactItem}>
-          <a href="mailto:Sewarshrim@gmail.com">Sewarshrim@gmail.com</a>
-                    <i className="fa-solid   fa-envelope"></i>
-
-        </div>
-      </div>
-    
-</div>
-    <div className="text-center mt-3">
-      <small className={styles.NameClinic}>جميع الحقوق محفوظة 2025 ©</small>
-    </div>
-  </div>
-</footer>
+    </footer>
   );
 };
 

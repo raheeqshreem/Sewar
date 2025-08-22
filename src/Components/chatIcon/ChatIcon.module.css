@@ -1,0 +1,46 @@
+.iconWrapper {
+  position: relative;
+  width: 45px;  /* للتحكم في الحجم الكلي */
+  height: 45px;
+  transition: transform 0.2s ease-in-out;
+}
+
+.iconWrapper:hover {
+  transform: scale(1.1);
+}
+
+/* تنسيق مشترك لوضع الأيقونتين في المنتصف فوق بعض */
+.icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* الطبقة الخلفية: تكون بيضاء وأكبر قليلاً */
+.iconBackground {
+     border-radius: 10px;
+    color: white;
+    font-size: 45px;
+    z-index: 1;
+    background-color: white;
+    width: initial;
+    height: 30px;
+}
+
+/* الطبقة الأمامية: تكون ملونة وأصغر قليلاً */
+.iconForeground {
+  font-size: 40px; /* أصغر بفرق بسيط لعمل تأثير الخلفية */
+  z-index: 2;
+}
+
+/* ألوان البراند لكل أيقونة */
+.facebook {
+  color: #1877F2;
+}
+.instagram {
+  color: #E4405F;
+}
+.whatsapp {
+  color: #25D366;
+}

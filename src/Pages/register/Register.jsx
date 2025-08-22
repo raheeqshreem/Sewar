@@ -126,21 +126,27 @@ function Register() {
         </div>
 
         <div className="mb-3">
-          <select
+          <select  {...register("UserType", { required: "Please Enter UserType" })}
             id="inputState"
-            {...register("UserType")}
             className={`${styles.customInput} form-select text-secondary `}
+            
           >
             <option value="">User Type...</option>
             <option value="Patient">Patient</option>
             <option value="Doctor">Doctor</option>
             <option value="Secretary">Secretary</option>
+            
           </select>
+          {errors.UserType && (
+            <p className={`${styles.textBeige} position-absolute small`}>
+              {errors.UserType.message}
+            </p>
+          )}
         </div>
 
         <div>
           <button type="submit" className={`${styles.myBtn} btn w-100`}>
-            Register
+            Sign Up
           </button>
         </div>
       </form>

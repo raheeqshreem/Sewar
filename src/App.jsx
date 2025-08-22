@@ -13,13 +13,13 @@ import File from "./Pages/file/File";
 import Loader from "./Components/loader/Loader";
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import "./App.css";
-
+import ChatIcon from "./Components/chatIcon/ChatIcon";
 
 function App() {
   
   return <> 
   
-  
+  <ChatIcon />
 <Routes>
    <Route path='/' element={ <> <Navbar/> <Home/><Footer/></>}></Route>
    <Route path='/signin' element={<Login/>}></Route>
