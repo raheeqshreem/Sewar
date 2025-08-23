@@ -59,7 +59,7 @@ function Login() {
             {...register("Email", {
               required: "Please Enter Email",
               pattern: {
-                value: /^[^\s@]+@gmail\.com$/, // نص قبل @ و @gmail.com بالآخر
+                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, // نص قبل @ و @gmail.com بالآخر
                 message: "Email must be in the format yourname@gmail.com",
               },
             })}
@@ -75,15 +75,14 @@ function Login() {
             </p>
           )}
         </div>
-
-        <div className="form-floating mb-4 position-relative">
+<div className="mb-4">
+        <div className="form-floating  position-relative">
           <input
             {...register("Password", {
               required: "Please Enter Password",
               pattern: {
                 value:
-                  /^(?=.[a-z])(?=.[A-Z])(?=.\d)(?=.[!@#$%^&*(),.?":{}|<>]).{8,15}$/,
-                message:
+           /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,15}$/,              message:
                   "Password must be 8-15 characters long, contain at least one number, one uppercase letter, one lowercase letter, and one special character",
               },
             })}
@@ -94,31 +93,20 @@ function Login() {
           />
           <button
             type="button"
-            onClick={() => setShowPassword(!showPassword)} // <-- تبديل حالة الإظهار
-            className="showPasswordButton"
-            style={{
-              position: "absolute",
-              top: 0,
-              bottom: 0,
-              right: 0,
-              paddingRight: "0.75rem",
-              display: "flex",
-              alignItems: "center",
-              color: "#94a3b8",
-              backgroundColor: "white",
-              border: "none",
-              fontSize: "1rem",
-            }}
-            aria-label={showPassword ? "Hide password" : "Show password"}
+            onClick={() => setShowPassword(!showPassword)}
+            className={styles.showPasswordButton}
+            aria-label={
+              showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"
+            }
           >
             {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
           </button>
           <label htmlFor="floatingPassword">Password</label>
-          {errors.Password && (
-            <p className={`${styles.textBeige} `}>{errors.Password.message}</p>
-          )}
         </div>
-
+        {errors.Password && (
+          <p className={`${styles.textBeige}`}>{errors.Password.message}</p>
+        )}
+        </div>
         <div className="mb-3">
           <a
             href="#"
@@ -207,7 +195,7 @@ function Login() {
           <Link
             to="/signup"
             className="text-decoration-none"
-            style={`{ fontSize: 14, color: "beige" }`}
+            style={{ fontSize: 14, color: "beige" }}
           >
             Sign up
           </Link>

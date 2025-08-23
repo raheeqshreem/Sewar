@@ -1,4 +1,3 @@
-
 .loginBody {
   background-color: #2a7371; /* خلفية الصفحة بالكامل */
 }
@@ -83,4 +82,19 @@
   .loginImage {
     width: 500px; /* الحجم النهائي للصورة */
   }
+}
+.showPasswordButton {
+  position: absolute;
+  top: 50%;
+  right: 15px;
+  transform: translateY(-50%);
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  z-index: 10;
+  color: #94a3b8;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
