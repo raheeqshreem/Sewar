@@ -2,9 +2,12 @@ import { useForm } from "react-hook-form";
 import logoo from "./../../assets/logoo.jpeg";
 import styles from "./Register.module.css";
 import { useNavigate } from "react-router-dom";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 function Register() {
+  const [showPassword, setShowPassword] = useState(false);
+  const[showConfirmPassword, setShowConfirmPassword] = useState(false);
   useEffect(() => {
     // هذا الكود يضيف خلفية خاصة للصفحة عند الدخول إليها
     document.body.classList.add(styles.loginBody);
@@ -33,15 +36,11 @@ function Register() {
   return (
     // العنصر الحاوي الرئيسي الذي يتحكم في التجاوب
     <div className={styles.container}>
-      
       {/* العنصر الأول: الصورة */}
       <img src={logoo} className={styles.loginImage} alt="Clinic Logo" />
 
       {/* العنصر الثاني: الفورم */}
-      <form
-        className={styles.formBox}
-        onSubmit={handleSubmit(registerForm)}
-      >
+      <form className={styles.formBox} onSubmit={handleSubmit(registerForm)}>
         <div className="form-floating mb-4 position-relative">
           <input
             {...register("FirstName", { required: "Please Enter First Name" })}
@@ -59,7 +58,8 @@ function Register() {
         </div>
 
         <div className="form-floating mb-4 position-relative">
-          <input {...register("LastName", { required: "Please Enter Last Name" })}
+          <input
+            {...register("LastName", { required: "Please Enter Last Name" })}
             type="text"
             className={`form-control ${styles.customInput}`}
             id="lastName"
@@ -96,11 +96,32 @@ function Register() {
               minLength: { value: 3, message: "Minimum 3 Characters" },
               maxLength: { value: 8, message: "Maximum 8 Characters" },
             })}
-            type="password"
+            type={showPassword ? "text" : "password"} // <-- تغيير نوع الحقل بناءً على الحالة
             className={`form-control ${styles.customInput}`}
             id="floatingPassword"
             placeholder="Password"
           />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)} // <-- تبديل حالة الإظهار
+            className="showPasswordButton"
+            style={{
+              position: "absolute",
+              top: 0,
+              bottom: 0,
+              right: 0,
+              paddingRight: "0.75rem",
+              display: "flex",
+              alignItems: "center",
+              color: "#94a3b8",
+              backgroundColor: "white",
+              border: "none",
+              fontSize: "1rem",
+            }}
+            aria-label={showPassword ? "Hide password" : "Show password"}
+          >
+            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+          </button>
           <label htmlFor="floatingPassword">Password</label>
           {errors.Password && (
             <p className={`${styles.textBeige} position-absolute small`}>
@@ -111,12 +132,35 @@ function Register() {
 
         <div className="form-floating mb-4 position-relative">
           <input
-            {...register("ConfirmPass", { required: "Please Confirm Password" })}
-            type="password"
+            {...register("ConfirmPass", {
+              required: "Please Confirm Password",
+            })}
+            type={showConfirmPassword ? "text" : "password"} // <-- تغيير نوع الحقل بناءً على الحالة
             className={`form-control ${styles.customInput}`}
             id="ConfirmPassword"
             placeholder="ConfirmPassword"
           />
+          <button
+            type="button"
+            onClick={() => setShowConfirmPassword(!showConfirmPassword)} // <-- تبديل حالة الإظهار
+            className="showPasswordButton"
+            style={{
+              position: "absolute",
+              top: 0,
+              bottom: 0,
+              right: 0,
+              paddingRight: "0.75rem",
+              display: "flex",
+              alignItems: "center",
+              color: "#94a3b8",
+              backgroundColor: "white",
+              border: "none",
+              fontSize: "1rem",
+            }}
+            aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+          >
+            {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+          </button>
           <label htmlFor="ConfirmPassword">Confirm Password</label>
           {errors.ConfirmPass && (
             <p className={`${styles.textBeige} position-absolute small`}>
@@ -126,16 +170,15 @@ function Register() {
         </div>
 
         <div className="mb-3">
-          <select  {...register("UserType", { required: "Please Enter UserType" })}
+          <select
+            {...register("UserType", { required: "Please Enter UserType" })}
             id="inputState"
             className={`${styles.customInput} form-select text-secondary `}
-            
           >
             <option value="">User Type...</option>
             <option value="Patient">Patient</option>
             <option value="Doctor">Doctor</option>
             <option value="Secretary">Secretary</option>
-            
           </select>
           {errors.UserType && (
             <p className={`${styles.textBeige} position-absolute small`}>

@@ -2,7 +2,11 @@ import { useForm } from "react-hook-form";
 import logoo from "./../../assets/logoo.jpeg";
 import styles from "./Login.module.css";
 import { useNavigate } from "react-router-dom";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import Google from "./../../assets/Google.png";
+import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
+
 
 function Login() {
   useEffect(() => {
@@ -26,9 +30,21 @@ function Login() {
   const registerForm = (values) => {
     console.log(values);
     // هنا سترسل البيانات للسيرفر
+    toast.success("  مركز سوار للعلاج الطبيعي يرحب بكم", {
+  duration: 3000,
+  style: {
+    fontSize: "18px",   // حجم الخط
+    padding: "16px",    // مسافة داخلية
+    minWidth: "200px",  // عرض أكبر
+    direction: "rtl", // اتجاه النص من اليمين لليسار
+  },
+  position: "top-center", // موضع الرسالة
+});
     reset();
-    navigate("/signin");
+    navigate("/");
   };
+  const [remember, setRemember] = useState(false);
+
 
   return (
     // العنصر الحاوي الرئيسي الذي يتحكم في التجاوب
@@ -44,43 +60,72 @@ function Login() {
       >
 
         <div className="form-floating mb-4 position-relative">
-          <input
-            {...register("Email", { required: "Please Enter Email" })}
-            type="email"
-            className={`form-control ${styles.customInput}`}
-            id="floatingEmail"
-            placeholder="name@example.com"
-          />
-          <label htmlFor="floatingEmail">Email address</label>
-          {errors.Email && (
-            <p className={`${styles.textBeige} position-absolute small`}>
-              {errors.Email.message}
-            </p>
-          )}
+      <input
+    {...register("Email", {
+      required: "Please Enter Email",
+      pattern: {
+        value: /^[^\s@]+@gmail\.com$/, // نص قبل @ و @gmail.com بالآخر
+        message: "Email must be in the format yourname@gmail.com"
+      }
+    })}
+    type="email"
+    className={`form-control ${styles.customInput}`}
+    id="floatingEmail"
+    placeholder="name@gmail.com"
+  />
+  <label htmlFor="floatingEmail">Email address</label>
+  {errors.Email && (
+    <p className={`${styles.textBeige} position-absolute small`}>
+      {errors.Email.message}
+    </p>
+  )}
         </div>
 
         <div className="form-floating mb-4 position-relative">
-          <input
-            {...register("Password", {
-              required: "Please Enter Password",
-              minLength: { value: 3, message: "Minimum 3 Characters" },
-              maxLength: { value: 8, message: "Maximum 8 Characters" },
-            })}
-            type="password"
-            className={`form-control ${styles.customInput}`}
-            id="floatingPassword"
-            placeholder="Password"
-          />
-          <label htmlFor="floatingPassword">Password</label>
-          {errors.Password && (
-            <p className={`${styles.textBeige} position-absolute small`}>
-              {errors.Password.message}
-            </p>
-          )}
+         <input
+    {...register("Password", {
+      required: "Please Enter Password",
+      pattern: {
+        value: /^(?=.[a-z])(?=.[A-Z])(?=.\d)(?=.[!@#$%^&*(),.?":{}|<>]).{8,15}$/,
+        message: "Password must be 8-15 characters long, contain at least one number, one uppercase letter, one lowercase letter, and one special character"
+      }
+    })}
+    type="password"
+    className={`form-control ${styles.customInput}`}
+    id="floatingPassword"
+    placeholder="Password"
+  />
+  <label htmlFor="floatingPassword">Password</label>
+  {errors.Password && (
+    <p className={`${styles.textBeige} `}>
+      {errors.Password.message}
+    </p>
+  )}
         </div>
 
         
 
+        <div className="mb-3">
+          <a href="#" className="text-decoration-none" style={{ fontSize: 14 ,color:'beige' }}>
+            Forgot password?
+          </a>
+        </div>
+
+
+
+
+        <div className="form-check form-switch mb-3 d-flex align-items-center">
+          <input
+            className="form-check-input"
+            type="checkbox"
+            id="rememberSwitch"
+            checked={remember}
+            onChange={() => setRemember(!remember)}
+          />
+          <label className="form-check-label ms-2" htmlFor="rememberSwitch" style={{ fontSize: 14, color:'beige'}}>
+            Remember sign in details
+          </label>
+        </div>
         
 
         <div>
@@ -88,6 +133,30 @@ function Login() {
             Log in
           </button>
         </div>
+
+<div style={{ display: 'flex', alignItems: 'center', color: 'beige', fontSize: 14, marginTop: 8, marginBottom: 8 }}>
+  <hr style={{ flex: 1, border: 'none', borderTop: '1px solid beige', marginRight: 10 }} />
+  <span>OR</span>
+  <hr style={{ flex: 1, border: 'none', borderTop: '1px solid beige', marginLeft: 10 }} />
+</div>
+        <button type="button" className="btn btn-light  border d-flex align-items-center justify-content-center gap-2" style={{borderRadius:'30px',width:'100%',height:'35px',fontSize:'14px'}}>
+        
+                <img src={Google}  alt="Google"  className="me-2" style={{width:'25px',height:'25px'}}/>
+          
+          Continue with Google
+        </button>
+
+      <p className="text-center mt-4" style={{ fontSize: 14, color: 'beige' }}>
+  Don't have an account?{" "}
+  <Link 
+    to="/signup" 
+    className="text-decoration-none" 
+    style={{ fontSize: 14, color: 'beige' }}
+  >
+    Sign up
+  </Link>
+</p>
+
       </form>
     </div>
   );
