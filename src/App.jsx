@@ -10,13 +10,17 @@ import Communication from "./Pages/communication/Communication";
 import Feedback from "./Pages/feedback/Feedback";
 import Inquiry from "./Pages/inquiry/Inquiry";
 import File from "./Pages/file/File";
+import ForgetPassword from "./Pages/forgetPassword/ForgetPassword";
+import ResetPassword from "./Pages/forgetPassword/ResetPassword";
+
 import ChatIcon from "./Components/chatIcon/ChatIcon";
 import styles from "./App.module.css"; // ✅ استدعاء الـ CSS Module
 import '@fortawesome/fontawesome-free/css/all.min.css';
-import ForgetPassword from "./Pages/forgetPassword/ForgetPassword";
+
+
 function App() {
   const location = useLocation();
-  const hideLayout = ["/signin", "/signup","/forgetPassword"].includes(location.pathname);
+  const hideLayout = ["/signin", "/signup","/forgetPassword","/resetPassword"].includes(location.pathname);
 
   return (
     <div className={styles.appContainer}>
@@ -37,6 +41,7 @@ function App() {
           <Route path="/inquiry" element={<Inquiry />} />
           <Route path="/file" element={<File />} />
           <Route path="/forgetPassword" element={<ForgetPassword />} />
+          <Route path="/resetPassword" element={<ResetPassword />} />
 
         </Routes>
       </div>
