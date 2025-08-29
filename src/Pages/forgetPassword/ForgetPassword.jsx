@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 function ForgetPassword() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [isError, setIsError] = useState(false);
 
   useEffect(() => {
     document.body.classList.add(styles.loginBody);
@@ -25,27 +26,33 @@ function ForgetPassword() {
   const onSubmit = async (data) => {
     setLoading(true);
     setMessage("");
+    setIsError(false);
 
     try {
-      // الرابط من الباك (انت بتعطيني إياه مثلاً)
-      const response = await fetch("http://localhost:5000/api/forget-password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email: data.Email }),
-      });
+      const response = await fetch(
+        "https://sewarwellnessclinic1.runasp.net/api/ForgetPassword/forgot-password",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email: data.Email }),
+        }
+      );
 
       const result = await response.json();
 
       if (response.ok) {
         setMessage("✅ تم إرسال رابط إعادة التعيين لبريدك الإلكتروني");
+        setIsError(false);
         reset();
       } else {
-        setMessage(result.message || "حدث خطأ، حاول مرة أخرى");
+        setMessage(result.message || "⚠️ هذا البريد غير مسجل لدينا");
+        setIsError(true);
       }
     } catch (error) {
       setMessage("⚠️ فشل الاتصال بالسيرفر");
+      setIsError(true);
     } finally {
       setLoading(false);
     }
@@ -62,10 +69,10 @@ function ForgetPassword() {
           <div className="form-floating">
             <input
               {...register("Email", {
-                required: "Please Enter Email",
+                required: "الرجاء إدخال بريدك الإلكتروني",
                 pattern: {
-                  value: /^[^\s@]+@gmail\.com$/,
-                  message: "Email must be in the format yourname@gmail.com",
+                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                  message: "البريد الإلكتروني غير صحيح",
                 },
               })}
               type="email"
@@ -81,7 +88,10 @@ function ForgetPassword() {
         </div>
 
         {message && (
-          <p className="text-center" style={{ color: "beige" }}>
+          <p
+            className="text-center"
+            style={{ color: isError ? "red" : "green" }}
+          >
             {message}
           </p>
         )}

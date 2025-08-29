@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import logoo from "./../../assets/logoo.jpeg";
 import styles from "./Register.module.css";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { Eye, EyeOff } from "lucide-react";
@@ -218,8 +218,7 @@ function Register() {
             alignItems: "center",
             color: "beige",
             fontSize: 14,
-            marginTop: 8,
-            marginBottom: 8,
+          
           }}
         >
           <hr
@@ -258,7 +257,21 @@ function Register() {
             style={{ width: "25px", height: "25px" }}
           />
           Continue with Google
+          
         </button>
+         <p
+          className="text-center mt-2"
+          style={{ fontSize: 14, color: "beige" }}
+        >
+          Do have an account ?{" "}
+          <Link
+            to="/signin"
+            className="text-decoration-none"
+            style={{ fontSize: 14, color: "beige" }}
+          >
+            Sign in
+          </Link>
+        </p>
       </form>
     </div>
   );
