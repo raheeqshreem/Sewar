@@ -7,60 +7,137 @@ import Google from "./../../assets/Google.png";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import { Eye, EyeOff } from "lucide-react";
+import axios from "axios";
+import { FaRegGrinStars} from "react-icons/fa"; // أيقونة ترحيب
 
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
-  useEffect(() => {
-    // هذا الكود يضيف خلفية خاصة للصفحة عند الدخول إليها
-    document.body.classList.add(styles.loginBody);
-    // ويزيلها عند الخروج
-    return () => {
-      document.body.classList.remove(styles.loginBody);
-    };
-  }, []);
+  const [remember, setRemember] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const {
     register,
     handleSubmit,
-    reset,
+    setValue,
     formState: { errors },
   } = useForm({ mode: "onChange" });
 
-  const navigate = useNavigate();
+  // عند التحميل: قراءة rememberedEmail و rememberMe
+  useEffect(() => {
+    const rememberedEmail = localStorage.getItem("rememberedEmail");
+    const rememberFlag = localStorage.getItem("rememberMe"); // "1" أو "0" أو null
+    if (rememberedEmail) {
+      setValue("Email", rememberedEmail);
+      setRemember(true);
+    } else if (rememberFlag === "1") {
+      // المستخدم فعّل الخيار سابقًا لكن لم نخزن الإيميل بعد
+      setRemember(true);
+    }
+  }, [setValue]);
 
-  const registerForm = (values) => {
-    console.log(values);
-    // هنا سترسل البيانات للسيرفر
-    toast.success("  مركز سوار للعلاج الطبيعي يرحب بكم", {
-      duration: 3000,
-      style: {
-        fontSize: "18px", // حجم الخط
-        padding: "16px", // مسافة داخلية
-        minWidth: "200px", // عرض أكبر
-        direction: "rtl", // اتجاه النص من اليمين لليسار
-      },
-      position: "top-center", // موضع الرسالة
-    });
-    reset();
-    navigate("/");
+  // عند تغيير الcheckbox: نحفظ العلم فوراً، وإذا ألغاه المستخدم نمسح الايميل
+  const onToggleRemember = (checked) => {
+    setRemember(checked);
+    if (!checked) {
+      // لو ألغى: امسح الايميل المخزن فورًا (UX)
+      localStorage.removeItem("rememberedEmail");
+      localStorage.setItem("rememberMe", "0");
+    } else {
+      // لو فعّل: سجل العلم، لكن الايميل نفسه نحفظه عند نجاح الدخول
+      localStorage.setItem("rememberMe", "1");
+    }
   };
-  const [remember, setRemember] = useState(false);
+
+  // الدالة الرئيسية لتسجيل الدخول
+  const registerForm = async (values) => {
+    setLoading(true);
+    try {
+      const payload = {
+        email: values.Email,
+        password: values.Password,
+        rememberMe: remember, // ✅ صح كده
+      };
+
+      const response = await axios.post(
+        "http://sewarwellnessclinic1.runasp.net/api/LoginPatient/login",
+        payload
+      );
+
+      console.log("Response:", response.data);
+
+      const sessionData = {
+        token: response.data.token,
+        expiration: response.data.expiration,
+        userId: response.data.userId,
+        userType: response.data.userType,
+        roles: response.data.roles,
+        fullName: response.data.fullName,
+      };
+
+      localStorage.setItem("user", JSON.stringify(sessionData));
+
+      if (remember) {
+        localStorage.setItem("rememberedEmail", values.Email);
+        localStorage.setItem("rememberMe", "1");
+      } else {
+        localStorage.removeItem("rememberedEmail");
+        localStorage.setItem("rememberMe", "0");
+      }
+
+toast.custom(
+      (t) => (
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            padding: "16px 24px",
+            background: "beige",
+            color: "#333",
+            borderRadius: "12px",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+            fontFamily: "Arial, sans-serif",
+            textAlign: "center",
+            maxWidth: "300px",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "18px", fontWeight: "600", color: "#2a7371" }}>
+            <FaRegGrinStars color="#FFD700" size={24} /> {/* أيقونة ترحيب */}
+            أهلاً بك في مركز سوار
+          </div>
+          <div style={{ marginTop: "8px", fontSize: "14px", color: "#2a7371" }}>
+            نتمنى لك تجربة علاجية مميزة معنا
+          </div>
+        </div>
+      ),
+      { duration: 10000 } // يظهر لمدة دقيقة
+    );      navigate("/");
+    } catch (error) {
+      console.error("Login error full:", error.response?.data || error.message);
+      toast.error(
+        error.response?.data?.message ||
+          JSON.stringify(error.response?.data) ||
+          "خطأ في تسجيل الدخول"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    // العنصر الحاوي الرئيسي الذي يتحكم في التجاوب
     <div className={styles.container}>
-      {/* العنصر الأول: الصورة */}
       <img src={logoo} className={styles.loginImage} alt="Clinic Logo" />
 
-      {/* العنصر الثاني: الفورم */}
       <form className={styles.formBox} onSubmit={handleSubmit(registerForm)}>
+        {/* Email */}
         <div className="form-floating mb-4 position-relative">
           <input
             {...register("Email", {
               required: "Please Enter Email",
               pattern: {
-                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, // نص قبل @ و @gmail.com بالآخر
-                message: "Email must be in the format yourname@gmail.com",
+                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                message: "Email must be valid",
               },
             })}
             type="email"
@@ -75,71 +152,88 @@ function Login() {
             </p>
           )}
         </div>
-<div className="mb-4">
-        <div className="form-floating  position-relative">
-          <input
-            {...register("Password", {
-              required: "Please Enter Password",
-              pattern: {
-                value:
-           /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,15}$/,              message:
-                  "Password must be 8-15 characters long, contain at least one number, one uppercase letter, one lowercase letter, and one special character",
-              },
-            })}
-            type={showPassword ? "text" : "password"} // <-- تغيير نوع الحقل بناءً على الحالة
-            className={`form-control ${styles.customInput}`}
-            id="floatingPassword"
-            placeholder="Password"
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className={styles.showPasswordButton}
-            aria-label={
-              showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"
-            }
-          >
-            {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
-          </button>
-          <label htmlFor="floatingPassword">Password</label>
-        </div>
-        {errors.Password && (
-          <p className={`${styles.textBeige}`}>{errors.Password.message}</p>
-        )}
-        </div>
-        <div className="mb-3">
-          <a
-            href="#"
-            className="text-decoration-none"
-            style={{ fontSize: 14, color: "beige" }}
-          >
-            Forgot password?
-          </a>
+
+        {/* Password */}
+        <div className="mb-4">
+          <div className="form-floating position-relative">
+            <input
+              {...register("Password", {
+                required: "Please Enter Password",
+                pattern: {
+                  value:
+                    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,15}$/,
+                  message:
+                    "Password must be 8-15 characters, contain a number, uppercase, lowercase and special char",
+                },
+              })}
+              type={showPassword ? "text" : "password"}
+              className={`form-control ${styles.customInput}`}
+              id="floatingPassword"
+              placeholder="Password"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className={styles.showPasswordButton}
+              aria-label={
+                showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"
+              }
+            >
+              {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
+            </button>
+            <label htmlFor="floatingPassword">Password</label>
+          </div>
+          {errors.Password && (
+            <p className={`${styles.textBeige}`}>{errors.Password.message}</p>
+          )}
         </div>
 
-        <div className="form-check form-switch mb-3 d-flex align-items-center">
+        {/* Forgot */}
+
+<div className="mb-3">
+  <Link
+    to="/forgetPassword"
+    className="text-decoration-none"
+    style={{ fontSize: 14, color: "beige" }}
+  >
+    Forgot password?
+  </Link>
+</div>
+
+        {/* Remember me */}
+        <div
+          className="form-check form-switch mb-3 d-flex align-items-center"
+          style={{ padding: "0px", justifyContent:"space-between" }}
+        >
+          <label
+            className="form-check-label me-2"
+            htmlFor="rememberSwitch"
+            style={{ fontSize: 14, color: "beige", padding: "0px" }}
+          >
+            Remember sign in details
+          </label>
           <input
+            style={{ marginLeft: "0" }}
             className="form-check-input"
             type="checkbox"
             id="rememberSwitch"
             checked={remember}
-            onChange={() => setRemember(!remember)}
+            onChange={(e) => onToggleRemember(e.target.checked)}
           />
-          <label
-            className="form-check-label ms-2"
-            htmlFor="rememberSwitch"
-            style={{ fontSize: 14, color: "beige" }}
-          >
-            Remember sign in details
-          </label>
         </div>
 
+        {/* Submit */}
         <div>
-          <button type="submit" className={`${styles.myBtn} btn w-100`}>
-            Log in
+          <button
+            type="submit"
+            className={`${styles.myBtn} btn w-100`}
+            disabled={loading}
+          >
+            {loading ? "جاري تسجيل الدخول..." : "Log in"}
           </button>
         </div>
 
+        {/* Divider */}
         <div
           style={{
             display: "flex",
@@ -168,9 +262,11 @@ function Login() {
             }}
           />
         </div>
+
+        {/* Google */}
         <button
           type="button"
-          className="btn btn-light  border d-flex align-items-center justify-content-center gap-2"
+          className="btn btn-light border d-flex align-items-center justify-content-center gap-2"
           style={{
             borderRadius: "30px",
             width: "100%",
@@ -181,12 +277,12 @@ function Login() {
           <img
             src={Google}
             alt="Google"
-            className="me-2"
             style={{ width: "25px", height: "25px" }}
           />
           Continue with Google
         </button>
 
+        {/* Sign up link */}
         <p
           className="text-center mt-4"
           style={{ fontSize: 14, color: "beige" }}

@@ -1,0 +1,257 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@100..900&display=swap");
+
+.longPage {
+  min-height: 200vh;
+  margin-top: 90px;
+
+  font-family: "Noto Kufi Arabic", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}
+
+body {
+  overflow: scroll;
+}
+
+/* أزرار التحكم */
+.carouselControlPrev,
+.carouselControlNext {
+  width: 55px;
+  height: 55px;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 15px;
+}
+
+.carouselControlPrev:hover,
+.carouselControlNext:hover {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.carouselControlPrevIcon,
+.carouselControlNextIcon {
+  filter: invert(1) brightness(2);
+  width: 20px;
+  height: 20px;
+}
+
+.carouselCaptionCustom {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: #fff;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.carouselCaptionCustom h1 {
+  font-size: 2.5rem;
+  font-weight: bold;
+
+}
+
+.carouselCaptionCustom h2 {
+  font-size: 2rem;
+  font-weight: normal;
+
+}
+
+.carouselCaptionCustom p {
+  font-size: 1.2rem;
+  font-weight: 200;
+}
+
+.carouselCaptionCustom h2,
+.carouselCaptionCustom p,
+.carouselCaptionCustom h1 {
+  width: 600px;
+  text-shadow: 0 0 10px #000;
+  pointer-events: none;
+  margin: 0 auto;
+  margin-bottom: 20px;
+}
+
+.carouselControlPrev:focus,
+.carouselControlPrev:active,
+.carouselControlNext:focus,
+.carouselControlNext:active {
+  background-color: hsla(0, 0%, 100%, 0.179) !important;
+  box-shadow: none !important;
+}
+
+.carouselItem img {
+  width: 100vw;
+  height: 500px;
+  object-fit: cover;
+  display: block;
+}
+
+.imageWrapper {
+  position: relative;
+  width: 100vw;
+  height: auto;
+  overflow: hidden;
+}
+
+.imageWrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(58, 146, 78, 0.4);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.noSelect {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.imageWrapper:hover .overlay {
+  opacity: 1;
+}
+
+/* 📱 موبايل */
+@media (max-width: 576px) {
+  .carouselItem img {
+    height: 250px;
+  }
+
+  .carouselControlPrev,
+  .carouselControlNext {
+    width: 35px;
+    height: 35px;
+    margin: 0 10px;
+  }
+
+  .carouselControlPrevIcon,
+  .carouselControlNextIcon {
+    width: 12px;
+    height: 12px;
+  }
+
+  .carouselCaptionCustom h1 {
+    font-size: 1rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+    width: 230px;
+  }
+
+  .carouselCaptionCustom h2 {
+    font-size: 1rem;
+    font-weight: normal;
+    margin-bottom: 20px;
+    width: 230px;
+  }
+
+  .carouselCaptionCustom p {
+    font-size: 1rem;
+    font-weight: 200;
+    width: 230px;
+  }
+}
+
+/* 📲 تابلت */
+@media (min-width: 577px) and (max-width: 992px) {
+  .carouselItem img {
+    height: 400px;
+  }
+
+  .carouselControlPrev,
+  .carouselControlNext {
+    width: 45px;
+    height: 45px;
+  }
+
+  .carouselCaptionCustom h1 {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+    width: 550px;
+  }
+
+  .carouselCaptionCustom h2 {
+    font-size: 2rem;
+    font-weight: normal;
+    margin-bottom: 20px;
+    width: 550px;
+  }
+
+  .carouselCaptionCustom p {
+    font-size: 1.2rem;
+    font-weight: 200;
+    width: 550px;
+  }
+}
+
+/* 🖥️ شاشات كبيرة */
+@media (min-width: 993px) {
+  .carouselItem img {
+    width: 100vw;
+    height: 800px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .carouselControlPrev,
+  .carouselControlNext {
+    width: 55px;
+    height: 55px;
+  }
+
+  .carouselCaptionCustom h1 {
+    font-size: 2.5rem;
+    font-weight: bolder;
+    margin-bottom: 20px;
+    width: 100%;
+  }
+
+  .carouselCaptionCustom h2 {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+    width: 100%;
+  }
+
+  .carouselCaptionCustom p {
+    font-size: 1.2rem;
+    font-weight: normal;
+    width: 100%;
+  }
+}
+.contactButton {
+  margin-top: 40px;
+  padding: 10px 20px;
+  font-size: 1.2rem;
+  color: #3a924e;
+  background-color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  pointer-events: auto;
+  display: inline-block;
+  
+}
+.contactButton:hover{
+  color: #fff;
+  background-color: #3a924e;
+}

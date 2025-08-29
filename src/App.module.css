@@ -1,0 +1,17 @@
+/* نخلي كل الصفحة فل سكرين */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+/* نخلي الـ App container يعمل flex */
+.appContainer {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* المحتوى هو اللي يتمدّد */
+.content {
+  flex: 1;
+}

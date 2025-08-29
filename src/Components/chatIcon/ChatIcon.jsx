@@ -1,106 +1,64 @@
-import React, { useState } from 'react';
-import styles from "./ChatIcon.module.css";
+import React, { useState } from "react";
+import { FaWhatsapp } from "react-icons/fa";
 
-import {
-  FaFacebookSquare,
-  FaInstagramSquare,
-  FaWhatsappSquare,
-  FaFacebook,
-  FaWhatsapp,
-  FaInstagram,
-} from "react-icons/fa";
-
-export default function ChatIcon() {
-  const [showIcons, setShowIcons] = useState(false);
+const ChatIcon = () => {
+  const [hover, setHover] = useState(false);
 
   return (
-    <>
-      <div
-        id="main-icon"
-        onClick={() => setShowIcons(!showIcons)}
-        style={{
-          background: ' #2a7371',
-          width: 50,
-          height: 50,
-          borderRadius: '50%',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          position: 'fixed',
-          bottom: 20,
-          right: 20,
-          zIndex: 1000,
-        }}
-      >
- <a><i className="fa-regular fa-2x fa-message" style={{color:'beige'}}></i> </a> 
- </div>
-
-      {showIcons && (
+    <div
+      style={{
+        position: "fixed",
+        bottom: "20px",
+        right: "20px",
+        zIndex: 1000,
+      }}
+    >
+      {/* Tooltip */}
+      {hover && (
         <div
-          id="social-icons"
           style={{
-            display: 'flex',
-            flexDirection: 'column',
-            position: 'fixed',
-            bottom: 80,
-            right: 20,
-            zIndex: 1000,
+            position: "absolute",
+            bottom: "70px", // فوق الدائرة
+            right: "50%",
+            transform: "translateX(50%)",
+            backgroundColor: "#2a7371",
+            color: "beige",
+            padding: "8px 12px",
+            borderRadius: "8px",
+            whiteSpace: "nowrap",
+            fontSize: "14px",
+            boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
           }}
         >
- <div className={styles.socialContainer}>
-              {/* Facebook Icon */}
-              <a
-                href="https://www.facebook.com/share/1AxQqLCF2q/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <div className={styles.iconWrapper}>
-                  {/* الخلفية البيضاء */}
-                  <FaFacebook
-                    className={`${styles.icon} ${styles.iconBackground}`}
-                  />
-                  {/* الأيقونة الملونة */}
-                  <FaFacebookSquare
-                    className={`${styles.icon} ${styles.iconForeground} ${styles.facebook}`}
-                  />
-                </div>
-              </a>
-
-              {/* Instagram Icon */}
-              <a
-                href="https://www.instagram.com/sewarshrim?igsh=MWtmMWJkbHppcmU1Yw=="
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <div className={styles.iconWrapper}>
-                  <FaInstagram
-                    className={`${styles.icon} ${styles.iconBackground}`}
-                  />
-                  <FaInstagramSquare
-                    className={`${styles.icon} ${styles.iconForeground} ${styles.instagram}`}
-                  />
-                </div>
-              </a>
-
-              {/* WhatsApp Icon */}
-              <a
-                href="https://wa.me/970592245331"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <div className={styles.iconWrapper}>
-                  <FaWhatsapp
-                    className={`${styles.icon} ${styles.iconBackground}`}
-                  />
-                  <FaWhatsappSquare
-                    className={`${styles.icon} ${styles.iconForeground} ${styles.whatsapp}`}
-                  />
-                </div>
-              </a>
-            </div>
+          تواصل معنا 
         </div>
       )}
-    </>
+
+      {/* الزر */}
+      <a
+        href="https://wa.me/1234567890"
+        target="_blank"
+        rel="noopener noreferrer"
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => setHover(false)}
+        style={{
+          backgroundColor: "#25D366",
+          color: "white",
+          borderRadius: "50%",
+          width: "60px",
+          height: "60px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "40px",
+          boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
+          cursor: "pointer",
+        }}
+      >
+        <FaWhatsapp />
+      </a>
+    </div>
   );
-}
+};
+
+export default ChatIcon;

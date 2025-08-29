@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 import Footer from "./Components/footer/Footer";
 import Navbar from "./Components/navbar/Navbar";
 import Home from "./Pages/home/Home";
@@ -10,30 +10,40 @@ import Communication from "./Pages/communication/Communication";
 import Feedback from "./Pages/feedback/Feedback";
 import Inquiry from "./Pages/inquiry/Inquiry";
 import File from "./Pages/file/File";
-import Loader from "./Components/loader/Loader";
-import '@fortawesome/fontawesome-free/css/all.min.css';
-import "./App.css";
 import ChatIcon from "./Components/chatIcon/ChatIcon";
-
+import styles from "./App.module.css"; // ✅ استدعاء الـ CSS Module
+import '@fortawesome/fontawesome-free/css/all.min.css';
+import ForgetPassword from "./Pages/forgetPassword/ForgetPassword";
 function App() {
-  
-  return <> 
-  
-  <ChatIcon />
-<Routes>
-   <Route path='/' element={ <> <Navbar/> <Home/><Footer/></>}></Route>
-   <Route path='/signin' element={<Login/>}></Route>
-   <Route path='/signup' element={<Register/>}></Route>
-   <Route path='/user' element={<> <Navbar/><Profile/><Footer/></>}></Route>
-   <Route path='/appointment' element={<> <Navbar/><Appointment/><Footer/></>}></Route>
-   <Route path='/communication' element={<> <Navbar/><Communication/><Footer/></>}></Route>
-   <Route path='/feedback' element={<> <Navbar/><Feedback/><Footer/></>}></Route>
-   <Route path='/inquiry' element={<> <Navbar/><Inquiry/><Footer/></>}></Route>
-   <Route path='/file' element={<> <Navbar/><File/><Footer/></>}></Route>
+  const location = useLocation();
+  const hideLayout = ["/signin", "/signup","/forgetPassword"].includes(location.pathname);
 
-</Routes>
-  
-  
-    </>
+  return (
+    <div className={styles.appContainer}>
+      <ChatIcon />
+      
+      {!hideLayout && <Navbar />}
+
+      {/* هنا المحتوى */}
+      <div className={styles.content}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/signin" element={<Login />} />
+          <Route path="/signup" element={<Register />} />
+          <Route path="/user" element={<Profile />} />
+          <Route path="/appointment" element={<Appointment />} />
+          <Route path="/communication" element={<Communication />} />
+          <Route path="/feedback" element={<Feedback />} />
+          <Route path="/inquiry" element={<Inquiry />} />
+          <Route path="/file" element={<File />} />
+          <Route path="/forgetPassword" element={<ForgetPassword />} />
+
+        </Routes>
+      </div>
+
+      {!hideLayout && <Footer />}
+    </div>
+  );
 }
+
 export default App;

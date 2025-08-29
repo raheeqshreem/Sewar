@@ -5,6 +5,8 @@ import { useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { Eye, EyeOff } from "lucide-react";
+import axios from "axios";
+import Google from "./../../assets/Google.png";
 
 function Register() {
   const [showPassword, setShowPassword] = useState(false);
@@ -29,21 +31,38 @@ function Register() {
   const navigate = useNavigate();
   const password = watch("Password");
 
-  const registerForm = (values) => {
-    console.log(values);
-    toast.success("تم انشاء حسابك بنجاح.", {
-      duration: 2000,
-      style: {
-        fontSize: "18px", // حجم الخط
-        padding: "16px", // مسافة داخلية
-        minWidth: "200px", // عرض أكبر
-        direction: "rtl", // اتجاه النص من اليمين لليسار
-      },
-      position: "top-center", // موضع الرسالة
-    });
-    reset();
-    navigate("/");
+  const registerForm = async (values) => {
+    const payload = {
+      Email: values.Email,
+      Password: values.Password,
+      // في الفورم اسم الحقل ConfirmPass -> في الباك Confirmpassword
+      Confirmpassword: values.ConfirmPass,
+      FirstName: values.FirstName,
+      LastName: values.LastName,
+      // لو عندك UserName في الفورم استخدمه، ولو مش موجود خلي الايميل كـ username
+      UserName: values.UserName || values.Email,
+      // لو عايز تبعت UserType عشان الباك يختار role ممكن تبعته كحقل اضافي
+    };
+
+    try {
+      const res = await axios.post(
+        "http://sewarwellnessclinic1.runasp.net/api/PatientRegister/register-patient",
+        payload,
+        {
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+
+      toast.success(res.data || "تم انشاء حسابك بنجاح.");
+      reset();
+      navigate("/signin");
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message || err?.response?.data || err.message;
+      toast.error(msg);
+    }
   };
+
   return (
     // العنصر الحاوي الرئيسي الذي يتحكم في التجاوب
     <div className={styles.container}>
@@ -88,7 +107,7 @@ function Register() {
               })}
               type="text"
               className={`form-control ${styles.customInput}`}
-              id="lasttName"
+              id="lastName"
               placeholder="Last Name"
             />
             <label htmlFor="lastName">Last Name</label>
@@ -130,7 +149,8 @@ function Register() {
                 required: "Please Enter Password",
                 pattern: {
                   value:
-/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,15}$/,                  message:
+                    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,15}$/,
+                  message:
                     "Password must be 8-15 characters long, contain at least one number, one uppercase letter, one lowercase letter, and one special character",
                 },
               })}
@@ -187,27 +207,58 @@ function Register() {
           )}
         </div>
 
-        <div className="mb-3">
-          <select
-            {...register("UserType", { required: "Please Enter UserType" })}
-            id="inputState"
-            className={`${styles.customInput} form-select text-secondary `}
-          >
-            <option value="">User Type...</option>
-            <option value="Patient">Patient</option>
-            <option value="Doctor">Doctor</option>
-            <option value="Secretary">Secretary</option>
-          </select>
-          {errors.UserType && (
-            <p className={`${styles.textBeige}`}>{errors.UserType.message}</p>
-          )}
-        </div>
-
         <div>
           <button type="submit" className={`${styles.myBtn} btn w-100`}>
             Sign Up
           </button>
         </div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            color: "beige",
+            fontSize: 14,
+            marginTop: 8,
+            marginBottom: 8,
+          }}
+        >
+          <hr
+            style={{
+              flex: 1,
+              border: "none",
+              borderTop: "1px solid beige",
+              marginRight: 10,
+            }}
+          />
+          <span>OR</span>
+          <hr
+            style={{
+              flex: 1,
+              border: "none",
+              borderTop: "1px solid beige",
+              marginLeft: 10,
+            }}
+          />
+        </div>
+
+        {/* Google */}
+        <button
+          type="button"
+          className="btn btn-light border d-flex align-items-center justify-content-center gap-2"
+          style={{
+            borderRadius: "30px",
+            width: "100%",
+            height: "35px",
+            fontSize: "14px",
+          }}
+        >
+          <img
+            src={Google}
+            alt="Google"
+            style={{ width: "25px", height: "25px" }}
+          />
+          Continue with Google
+        </button>
       </form>
     </div>
   );
