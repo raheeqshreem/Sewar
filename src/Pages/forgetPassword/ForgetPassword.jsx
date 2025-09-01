@@ -8,6 +8,7 @@ function ForgetPassword() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [isError, setIsError] = useState(false);
+  const [showToast, setShowToast] = useState(false); // للتحكم بظهور الاشعار
 
   useEffect(() => {
     document.body.classList.add(styles.loginBody);
@@ -30,29 +31,39 @@ function ForgetPassword() {
 
     try {
       const response = await fetch(
-        "https://sewarwellnessclinic1.runasp.net/api/ForgetPassword/forgot-password",
+        "http://sewarwellnessclinic1.runasp.net/api/ForgetPassword/forgot-password",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ email: data.Email }),
+          body: JSON.stringify({ Email: data.Email }),
         }
       );
 
       const result = await response.json();
+      console.log("📩 استجابة السيرفر:", result); // 🔹 يطبع الرد في الكونسول
 
       if (response.ok) {
-        setMessage("✅ تم إرسال رابط إعادة التعيين لبريدك الإلكتروني");
+        setMessage("✅ Reset password link sent to your email.");
         setIsError(false);
+        setShowToast(true);  // عرض الاشعار
         reset();
       } else {
-        setMessage(result.message || "⚠️ هذا البريد غير مسجل لدينا");
+        setMessage("⚠️ هذا البريد غير مسجل لدينا");
         setIsError(true);
+        setShowToast(true);  // عرض الاشعار
       }
+
+      // اخفاء الاشعار بعد 3 ثواني
+      setTimeout(() => setShowToast(false), 120000);
+
     } catch (error) {
+      console.error("❌ خطأ:", error);
       setMessage("⚠️ فشل الاتصال بالسيرفر");
       setIsError(true);
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 120000);
     } finally {
       setLoading(false);
     }
@@ -61,6 +72,25 @@ function ForgetPassword() {
   return (
     <div className={styles.container}>
       <img src={logoo} className={styles.loginImage} alt="Clinic Logo" />
+
+      {/* اشعار فوق الصفحة */}
+      {showToast && (
+        <div
+          className={`alert ${isError ? "alert-danger" : "alert-success"} text-center`}
+          style={{
+            position: "fixed",
+            top: "10px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 9999,
+            fontWeight:"bold",
+            minWidth: "300px",
+          }}
+          role="alert"
+        >
+          {message}
+        </div>
+      )}
 
       <form className={styles.formBox} onSubmit={handleSubmit(onSubmit)}>
         <h1 className={styles.formBox}>Forgot Password</h1>
@@ -75,7 +105,7 @@ function ForgetPassword() {
                   message: "البريد الإلكتروني غير صحيح",
                 },
               })}
-              type="email"
+              type="Email"
               className={`form-control ${styles.customInput}`}
               id="floatingEmail"
               placeholder="name@gmail.com"
@@ -86,15 +116,6 @@ function ForgetPassword() {
             <p className={`${styles.textBeige}`}>{errors.Email.message}</p>
           )}
         </div>
-
-        {message && (
-          <p
-            className="text-center"
-            style={{ color: isError ? "red" : "green" }}
-          >
-            {message}
-          </p>
-        )}
 
         <div>
           <button

@@ -1,21 +1,20 @@
 
-
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import logoo from "./../../assets/logoo.jpeg";
 import styles from "./ResetPassword.module.css";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 
 function ForgetPassword() {
   const [loading, setLoading] = useState(false);
-const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [showComfirmPassword, setShowComfirmPassword] = useState(false);
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
 
-
-
-
-
+  // غالباً رابط الريسيت فيه توكن (resetToken) بيوصلك من الايميل
+  const token = searchParams.get("token");
 
   useEffect(() => {
     document.body.classList.add(styles.loginBody);
@@ -24,29 +23,86 @@ const [showPassword, setShowPassword] = useState(false);
     };
   }, []);
 
-const {
+  const {
     register,
     handleSubmit,
-    reset,
     watch,
     formState: { errors },
   } = useForm({ mode: "onChange" });
 
   const password = watch("Password");
-  
+
+  const onSubmit = async (data) => {
+    if (!token) {
+      alert("الرابط غير صالح أو انتهت صلاحيته");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch(
+        "http://sewarwellnessclinic1.runasp.net/api/ForgetPassword/reset-password",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            Email:data.Email,
+            Token: token, // من الرابط
+            NewPassword: data.Password,
+            Confirmpassword: data.ConfirmPass,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        alert("تم تغيير كلمة المرور بنجاح ✅");
+        navigate("/login"); // رجع المستخدم لصفحة تسجيل الدخول
+      } else {
+        const errorData = await response.json();
+        alert(errorData.message || "حدث خطأ، حاول مرة أخرى");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("مشكلة في الاتصال بالسيرفر");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className={styles.container}>
       <img src={logoo} className={styles.loginImage} alt="Clinic Logo" />
 
-      <form className={styles.formBox} >
+      <form className={styles.formBox} onSubmit={handleSubmit(onSubmit)}>
         <h1 className={styles.formBoxH}>Create New Password</h1>
 
-       <div className="mb-4">
-          <div className="form-floating  position-relative">
+
+
+        <div className="mb-4">
+  <div className="form-floating">
+    <input
+      {...register("Email", { required: "Please Enter Email" })}
+      type="email"
+      className={`form-control ${styles.customInput}`}
+      id="floatingEmail"
+      placeholder="Email"
+    />
+    <label htmlFor="floatingEmail">Email</label>
+  </div>
+  {errors.Email && (
+    <p className={styles.textBeige}>{errors.Email.message}</p>
+  )}
+</div>
+
+        {/* حقل كلمة المرور */}
+        <div className="mb-4">
+          <div className="form-floating position-relative">
+
             <input
               {...register("Password", {
-                required: "Please Enter  New Password",
+                required: "Please Enter New Password",
                 pattern: {
                   value:
                     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,15}$/,
@@ -63,20 +119,19 @@ const {
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               className={styles.showPasswordButton}
-              aria-label={
-                showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"
-              }
             >
               {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
             </button>
-            <label htmlFor="floatingPassword"> Enter New Password</label>
+            <label htmlFor="floatingPassword">Enter New Password</label>
           </div>
           {errors.Password && (
             <p className={`${styles.textBeige}`}>{errors.Password.message}</p>
           )}
         </div>
+
+        {/* حقل تأكيد كلمة المرور */}
         <div className="mb-4">
-          <div className="form-floating  position-relative">
+          <div className="form-floating position-relative">
             <input
               {...register("ConfirmPass", {
                 required: "Please Confirm Password",
@@ -92,21 +147,19 @@ const {
               type="button"
               onClick={() => setShowComfirmPassword(!showComfirmPassword)}
               className={styles.showPasswordButton}
-              aria-label={
-                showComfirmPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"
-              }
             >
               {showComfirmPassword ? <Eye size={20} /> : <EyeOff size={20} />}
             </button>
             <label htmlFor="ConfirmPassword">Confirm Password</label>
           </div>
           {errors.ConfirmPass && (
-            <p className={`${styles.textBeige} `}>
+            <p className={`${styles.textBeige}`}>
               {errors.ConfirmPass.message}
             </p>
           )}
         </div>
 
+        {/* زر الإرسال */}
         <div>
           <button
             type="submit"
@@ -121,7 +174,7 @@ const {
           className="text-center mt-4"
           style={{ fontSize: 14, color: "beige" }}
         >
-          Don't have an account ?{" "}
+          Don't have an account?{" "}
           <Link
             to="/signup"
             className="text-decoration-none"
@@ -136,9 +189,6 @@ const {
 }
 
 export default ForgetPassword;
-
-
-
 
 
 
