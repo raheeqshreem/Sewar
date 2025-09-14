@@ -3,7 +3,6 @@
 .longPage {
   min-height: 200vh;
   margin-top: 90px;
-
   font-family: "Noto Kufi Arabic", sans-serif;
   font-optical-sizing: auto;
   font-weight: 400;
@@ -14,7 +13,6 @@ body {
   overflow: scroll;
 }
 
-/* أزرار التحكم */
 .carouselControlPrev,
 .carouselControlNext {
   width: 55px;
@@ -55,13 +53,11 @@ body {
 .carouselCaptionCustom h1 {
   font-size: 2.5rem;
   font-weight: bold;
-
 }
 
 .carouselCaptionCustom h2 {
   font-size: 2rem;
   font-weight: normal;
-
 }
 
 .carouselCaptionCustom p {
@@ -129,39 +125,33 @@ body {
   opacity: 1;
 }
 
-/* 📱 موبايل */
 @media (max-width: 576px) {
   .carouselItem img {
     height: 250px;
   }
-
   .carouselControlPrev,
   .carouselControlNext {
     width: 35px;
     height: 35px;
     margin: 0 10px;
   }
-
   .carouselControlPrevIcon,
   .carouselControlNextIcon {
     width: 12px;
     height: 12px;
   }
-
   .carouselCaptionCustom h1 {
     font-size: 1rem;
     font-weight: bold;
     margin-bottom: 20px;
     width: 230px;
   }
-
   .carouselCaptionCustom h2 {
     font-size: 1rem;
     font-weight: normal;
     margin-bottom: 20px;
     width: 230px;
   }
-
   .carouselCaptionCustom p {
     font-size: 1rem;
     font-weight: 200;
@@ -169,32 +159,27 @@ body {
   }
 }
 
-/* 📲 تابلت */
 @media (min-width: 577px) and (max-width: 992px) {
   .carouselItem img {
     height: 400px;
   }
-
   .carouselControlPrev,
   .carouselControlNext {
     width: 45px;
     height: 45px;
   }
-
   .carouselCaptionCustom h1 {
     font-size: 2.5rem;
     font-weight: bold;
     margin-bottom: 20px;
     width: 550px;
   }
-
   .carouselCaptionCustom h2 {
     font-size: 2rem;
     font-weight: normal;
     margin-bottom: 20px;
     width: 550px;
   }
-
   .carouselCaptionCustom p {
     font-size: 1.2rem;
     font-weight: 200;
@@ -202,7 +187,6 @@ body {
   }
 }
 
-/* 🖥️ شاشات كبيرة */
 @media (min-width: 993px) {
   .carouselItem img {
     width: 100vw;
@@ -210,33 +194,30 @@ body {
     object-fit: cover;
     display: block;
   }
-
   .carouselControlPrev,
   .carouselControlNext {
     width: 55px;
     height: 55px;
   }
-
   .carouselCaptionCustom h1 {
     font-size: 2.5rem;
     font-weight: bolder;
     margin-bottom: 20px;
     width: 100%;
   }
-
   .carouselCaptionCustom h2 {
     font-size: 2rem;
     font-weight: bold;
     margin-bottom: 20px;
     width: 100%;
   }
-
   .carouselCaptionCustom p {
     font-size: 1.2rem;
     font-weight: normal;
     width: 100%;
   }
 }
+
 .contactButton {
   margin-top: 40px;
   padding: 10px 20px;
@@ -249,9 +230,226 @@ body {
   transition: background-color 0.3s ease;
   pointer-events: auto;
   display: inline-block;
-  
 }
-.contactButton:hover{
+
+.contactButton:hover {
   color: #fff;
   background-color: #3a924e;
+}
+
+.hidden {
+  opacity: 0;
+  transition: opacity 1s ease-out, transform 1s ease-out;
+}
+
+.slideInFromRight {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.hidden.slideInFromRight {
+  transform: translateX(50px);
+}
+
+.slideInFromLeft {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.hidden.slideInFromLeft {
+  transform: translateX(-50px);
+}
+
+.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.stethoscopeBackground {
+  position: absolute;
+  left: 5%;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40%;
+  max-width: 400px;
+  opacity: 0.05;
+  z-index: 0;
+  transition: opacity 1.5s ease-out;
+}
+
+.stethoscopeBackground img {
+  width: 100%;
+  height: auto;
+}
+/* For Text */
+.slideInFromRight {
+  opacity: 1;
+  transform: translateX(0);
+}
+.hidden.slideInFromRight {
+  transform: translateX(50px);
+}
+
+/* For Stethoscope and Doctor Image Container initial state */
+.visible {
+  opacity: 1;
+}
+
+.stethoscopeBackground {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 50%;
+  max-width: 500px;
+  opacity: 0.15;
+  z-index: 0;
+  transition: opacity 1.5s ease-out;
+}
+.stethoscopeBackground img {
+  width: 100%;
+  height: auto;
+}
+
+/* --- Floating Animation Styles --- */
+/* 1. تعريف الحركة الأولى (للأعلى واليسار) */
+@keyframes moveTopLeft {
+  0% {
+    transform: translate(0, 0);
+  }
+  50% {
+    /* تذهب إلى أقصى نقطة في الأعلى واليسار */
+    transform: translate(-30px, -40px);
+  }
+  100% {
+    /* تعود لنقطة البداية */
+    transform: translate(0, 0);
+  }
+}
+
+/* 2. تعريف الحركة الثانية (للأسفل واليمين) */
+@keyframes moveBottomRight {
+  0% {
+    transform: translate(0, 0);
+  }
+  50% {
+    /* تذهب إلى أقصى نقطة في الأسفل واليمين */
+    transform: translate(30px, 40px);
+  }
+  100% {
+    /* تعود لنقطة البداية */
+    transform: translate(0, 0);
+  }
+}
+@keyframes moveUpDown {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-50px);
+  } /* تتحرك للأعلى 20 بكسل */
+}
+
+/* New: Main wrapper for doctor image and ALL its backgrounds */
+.doctorImageWrapper {
+  position: relative;
+  width: 100%;
+  max-width: 600px; /* يمكن زيادة العرض الأقصى قليلاً */
+
+  /* <<< هذا هو السطر الذي يتحكم في الأبعاد >>> */
+  /* غيرنا النسبة لتكون أعرض وأقصر */
+  aspect-ratio: 1.2 / 1; /* كانت 1 / 1.2 */
+  margin: 0 auto;
+  border-radius: 15px; /* Radius for the main container */
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15); /* Main shadow */
+  background-color: #f0f0f0; /* Default background color */
+  display: flex; /* To center the image inside */
+  justify-content: center;
+  align-items: center;
+}
+
+/* New: The fixed background */
+.mainBackground {
+  position: absolute;
+  width: 100%; /* Take full width/height of parent */
+  height: 100%;
+  top: 0;
+  left: 0;
+  background-color: #d1d1d1; /* A solid grey background */
+  border-radius: 15px;
+  z-index: 1; /* Below floating backgrounds */
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1); /* Subtle inner shadow */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Floating backgrounds */
+.backgroundOne,
+.backgroundTwo {
+  position: absolute;
+  width: 100%; /* Take full width/height of parent */
+  height: 100%;
+  top: 0;
+  left: 0;
+  background-color: hsla(0, 100%, 51%, 0.2); /* Semi-transparent white/grey */
+  border-radius: 15px;
+  z-index: 1; /* Above mainBackground, below image */
+}
+
+.backgroundOne {
+  /* اللون الأول: أزرق سماوي شفاف */
+  background-color: hsla(195, 53%, 79%, 0.3);
+  animation: moveTopLeft 6s ease-in-out infinite;
+}
+
+.backgroundTwo {
+  /* اللون الثاني: أخضر فاتح شفاف */
+  background-color: hsla(150, 40%, 80%, 0.3);
+  animation: moveBottomRight 6s ease-in-out infinite;
+}
+
+/* Doctor's image */
+.doctorImage {
+  position: relative;
+  z-index: 2; /* Above all backgrounds */
+  width: 90%; /* Adjust size to fit within backgrounds */
+  height: 90%;
+  object-fit: contain; /* Ensure image fits */
+  pointer-events: none; /* No mouse interaction */
+  border-radius: 10px; /* Slight radius for the image itself */
+}
+
+/* Media Queries for responsiveness (adjust doctor section if needed) */
+@media (max-width: 576px) {
+  .doctorImageWrapper {
+    max-width: 250px; /* Smaller on mobile */
+    aspect-ratio: 1 / 1.2;
+  }
+}
+
+@media (min-width: 577px) and (max-width: 992px) {
+  .doctorImageWrapper {
+    max-width: 350px; /* Medium on tablet */
+  }
+}
+/* --- الكود النهائي بعد الإصلاح --- */
+.stethoscopeBackground {
+  position: absolute;
+  top: 50%;
+  right: 25%;
+  transform: translate(50%, -50%);
+  width: 50%;
+  max-width: 550px;
+  opacity: 1; /* <<< تم رفع الشفافية هنا من 0.1 إلى 0.3 */
+  z-index: 0;
+  pointer-events: none;
+  background-position: center left;
+}
+
+.stethoscopeBackground img {
+  width: 100%;
+  height: auto;
+   animation: moveUpDown 3s ease-in-out infinite;
 }

@@ -46,7 +46,7 @@ function Register() {
 
     try {
       const res = await axios.post(
-        "http://sewarwellnessclinic1.runasp.net/api/PatientRegister/register-patient",
+        "https://sewarwellnessclinic1.runasp.net/api/PatientRegister/register-patient",
         payload,
         {
           headers: { "Content-Type": "application/json" },

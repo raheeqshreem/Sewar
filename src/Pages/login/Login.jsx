@@ -60,7 +60,7 @@ function Login() {
       };
 
       const response = await axios.post(
-        "http://sewarwellnessclinic1.runasp.net/api/LoginPatient/login",
+        "https://sewarwellnessclinic1.runasp.net/api/LoginPatient/login",
         payload
       );
 

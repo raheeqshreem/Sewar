@@ -41,7 +41,7 @@ function ForgetPassword() {
     setLoading(true);
     try {
       const response = await fetch(
-        "http://sewarwellnessclinic1.runasp.net/api/ForgetPassword/reset-password",
+        "https://sewarwellnessclinic1.runasp.net/api/ForgetPassword/reset-password",
         {
           method: "POST",
           headers: {
