@@ -15,7 +15,7 @@ function ForgetPassword() {
 
   // غالباً رابط الريسيت فيه توكن (resetToken) بيوصلك من الايميل
   const token = searchParams.get("token");
-
+console.log("Token:",token);
   useEffect(() => {
     document.body.classList.add(styles.loginBody);
     return () => {
@@ -49,7 +49,7 @@ function ForgetPassword() {
           },
           body: JSON.stringify({
             Email:data.Email,
-            Token: token, // من الرابط
+            token: token, // من الرابط
             NewPassword: data.Password,
             Confirmpassword: data.ConfirmPass,
           }),
