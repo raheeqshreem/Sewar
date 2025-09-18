@@ -57,7 +57,7 @@ function ResetPassword() {
 
       if (response.ok) {
         alert("تم تغيير كلمة المرور بنجاح ✅");
-        navigate("/login"); // إعادة توجيه المستخدم لصفحة تسجيل الدخول
+        navigate("/signin"); // إعادة توجيه المستخدم لصفحة تسجيل الدخول
       } else {
         const errorData = await response.json();
         alert(errorData.message || "حدث خطأ، حاول مرة أخرى");
