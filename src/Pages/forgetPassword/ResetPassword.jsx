@@ -6,16 +6,17 @@ import styles from "./ResetPassword.module.css";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 
-function ForgetPassword() {
+function ResetPassword() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [showComfirmPassword, setShowComfirmPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  // غالباً رابط الريسيت فيه توكن (resetToken) بيوصلك من الايميل
+  // جلب التوكن والإيميل من الرابط
   const token = searchParams.get("token");
-console.log("Token:",token);
+  const email = searchParams.get("email");
+
   useEffect(() => {
     document.body.classList.add(styles.loginBody);
     return () => {
@@ -33,7 +34,7 @@ console.log("Token:",token);
   const password = watch("Password");
 
   const onSubmit = async (data) => {
-    if (!token) {
+    if (!token || !email) {
       alert("الرابط غير صالح أو انتهت صلاحيته");
       return;
     }
@@ -44,11 +45,10 @@ console.log("Token:",token);
         "https://sewarwellnessclinic1.runasp.net/api/ForgetPassword/reset-password",
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            token: token, // من الرابط
+            email: email,           // الإيميل مأخوذ من الرابط
+            token: token,           // التوكن من الرابط
             newpassword: data.Password,
             confirmpassword: data.ConfirmPass,
           }),
@@ -57,7 +57,7 @@ console.log("Token:",token);
 
       if (response.ok) {
         alert("تم تغيير كلمة المرور بنجاح ✅");
-        navigate("/login"); // رجع المستخدم لصفحة تسجيل الدخول
+        navigate("/login"); // إعادة توجيه المستخدم لصفحة تسجيل الدخول
       } else {
         const errorData = await response.json();
         alert(errorData.message || "حدث خطأ، حاول مرة أخرى");
@@ -77,26 +77,15 @@ console.log("Token:",token);
       <form className={styles.formBox} onSubmit={handleSubmit(onSubmit)}>
         <h1 className={styles.formBoxH}>Create New Password</h1>
 
-
-
-
-
-
-
-
-
-
-
         {/* حقل كلمة المرور */}
         <div className="mb-4">
           <div className="form-floating position-relative">
-
             <input
               {...register("Password", {
                 required: "Please Enter New Password",
                 pattern: {
                   value:
-                    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,15}$/,
+                    /^(?=.[a-z])(?=.[A-Z])(?=.\d)(?=.[!@#$%^&*(),.?":{}|<>]).{8,15}$/,
                   message:
                     "Password must be 8-15 characters long, contain at least one number, one uppercase letter, one lowercase letter, and one special character",
                 },
@@ -129,17 +118,19 @@ console.log("Token:",token);
                 validate: (value) =>
                   value === password || "Passwords do not match",
               })}
-              type={showComfirmPassword ? "text" : "password"}
+              type={showConfirmPassword ? "text" : "password"}
               className={`form-control ${styles.customInput}`}
               id="ConfirmPassword"
               placeholder="ConfirmPassword"
             />
             <button
               type="button"
-              onClick={() => setShowComfirmPassword(!showComfirmPassword)}
+              onClick={() =>
+                setShowConfirmPassword(!showConfirmPassword)
+              }
               className={styles.showPasswordButton}
             >
-              {showComfirmPassword ? <Eye size={20} /> : <EyeOff size={20} />}
+              {showConfirmPassword ? <Eye size={20} /> : <EyeOff size={20} />}
             </button>
             <label htmlFor="ConfirmPassword">Confirm Password</label>
           </div>
@@ -179,9 +170,7 @@ console.log("Token:",token);
   );
 }
 
-export default ForgetPassword;
-
-
+export default ResetPassword;
 
 
 
