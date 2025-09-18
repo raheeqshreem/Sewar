@@ -48,10 +48,10 @@ console.log("Token:",token);
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            Email:data.Email,
+            email:data.Email,
             token: token, // من الرابط
-            NewPassword: data.Password,
-            Confirmpassword: data.ConfirmPass,
+            newpassword: data.Password,
+            confirmpassword: data.ConfirmPass,
           }),
         }
       );

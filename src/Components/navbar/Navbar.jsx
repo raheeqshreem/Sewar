@@ -136,11 +136,7 @@ export default function Navbar() {
                     حجز موعد
                   </Link>
                 </li>
-                <li className="nav-item">
-                  <Link className="nav-link" aria-disabled="true" to={"/communication"}>
-                    تواصل معنا
-                  </Link>
-                </li>
+              
                 <li className="nav-item">
                   <Link className="nav-link" aria-disabled="true" to={"/feedback"}>
                     قيم تجربتك العلاجية
