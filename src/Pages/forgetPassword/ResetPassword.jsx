@@ -85,7 +85,7 @@ function ResetPassword() {
                 required: "Please Enter New Password",
                 pattern: {
                   value:
-                    /^(?=.[a-z])(?=.[A-Z])(?=.\d)(?=.[!@#$%^&*(),.?":{}|<>]).{8,15}$/,
+                    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,15}$/,
                   message:
                     "Password must be 8-15 characters long, contain at least one number, one uppercase letter, one lowercase letter, and one special character",
                 },
