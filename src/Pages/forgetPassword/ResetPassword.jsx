@@ -82,6 +82,25 @@ console.log("Token:",token);
 
 
 
+<div className="mb-4">
+  <div className="form-floating">
+    <input
+      {...register("Email", { required: "Please enter your email" })}
+      type="email"
+      className={`form-control ${styles.customInput}`}
+      placeholder="Email"
+    />
+    <label>Email</label>
+  </div>
+  {errors.Email && <p>{errors.Email.message}</p>}
+</div>
+
+
+
+
+
+
+
         {/* حقل كلمة المرور */}
         <div className="mb-4">
           <div className="form-floating position-relative">
