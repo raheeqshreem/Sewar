@@ -11,7 +11,7 @@ createRoot(document.getElementById('root')).render(
   <StrictMode>
   <Toaster position="top-right"/>
   <HashRouter>
-<GoogleOAuthProvider clientId="752427255311-iusgq6oi5jqcpi8fld0ltcp76ajnnglu.apps.googleusercontent.com">
+<GoogleOAuthProvider clientId="752427255311-9o7ldud5rmr2neecl1o055ugqd3e5ogi.apps.googleusercontent.com">
         <App />
       </GoogleOAuthProvider>
        </HashRouter>
