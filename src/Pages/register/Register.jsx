@@ -67,16 +67,16 @@ function Register() {
 
 
 const googleLogin = useGoogleLogin({
-  onSuccess: async (tokenResponse) => {
+  flow: 'auth-code',
+  onSuccess: async (codeResponse) => {
+    console.log("codeResponse:", codeResponse); // يحتوي على code
     try {
-      // إرسال التوكن للبك اند لإنشاء حساب جديد
       const res = await axios.post(
         "https://sewarwellnessclinic1.runasp.net/api/Auth/register-google-patient",
-       {
-          idToken: tokenResponse.credential, // <--- هذا بدل access_token
+        {
+          code: codeResponse.code, // ترسل الكود للباك‌اند
         }
       );
-
       toast.success(res.data || "تم إنشاء الحساب بنجاح عبر Google");
       navigate("/signin");
     } catch (err) {
@@ -85,11 +85,7 @@ const googleLogin = useGoogleLogin({
       toast.error(msg);
     }
   },
-  onError: () => {
-    toast.error("فشل إنشاء الحساب عبر Google");
-  },
 });
-
 
 
 
