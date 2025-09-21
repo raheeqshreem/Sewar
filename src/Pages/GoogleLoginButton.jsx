@@ -22,7 +22,7 @@ export default function GoogleLoginButton() {
           idToken,
         })
         .then((res) => {
-          toast.success( "  Google تم تسجيل الدخول بنجاح عبر ");
+          toast.success( "   تم تسجيل الدخول بنجاح عبر ");
           navigate("/signin");
         })
         .catch((err) => {
