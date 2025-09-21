@@ -6,8 +6,7 @@ import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { Eye, EyeOff } from "lucide-react";
 import axios from "axios";
-import Google from "./../../assets/Google.png";
-import { useGoogleLogin } from "@react-oauth/google";
+import GoogleLoginButton from "../GoogleLoginButton";
 
 function Register() {
   const [showPassword, setShowPassword] = useState(false);
@@ -63,40 +62,6 @@ function Register() {
       toast.error(msg);
     }
   };
-
-
-
-const googleLogin = useGoogleLogin({
-  onSuccess: async (codeResponse) => {
-    console.log("codeResponse:", codeResponse);
-    try {
-      const res = await fetch(
-        "https://sewarwellnessclinic1.runasp.net/api/Auth/register-google-patient",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            idToken: codeResponse.id_token,
-          }),
-        }
-      );
-
-      
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.message || "حدث خطأ أثناء الطلب");
-      }
-
-      const data = await res.json();
-      toast.success(data || "تم إنشاء الحساب بنجاح عبر Google");
-      navigate("/signin");
-    } catch (err) {
-      toast.error(err.message || "حدث خطأ غير متوقع");
-    }
-  },
-});
 
 
 
@@ -279,24 +244,7 @@ const googleLogin = useGoogleLogin({
         </div>
 
         {/* Google */}
-       <button
-  type="button"
-  onClick={() => googleLogin()} // هذا الزر مفعل
-  className="btn btn-light border d-flex align-items-center justify-content-center gap-2"
-  style={{
-    borderRadius: "30px",
-    width: "100%",
-    height: "35px",
-    fontSize: "14px",
-  }}
->
-  <img
-    src={Google}
-    alt="Google"
-    style={{ width: "25px", height: "25px" }}
-  />
-  Continue with Google
-</button>
+      <GoogleLoginButton/>
          <p
           className="text-center mt-2"
           style={{ fontSize: 14, color: "beige" }}

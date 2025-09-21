@@ -7,11 +7,13 @@ import App from './App.jsx'
 import { HashRouter } from 'react-router-dom'
  import { Toaster } from "react-hot-toast";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+
+  const clientId="752427255311-srr9oie5nh580soak1okt43gs7igm378.apps.googleusercontent.com"
 createRoot(document.getElementById('root')).render(
   <StrictMode>
   <Toaster position="top-right"/>
   <HashRouter>
-<GoogleOAuthProvider clientId="752427255311-2e9hmpg8qu03vutegp3o8bi50097ahkt.apps.googleusercontent.com">
+<GoogleOAuthProvider clientId={clientId}>
         <App />
       </GoogleOAuthProvider>
        </HashRouter>
