@@ -67,26 +67,36 @@ function Register() {
 
 
 const googleLogin = useGoogleLogin({
-  flow: 'auth-code',
   onSuccess: async (codeResponse) => {
-    console.log("codeResponse:", codeResponse); // يحتوي على code
+    console.log("codeResponse:", codeResponse);
     try {
-      const res = await axios.post(
+      const res = await fetch(
         "https://sewarwellnessclinic1.runasp.net/api/Auth/register-google-patient",
         {
-          code: codeResponse.code, // ترسل الكود للباك‌اند
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            idToken: codeResponse.id_token,
+          }),
         }
       );
-      toast.success(res.data || "تم إنشاء الحساب بنجاح عبر Google");
+
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || "حدث خطأ أثناء الطلب");
+      }
+
+      const data = await res.json();
+      toast.success(data || "تم إنشاء الحساب بنجاح عبر Google");
       navigate("/signin");
     } catch (err) {
-      const msg =
-        err?.response?.data?.message || err?.response?.data || err.message;
-      toast.error(msg);
+      toast.error(err.message || "حدث خطأ غير متوقع");
     }
   },
 });
-
 
 
 
