@@ -3,12 +3,12 @@ import logoo from "./../../assets/logoo.jpeg";
 import styles from "./Login.module.css";
 import { useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
-import Google from "./../../assets/Google.png";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import { Eye, EyeOff } from "lucide-react";
 import axios from "axios";
 import { FaRegGrinStars} from "react-icons/fa"; // أيقونة ترحيب
+import GoogleLoginButton from "../GoogleLoginButton";
 
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -264,23 +264,7 @@ toast.custom(
         </div>
 
         {/* Google */}
-        <button
-          type="button"
-          className="btn btn-light border d-flex align-items-center justify-content-center gap-2"
-          style={{
-            borderRadius: "30px",
-            width: "100%",
-            height: "35px",
-            fontSize: "14px",
-          }}
-        >
-          <img
-            src={Google}
-            alt="Google"
-            style={{ width: "25px", height: "25px" }}
-          />
-          Continue with Google
-        </button>
+             <GoogleLoginButton/>
 
         {/* Sign up link */}
         <p

@@ -35,7 +35,7 @@ function Register() {
     const payload = {
       Email: values.Email,
       Password: values.Password,
-      // في الفورم اسم الحقل ConfirmPass -> في الباك Confirmpassword
+      // في الفورم اسم\ الحقل ConfirmPass -> في الباك Confirmpassword
       Confirmpassword: values.ConfirmPass,
       FirstName: values.FirstName,
       LastName: values.LastName,
