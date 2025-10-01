@@ -12,6 +12,7 @@ import Inquiry from "./Pages/inquiry/Inquiry";
 import File from "./Pages/file/File";
 import ForgetPassword from "./Pages/forgetPassword/ForgetPassword";
 import ResetPassword from "./Pages/forgetPassword/ResetPassword";
+import WriteFeedback from "./Pages/writeFeedback/WriteFeedback";
 
 import ChatIcon from "./Components/chatIcon/ChatIcon";
 import styles from "./App.module.css"; // ✅ استدعاء الـ CSS Module
@@ -42,6 +43,7 @@ function App() {
           <Route path="/file" element={<File />} />
           <Route path="/forgetPassword" element={<ForgetPassword />} />
           <Route path="/resetPassword" element={<ResetPassword />} />
+          <Route path="/writefeedback" element={<WriteFeedback />} />
 
         </Routes>
       </div>
