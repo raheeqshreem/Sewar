@@ -1,145 +1,184 @@
-import React, { useState, useEffect, useMemo } from "react";
-import toast, { Toaster } from "react-hot-toast";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import toast from "react-hot-toast";
 
-export default function ReviewsWidget() {
+export default function RatingToast() {
   const navigate = useNavigate();
+  const [ratingsCount, setRatingsCount] = useState([0, 0, 0, 0, 0]);
 
-  // توزيع التقييمات
-  const [counts, setCounts] = useState({ 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 });
-  const [selectedStar, setSelectedStar] = useState(null);
+  const totalReviews = ratingsCount.reduce((a, b) => a + b, 0);
+  const average =
+    totalReviews === 0
+      ? 0
+      : (
+          ratingsCount.reduce((sum, count, i) => sum + count * (i + 1), 0) /
+          totalReviews
+        ).toFixed(1);
 
-  // قراءة التوكن من localStorage
-  const getUserToken = () => {
+  const getLabel = () => {
+    if (totalReviews === 0) return "No reviews";
+    if (average < 2) return "Poor";
+    if (average < 3) return "Fair";
+    if (average < 4) return "Good";
+    return "Excellent";
+  };
+
+  const handleWriteFeedback = () => {
     const user = JSON.parse(localStorage.getItem("user"));
-    return user?.token || null;
-  };
-
-  const userToken = getUserToken();
-
-  // جلب summary عند التحميل
-  useEffect(() => {
-    axios
-      .get("https://sewarwellnessclinic1.runasp.net/api/ranking/summary")
-      .then((res) => {
-        const summary = res.data;
-        setCounts({
-          1: summary.distribution.s1,
-          2: summary.distribution.s2,
-          3: summary.distribution.s3,
-          4: summary.distribution.s4,
-          5: summary.distribution.s5,
-        });
-      })
-      .catch(() => {});
-  }, []);
-
-  // الحسابات
-  const total = useMemo(() => Object.values(counts).reduce((a, b) => a + b, 0), [counts]);
-
-  const average = useMemo(() => {
-    if (total === 0) return 0;
-    const sum = Object.entries(counts).reduce((acc, [r, c]) => acc + Number(r) * c, 0);
-    return Math.round((sum / total) * 10) / 10;
-  }, [counts, total]);
-
-  const percent = (r) => (total === 0 ? 0 : Math.round((counts[r] / total) * 100));
-
-  // إرسال تقييم
-  const addReview = (starsNumber) => {
-    const token = getUserToken();
-    if (!token) {
-      toast.error("يرجى تسجيل الدخول أولاً!");
-      setTimeout(() => navigate("/signin"), 1000);
-      return;
-    }
-
-    setSelectedStar(starsNumber);
-
-    axios
-      .post(
-        "https://sewarwellnessclinic1.runasp.net/api/Ranking/set",
-        { starsNumber },
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      .then((res) => {
-        toast.success("تم حفظ تقييمك بنجاح!");
-        const summary = res.data.summary;
-        setCounts({
-          1: summary.distribution.s1,
-          2: summary.distribution.s2,
-          3: summary.distribution.s3,
-          4: summary.distribution.s4,
-          5: summary.distribution.s5,
-        });
-      })
-      .catch((err) => {
-        if (err.response?.status === 401) {
-          toast.error("انتهت صلاحية الجلسة، سجل الدخول مرة أخرى.");
-          navigate("/signin");
-        } else {
-          toast.error("حصل خطأ أثناء حفظ التقييم");
-        }
-      });
-  };
-
-  // لون الشريط حسب التقييم
-  const getBarColor = (r) => {
-    switch (r) {
-      case 1:
-      case 2:
-        return "red";
-      case 3:
-        return "gold";
-      case 4:
-      case 5:
-        return "green";
-      default:
-        return "#ccc";
+    if (user && user.token) {
+      navigate("/writefeedback");
+    } else {
+      // عرض Toast منسق بدل alert
+      toast.custom(
+        (t) => (
+          <div
+            style={{
+              padding: "16px 24px",
+              background: "white",
+              color: "black",
+              borderRadius: "12px",
+              fontFamily: "Arial, sans-serif",
+              fontWeight: "bold",
+              fontSize: "20px", // خط أكبر
+              textAlign: "center",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+            }}
+          >
+            يرجى تسجيل الدخول
+          </div>
+        ),
+        { duration: 3000 } // يظهر 3 ثواني
+      );
+      navigate("/signin");
     }
   };
 
   return (
-    <div style={{ maxWidth: "600px", margin: "20px auto", fontFamily: "sans-serif", marginTop: "100px" }}>
-      <Toaster position="top-right" />
-      <h2>متوسط التقييم: {average} ⭐</h2>
-      <p>عدد التقييمات: {total}</p>
-
-      {[5, 4, 3, 2, 1].map((r) => (
-        <div key={r} style={{ display: "flex", alignItems: "center", margin: "5px 0" }}>
-          <button
-            onClick={() => addReview(r)}
-            style={{
-              marginRight: "10px",
-              padding: "5px 10px",
-              border: "1px solid black",
-              borderRadius: "4px",
-              cursor: "pointer",
-              backgroundColor: selectedStar === r ? "#2a7371" : "white",
-              color: selectedStar === r ? "beige" : "black",
-              fontWeight: "bold",
-              transition: "all 0.2s ease",
-            }}
-          >
-            {r} ★
-          </button>
-
-          <div style={{ flex: 1, background: "#eee", height: "10px", borderRadius: "5px" }}>
-            <div
+    <div style={{ fontFamily: "Arial, sans-serif", maxWidth: "600px", margin: "150px auto" }}>
+      {/* الصف الأول */}
+      <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "15px" }}>
+        <span style={{ fontSize: "16px" }}>
+          Reviews {totalReviews.toLocaleString()}
+        </span>
+        <div>
+          {[1, 2, 3, 4, 5].map((star) => (
+            <span
+              key={star}
               style={{
-                width: `${percent(r)}%`,
-                height: "100%",
-                background: getBarColor(r),
-                borderRadius: "5px",
-                transition: "width 0.3s",
+                color: average >= star ? "orange" : "#ccc",
+                fontSize: "18px",
               }}
-            />
-          </div>
-
-          <span style={{ marginLeft: "10px" }}>{percent(r)}%</span>
+            >
+              ★
+            </span>
+          ))}
         </div>
-      ))}
+        <span style={{ fontWeight: "bold" }}>{average}</span>
+      </div>
+
+      {/* زر شاركنا رأيك */}
+      <div
+        onClick={handleWriteFeedback}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: "100%",
+          padding: "5px 5px",
+          backgroundColor: "#2a7371",
+          color: "beige",
+          borderRadius: "8px",
+          fontSize: "28px",
+          fontWeight: "bold",
+          cursor: "pointer",
+          marginBottom: "20px",
+          gap: "10px",
+        }}
+      >
+        ✍ شاركنا رأيك
+      </div>
+
+      {/* الصندوق الأبيض */}
+      <div
+        style={{
+          border: "1px solid #eee",
+          borderRadius: "10px",
+          padding: "20px",
+          backgroundColor: "white",
+          display: "flex",
+          gap: "20px",
+        }}
+      >
+        <div style={{ flex: "1", textAlign: "center" }}>
+          <h1 style={{ margin: "0", fontSize: "40px" }}>{average}</h1>
+          <p style={{ margin: "0", color: "gray", fontSize: "18px" }}>
+            {getLabel()}
+          </p>
+          <div style={{ fontSize: "20px", margin: "10px 0" }}>
+            {[1, 2, 3, 4, 5].map((star) => (
+              <span
+                key={star}
+                style={{
+                  color: average >= star ? "orange" : "#ccc",
+                }}
+              >
+                ★
+              </span>
+            ))}
+          </div>
+          <p style={{ color: "gray" }}>{totalReviews.toLocaleString()} reviews</p>
+        </div>
+
+        <div style={{ flex: "2" }}>
+          {[5, 4, 3, 2, 1].map((star) => {
+            const count = ratingsCount[star - 1];
+            const percent =
+              totalReviews === 0 ? 0 : ((count / totalReviews) * 100).toFixed(0);
+            const color =
+              star === 5
+                ? "green"
+                : star === 4
+                ? "limegreen"
+                : star === 3
+                ? "gold"
+                : star === 2
+                ? "orange"
+                : "red";
+
+            return (
+              <div
+                key={star}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  marginBottom: "8px",
+                }}
+              >
+                <span style={{ width: "50px" }}>{star}-star</span>
+                <div
+                  style={{
+                    flex: 1,
+                    height: "10px",
+                    background: "#eee",
+                    borderRadius: "5px",
+                    marginRight: "10px",
+                    overflow: "hidden",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: `${percent}%`,
+                      height: "100%",
+                      background: color,
+                    }}
+                  ></div>
+                </div>
+                <span>{percent}%</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }

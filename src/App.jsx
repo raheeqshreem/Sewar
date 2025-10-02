@@ -44,6 +44,7 @@ function App() {
           <Route path="/forgetPassword" element={<ForgetPassword />} />
           <Route path="/resetPassword" element={<ResetPassword />} />
           <Route path="/writefeedback" element={<WriteFeedback />} />
+          <Route path="/feedback" element={<Feedback />} />
 
         </Routes>
       </div>
