@@ -17,6 +17,8 @@ import WriteFeedback from "./Pages/writeFeedback/WriteFeedback";
 import ChatIcon from "./Components/chatIcon/ChatIcon";
 import styles from "./App.module.css"; // ✅ استدعاء الـ CSS Module
 import '@fortawesome/fontawesome-free/css/all.min.css';
+import RatingToast from "./Components/ratingToast/RatingToast";
+import FeedbackList from "./Components/ratingToast/FeedbackList";
 
 
 function App() {
@@ -45,6 +47,8 @@ function App() {
           <Route path="/resetPassword" element={<ResetPassword />} />
           <Route path="/writefeedback" element={<WriteFeedback />} />
           <Route path="/feedback" element={<Feedback />} />
+          <Route path="/ratingtoast" element={<RatingToast />} />
+          <Route path="/feedbacklist" element={<FeedbackList />} />
 
         </Routes>
       </div>

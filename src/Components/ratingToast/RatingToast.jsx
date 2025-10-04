@@ -1,26 +1,33 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 export default function RatingToast() {
   const navigate = useNavigate();
-  const [ratingsCount, setRatingsCount] = useState([0, 0, 0, 0, 0]);
+  const [summary, setSummary] = useState({
+    totalRatings: 0,
+    average: 0,
+    percentages: { "1": 0, "2": 0, "3": 0, "4": 0, "5": 0 },
+  });
+  const [feedbacks, setFeedbacks] = useState([]);
 
-  const totalReviews = ratingsCount.reduce((a, b) => a + b, 0);
-  const average =
-    totalReviews === 0
-      ? 0
-      : (
-          ratingsCount.reduce((sum, count, i) => sum + count * (i + 1), 0) /
-          totalReviews
-        ).toFixed(1);
+  useEffect(() => {
+    axios.get("https://sewarwellnessclinic1.runasp.net/api/Ranking/summary")
+      .then(res => setSummary(res.data))
+      .catch(err => console.error(err));
+
+   
+  }, []);
+
+  const { totalRatings, average, percentages } = summary;
 
   const getLabel = () => {
-    if (totalReviews === 0) return "No reviews";
-    if (average < 2) return "Poor";
-    if (average < 3) return "Fair";
-    if (average < 4) return "Good";
-    return "Excellent";
+    if (totalRatings === 0) return "لا يوجد تقييمات بعد";
+    if (average < 2) return "ضعيف";
+    if (average < 3) return "متوسط";
+    if (average < 4) return "جيد";
+    return "ممتاز";
   };
 
   const handleWriteFeedback = () => {
@@ -28,7 +35,6 @@ export default function RatingToast() {
     if (user && user.token) {
       navigate("/writefeedback");
     } else {
-      // عرض Toast منسق بدل alert
       toast.custom(
         (t) => (
           <div
@@ -39,7 +45,7 @@ export default function RatingToast() {
               borderRadius: "12px",
               fontFamily: "Arial, sans-serif",
               fontWeight: "bold",
-              fontSize: "20px", // خط أكبر
+              fontSize: "20px",
               textAlign: "center",
               boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
             }}
@@ -47,7 +53,7 @@ export default function RatingToast() {
             يرجى تسجيل الدخول
           </div>
         ),
-        { duration: 3000 } // يظهر 3 ثواني
+        { duration: 3000 }
       );
       navigate("/signin");
     }
@@ -58,7 +64,7 @@ export default function RatingToast() {
       {/* الصف الأول */}
       <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "15px" }}>
         <span style={{ fontSize: "16px" }}>
-          Reviews {totalReviews.toLocaleString()}
+          Reviews {totalRatings.toLocaleString()}
         </span>
         <div>
           {[1, 2, 3, 4, 5].map((star) => (
@@ -126,24 +132,17 @@ export default function RatingToast() {
               </span>
             ))}
           </div>
-          <p style={{ color: "gray" }}>{totalReviews.toLocaleString()} reviews</p>
+          <p style={{ color: "gray" }}>{totalRatings.toLocaleString()} reviews</p>
         </div>
 
         <div style={{ flex: "2" }}>
           {[5, 4, 3, 2, 1].map((star) => {
-            const count = ratingsCount[star - 1];
-            const percent =
-              totalReviews === 0 ? 0 : ((count / totalReviews) * 100).toFixed(0);
+            const percent = percentages[star] || 0;
             const color =
-              star === 5
-                ? "green"
-                : star === 4
-                ? "limegreen"
-                : star === 3
-                ? "gold"
-                : star === 2
-                ? "orange"
-                : "red";
+              star === 5 ? "green" :
+              star === 4 ? "limegreen" :
+              star === 3 ? "gold" :
+              star === 2 ? "orange" : "red";
 
             return (
               <div
@@ -178,6 +177,32 @@ export default function RatingToast() {
             );
           })}
         </div>
+      </div>
+
+      {/* قائمة التقييمات */}
+      <div style={{ marginTop: "20px" }}>
+        {feedbacks.map((f) => (
+          <div
+            key={f.id}
+            style={{
+              border: "1px solid #eee",
+              borderRadius: "10px",
+              padding: "10px",
+              marginBottom: "10px",
+              display: "flex",
+              gap: "10px",
+              alignItems: "center",
+              backgroundColor: "#fafafa"
+            }}
+          >
+            {f.imageUrl && <img src={f.imageUrl} alt="feedback" style={{ width: "60px", height: "60px", objectFit: "cover", borderRadius: "5px" }} />}
+            <div>
+              <div style={{ fontSize: "16px", fontWeight: "bold" }}>{f.stars} ★</div>
+              <div style={{ fontSize: "14px", color: "gray" }}>{f.content}</div>
+              <div style={{ fontSize: "12px", color: "gray" }}>{new Date(f.createdAt).toLocaleString()}</div>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
