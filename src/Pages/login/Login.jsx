@@ -73,6 +73,7 @@ function Login() {
         userType: response.data.userType,
         roles: response.data.roles,
         fullName: response.data.fullName,
+        email:response.data.email,
       };
 
       localStorage.setItem("user", JSON.stringify(sessionData));

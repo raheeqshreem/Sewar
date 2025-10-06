@@ -16,8 +16,6 @@ export default function RatingToast() {
     axios.get("https://sewarwellnessclinic1.runasp.net/api/Ranking/summary")
       .then(res => setSummary(res.data))
       .catch(err => console.error(err));
-
-   
   }, []);
 
   const { totalRatings, average, percentages } = summary;
@@ -31,34 +29,55 @@ export default function RatingToast() {
   };
 
   const handleWriteFeedback = () => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (user && user.token) {
-      navigate("/writefeedback");
-    } else {
-      toast.custom(
-        (t) => (
-          <div
-            style={{
-              padding: "16px 24px",
-              background: "white",
-              color: "black",
-              borderRadius: "12px",
-              fontFamily: "Arial, sans-serif",
-              fontWeight: "bold",
-              fontSize: "20px",
-              textAlign: "center",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-            }}
-          >
-            يرجى تسجيل الدخول
-          </div>
-        ),
-        { duration: 3000 }
-      );
-      navigate("/signin");
-    }
-  };
+  const user = JSON.parse(localStorage.getItem("user"));
 
+  if (!user || !user.token) {
+    toast.custom(
+      (t) => (
+        <div style={{ padding: "16px 24px", background: "white", color: "black", borderRadius: "12px", fontWeight: "bold", fontSize: "20px", textAlign: "center", boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }}>
+          يرجى تسجيل الدخول
+        </div>
+      ),
+      { duration: 3000 }
+    );
+    navigate("/signin");
+    return;
+  }
+
+  if (user.userType === "Patient") {
+    // ✅ هنا نحط الـ axios مع console.log
+    axios.get(
+      `https://sewarwellnessclinic1.runasp.net/api/Ranking/user/${user.email}`,
+      { headers: { Authorization: `Bearer ${user?.token}` } }
+    )
+    .then(res => {
+      console.log("User feedback data:", res.data); // هاد هيشوف شكل البيانات
+      const userFeedback = Array.isArray(res.data) ? res.data[0] : null;
+
+      if (userFeedback && userFeedback.id) {
+        toast.custom(
+          (t) => (
+            <div style={{ padding: "16px 24px", background: "white", color: "black", borderRadius: "12px", fontWeight: "bold", fontSize: "20px", textAlign: "center", boxShadow: "0 4px 12px rgba(0,0,0,0.2)" }}>
+              لا يمكنك التقييم مرة أخرى
+            </div>
+          ),
+          { duration: 3000 }
+        );
+
+        // التوجيه لتعليق المستخدم مباشرة
+        navigate("/feedback", { state: { scrollToId: userFeedback.id } });
+      } else {
+        navigate("/writefeedback");
+      }
+    })
+    .catch(err => {
+      console.error("خطأ جلب تقييم المستخدم:", err.response || err);
+      navigate("/writefeedback");
+    });
+  } else {
+    navigate("/writefeedback");
+  }
+};
   return (
     <div style={{ fontFamily: "Arial, sans-serif", maxWidth: "600px", margin: "150px auto" }}>
       {/* الصف الأول */}
@@ -177,32 +196,6 @@ export default function RatingToast() {
             );
           })}
         </div>
-      </div>
-
-      {/* قائمة التقييمات */}
-      <div style={{ marginTop: "20px" }}>
-        {feedbacks.map((f) => (
-          <div
-            key={f.id}
-            style={{
-              border: "1px solid #eee",
-              borderRadius: "10px",
-              padding: "10px",
-              marginBottom: "10px",
-              display: "flex",
-              gap: "10px",
-              alignItems: "center",
-              backgroundColor: "#fafafa"
-            }}
-          >
-            {f.imageUrl && <img src={f.imageUrl} alt="feedback" style={{ width: "60px", height: "60px", objectFit: "cover", borderRadius: "5px" }} />}
-            <div>
-              <div style={{ fontSize: "16px", fontWeight: "bold" }}>{f.stars} ★</div>
-              <div style={{ fontSize: "14px", color: "gray" }}>{f.content}</div>
-              <div style={{ fontSize: "12px", color: "gray" }}>{new Date(f.createdAt).toLocaleString()}</div>
-            </div>
-          </div>
-        ))}
       </div>
     </div>
   );

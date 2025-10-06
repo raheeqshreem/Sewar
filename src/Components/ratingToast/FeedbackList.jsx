@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { Edit, Trash2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const FeedbackList = () => {
   const [feedbacks, setFeedbacks] = useState([]);
@@ -8,6 +10,11 @@ const FeedbackList = () => {
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const pageSize = 5;
+  const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  // ====== هنا اطبع بيانات المستخدم من localStorage ======
+  console.log("Logged-in user from localStorage:", user);
 
   const fetchFeedbacks = async () => {
     if (loading || !hasMore) return;
@@ -18,7 +25,6 @@ const FeedbackList = () => {
       );
       const newData = res.data || [];
 
-      // دمج البيانات بدون تكرار
       if (page === 1) {
         setFeedbacks(sortData(newData));
       } else {
@@ -39,7 +45,6 @@ const FeedbackList = () => {
     }
   };
 
-  // دالة لترتيب التعليقات: السكرتير أولًا
   const sortData = (data) => {
     return data.sort((a, b) => {
       const roleA = a.role?.toLowerCase?.() || "";
@@ -80,6 +85,27 @@ const FeedbackList = () => {
           year: "numeric",
         })
       : "";
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("هل أنت متأكد من حذف هذا التعليق؟")) return;
+    try {
+      await axios.delete(
+        `https://sewarwellnessclinic1.runasp.net/api/Ranking/${id}`,
+        {
+          headers: { Authorization: `Bearer ${user?.token}` },
+        }
+      );
+      setFeedbacks((prev) => prev.filter((f) => f.id !== id));
+      alert("تم حذف التعليق بنجاح ✅");
+    } catch (err) {
+      console.error("خطأ أثناء الحذف:", err);
+      alert("حدث خطأ أثناء حذف التعليق ❌");
+    }
+  };
+
+  const handleEdit = (id) => {
+    navigate(`/writefeedback/${id}`);
+  };
 
   if (initialLoading)
     return (
@@ -123,15 +149,20 @@ const FeedbackList = () => {
           ? fb.imageUrl
           : `https://sewarwellnessclinic1.runasp.net${fb.imageUrl}`;
 
+        // ====== هنا اطبع ايميل صاحب التعليق ======
+        console.log("fb.authorEmail:", fb.authorEmail);
+
         return (
           <div
             key={fb.id}
+            id={`feedback-${fb.id}`}
             style={{
               background: "white",
               padding: "15px",
               borderRadius: "10px",
               boxShadow: "0 0 8px rgba(0,0,0,0.1)",
               marginBottom: "15px",
+              position: "relative",
             }}
           >
             <div
@@ -194,6 +225,43 @@ const FeedbackList = () => {
                     }}
                   />
                 )}
+              </div>
+            )}
+
+            {/* أزرار التعديل والحذف */}
+            {user?.email === fb.authorEmail && (
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  gap: "10px",
+                  marginTop: "10px",
+                }}
+              >
+                <button
+                  onClick={() => handleEdit(fb.id)}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    cursor: "pointer",
+                    color: "#2a7371",
+                  }}
+                  title="تعديل"
+                >
+                  <Edit size={20} />
+                </button>
+                <button
+                  onClick={() => handleDelete(fb.id)}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    cursor: "pointer",
+                    color: "red",
+                  }}
+                  title="حذف"
+                >
+                  <Trash2 size={20} />
+                </button>
               </div>
             )}
           </div>

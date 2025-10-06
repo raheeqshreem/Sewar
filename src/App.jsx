@@ -45,7 +45,9 @@ function App() {
           <Route path="/file" element={<File />} />
           <Route path="/forgetPassword" element={<ForgetPassword />} />
           <Route path="/resetPassword" element={<ResetPassword />} />
-          <Route path="/writefeedback" element={<WriteFeedback />} />
+          <Route path="/writefeedback/:id" element={<WriteFeedback />} />
+                    <Route path="/writefeedback" element={<WriteFeedback />} />
+
           <Route path="/feedback" element={<Feedback />} />
           <Route path="/ratingtoast" element={<RatingToast />} />
           <Route path="/feedbacklist" element={<FeedbackList />} />
