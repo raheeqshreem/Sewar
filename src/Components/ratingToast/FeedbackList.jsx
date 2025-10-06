@@ -11,7 +11,7 @@ const FeedbackList = () => {
   const [initialLoading, setInitialLoading] = useState(true);
   const pageSize = 5;
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user")); // ممكن يكون null
+  const user = JSON.parse(localStorage.getItem("user")) || null;
 
   const API_BASE = "https://sewarwellnessclinic1.runasp.net";
 
@@ -31,7 +31,9 @@ const FeedbackList = () => {
       const res = await axios.get(
         `${API_BASE}/api/Ranking/all?page=${page}&pageSize=${pageSize}`
       );
-      const newData = res.data || [];
+
+      // 🔹 تعديل: تأكد من شكل البيانات
+      const newData = Array.isArray(res.data) ? res.data : res.data.data || [];
 
       if (page === 1) {
         setFeedbacks(sortData(newData));
@@ -43,14 +45,14 @@ const FeedbackList = () => {
         });
       }
 
-      if (newData.length < pageSize) setHasMore(false);
+      setHasMore(newData.length === pageSize); // 🔹 ضبط hasMore بدقة
     } catch (err) {
       console.error("❌ خطأ في جلب التعليقات:", err);
     } finally {
-      setLoading(false);
+      setLoading(false); // 🔹 مهم جدًا لإيقاف وميض الزر
       setInitialLoading(false);
     }
-  }, [loading, hasMore, page, pageSize]);
+  }, [loading, hasMore, page]);
 
   useEffect(() => {
     fetchFeedbacks();
@@ -120,19 +122,16 @@ const FeedbackList = () => {
         Feedback
       </h2>
 
-      {feedbacks.length === 0 && !hasMore && (
+      {feedbacks.length === 0 && !loading && (
         <p style={{ textAlign: "center", color: "#666" }}>لا توجد تعليقات بعد.</p>
       )}
 
       {feedbacks.map((fb) => {
         const type = fb.role?.toLowerCase?.();
 
-        // ✅ معالجة روابط الصور
         const fullImageUrls = (fb.imageUrls || []).map((url) => {
           if (!url) return null;
-          // لو الرابط مش كامل، نضيف رابط السيرفر
           if (!url.startsWith("http")) {
-            // نحذف أي / في البداية عشان مايبقاش //uploads
             return `${API_BASE}/${url.replace(/^\/+/, "")}`;
           }
           return url;
@@ -222,7 +221,6 @@ const FeedbackList = () => {
               </div>
             )}
 
-            {/* ✅ الأزرار تظهر فقط لصاحب التعليق */}
             {isOwner && (
               <div
                 style={{
@@ -262,23 +260,28 @@ const FeedbackList = () => {
         );
       })}
 
-    
-      {hasMore && feedbacks.length > 0 && (
+      {/* 🔹 زر عرض المزيد مع الحفاظ على التصميم */}
+      {feedbacks.length > 0 && (
         <div style={{ textAlign: "center", marginTop: "20px" }}>
           <button
             onClick={() => setPage((p) => p + 1)}
-            disabled={loading}
+            disabled={loading || !hasMore}
             style={{
               padding: "10px 20px",
               backgroundColor: "#2a7371",
               color: "white",
               border: "none",
               borderRadius: "8px",
-              cursor: "pointer",
-              opacity: loading ? 0.7 : 1,
+              cursor: loading || !hasMore ? "not-allowed" : "pointer",
+              opacity: loading || !hasMore ? 0.7 : 1,
+              transition: "opacity 0.3s",
             }}
           >
-            {loading ? "جار التحميل..." : "عرض المزيد"}
+            {loading
+              ? "جار التحميل..."
+              : hasMore
+              ? "عرض المزيد"
+              : "لا توجد تعليقات أخرى"}
           </button>
         </div>
       )}
