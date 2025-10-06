@@ -3,12 +3,12 @@ import logoo from "./../../assets/logoo.jpeg";
 import styles from "./Login.module.css";
 import { useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
+import GoogleLoginButton from "../GoogleLoginButton";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import { Eye, EyeOff } from "lucide-react";
 import axios from "axios";
-import { FaRegGrinStars} from "react-icons/fa"; // أيقونة ترحيب
-import GoogleLoginButton from "../GoogleLoginButton";
+import { FaRegGrinStars } from "react-icons/fa"; // أيقونة ترحيب
 
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -73,7 +73,6 @@ function Login() {
         userType: response.data.userType,
         roles: response.data.roles,
         fullName: response.data.fullName,
-        email:response.data.email,
       };
 
       localStorage.setItem("user", JSON.stringify(sessionData));
@@ -86,34 +85,58 @@ function Login() {
         localStorage.setItem("rememberMe", "0");
       }
 
-toast.custom(
-      (t) => (
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            padding: "16px 24px",
-            background: "beige",
-            color: "#333",
-            borderRadius: "12px",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-            fontFamily: "Arial, sans-serif",
-            textAlign: "center",
-            maxWidth: "300px",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "18px", fontWeight: "600", color: "#2a7371" }}>
-            <FaRegGrinStars color="#FFD700" size={24} /> {/* أيقونة ترحيب */}
-            أهلاً بك في مركز سوار
+      toast.custom(
+        () => (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              padding: "16px 24px",
+              background: "beige",
+              color: "#333",
+              borderRadius: "12px",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+              fontFamily: "Arial, sans-serif",
+              textAlign: "center",
+              maxWidth: "300px",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                fontSize: "18px",
+                fontWeight: "600",
+                color: "#2a7371",
+              }}
+            >
+              <FaRegGrinStars color="#FFD700" size={24} /> {/* أيقونة ترحيب */}
+              أهلاً بك في مركز سوار
+            </div>
+            <div
+              style={{ marginTop: "8px", fontSize: "14px", color: "#2a7371" }}
+            >
+              نتمنى لك تجربة علاجية مميزة معنا
+            </div>
           </div>
-          <div style={{ marginTop: "8px", fontSize: "14px", color: "#2a7371" }}>
-            نتمنى لك تجربة علاجية مميزة معنا
-          </div>
-        </div>
-      ),
-      { duration: 10000 } // يظهر لمدة دقيقة
-    );      navigate("/");
+        ),
+        { duration: 10000 } // يظهر لمدة دقيقة
+      );
+      // ✅ بعد نجاح تسجيل الدخول
+      let redirectPath = localStorage.getItem("redirectAfterLogin");
+
+      // 🔹 لو القيمة فاضية أو الصفحة هي صفحة تسجيل الدخول نفسها، نرجع للرئيسية
+      if (!redirectPath || redirectPath === "/signin" || redirectPath === "/signup") {
+        redirectPath = "/feedback";
+      }
+
+      // 🧹 نحذف المفتاح بعد الاستخدام (علشان المرة الجاية يبدأ من جديد)
+      localStorage.removeItem("redirectAfterLogin");
+
+      // 🚀 نوجّه المستخدم تلقائيًا
+      navigate(redirectPath);
     } catch (error) {
       console.error("Login error full:", error.response?.data || error.message);
       toast.error(
@@ -191,20 +214,20 @@ toast.custom(
 
         {/* Forgot */}
 
-<div className="mb-3">
-  <Link
-    to="/forgetPassword"
-    className="text-decoration-none"
-    style={{ fontSize: 14, color: "beige" }}
-  >
-    Forgot password?
-  </Link>
-</div>
+        <div className="mb-3">
+          <Link
+            to="/forgetPassword"
+            className="text-decoration-none"
+            style={{ fontSize: 14, color: "beige" }}
+          >
+            Forgot password?
+          </Link>
+        </div>
 
         {/* Remember me */}
         <div
           className="form-check form-switch mb-3 d-flex align-items-center"
-          style={{ padding: "0px", justifyContent:"space-between" }}
+          style={{ padding: "0px", justifyContent: "space-between" }}
         >
           <label
             className="form-check-label me-2"
@@ -265,7 +288,7 @@ toast.custom(
         </div>
 
         {/* Google */}
-             <GoogleLoginButton/>
+        <GoogleLoginButton setLoading={setLoading} />
 
         {/* Sign up link */}
         <p

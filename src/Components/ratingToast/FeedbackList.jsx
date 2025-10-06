@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { Edit, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -11,17 +11,25 @@ const FeedbackList = () => {
   const [initialLoading, setInitialLoading] = useState(true);
   const pageSize = 5;
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(localStorage.getItem("user")); // ممكن يكون null
 
-  // ====== هنا اطبع بيانات المستخدم من localStorage ======
-  console.log("Logged-in user from localStorage:", user);
+  const API_BASE = "https://sewarwellnessclinic1.runasp.net";
 
-  const fetchFeedbacks = async () => {
+  const sortData = (data) =>
+    data.sort((a, b) => {
+      const roleA = a.role?.toLowerCase?.() || "";
+      const roleB = b.role?.toLowerCase?.() || "";
+      if (roleA === "scheduler_admin" && roleB !== "scheduler_admin") return -1;
+      if (roleB === "scheduler_admin" && roleA !== "scheduler_admin") return 1;
+      return 0;
+    });
+
+  const fetchFeedbacks = useCallback(async () => {
     if (loading || !hasMore) return;
     setLoading(true);
     try {
       const res = await axios.get(
-        `https://sewarwellnessclinic1.runasp.net/api/Ranking/all?page=${page}&pageSize=${pageSize}`
+        `${API_BASE}/api/Ranking/all?page=${page}&pageSize=${pageSize}`
       );
       const newData = res.data || [];
 
@@ -31,33 +39,22 @@ const FeedbackList = () => {
         setFeedbacks((prev) => {
           const existingIds = new Set(prev.map((f) => f.id));
           const unique = newData.filter((f) => !existingIds.has(f.id));
-          const merged = [...prev, ...unique];
-          return sortData(merged);
+          return sortData([...prev, ...unique]);
         });
       }
 
       if (newData.length < pageSize) setHasMore(false);
     } catch (err) {
-      console.error("خطأ في جلب التعليقات:", err);
+      console.error("❌ خطأ في جلب التعليقات:", err);
     } finally {
       setLoading(false);
       setInitialLoading(false);
     }
-  };
-
-  const sortData = (data) => {
-    return data.sort((a, b) => {
-      const roleA = a.role?.toLowerCase?.() || "";
-      const roleB = b.role?.toLowerCase?.() || "";
-      if (roleA === "scheduler_admin" && roleB !== "scheduler_admin") return -1;
-      if (roleB === "scheduler_admin" && roleA !== "scheduler_admin") return 1;
-      return 0;
-    });
-  };
+  }, [loading, hasMore, page, pageSize]);
 
   useEffect(() => {
     fetchFeedbacks();
-  }, [page]);
+  }, [page, fetchFeedbacks]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -89,37 +86,23 @@ const FeedbackList = () => {
   const handleDelete = async (id) => {
     if (!window.confirm("هل أنت متأكد من حذف هذا التعليق؟")) return;
     try {
-      await axios.delete(
-        `https://sewarwellnessclinic1.runasp.net/api/Ranking/${id}`,
-        {
-          headers: { Authorization: `Bearer ${user?.token}` },
-        }
-      );
+      await axios.delete(`${API_BASE}/api/Ranking/${id}`, {
+        headers: { Authorization: `Bearer ${user?.token}` },
+      });
       setFeedbacks((prev) => prev.filter((f) => f.id !== id));
-      alert("تم حذف التعليق بنجاح ✅");
+      alert("✅ تم حذف التعليق بنجاح");
     } catch (err) {
-      console.error("خطأ أثناء الحذف:", err);
-      alert("حدث خطأ أثناء حذف التعليق ❌");
+      console.error("❌ خطأ أثناء الحذف:", err);
+      alert("حدث خطأ أثناء حذف التعليق");
     }
   };
 
-  const handleEdit = (id) => {
-    navigate(`/writefeedback/${id}`);
-  };
+  const handleEdit = (id) => navigate(`/writefeedback/${id}`);
 
   if (initialLoading)
     return (
       <div style={{ maxWidth: "600px", margin: "50px auto", textAlign: "center" }}>
-        <h2
-          style={{
-            textAlign: "center",
-            marginBottom: "20px",
-            color: "#2a7371",
-            textShadow: "2px 2px 5px rgba(0,0,0,0.3)",
-          }}
-        >
-          Feedback
-        </h2>
+        <h2 style={{ color: "#2a7371", marginBottom: "20px" }}>Feedback</h2>
         <div>جارِ التحميل...</div>
       </div>
     );
@@ -138,24 +121,36 @@ const FeedbackList = () => {
       </h2>
 
       {feedbacks.length === 0 && !hasMore && (
-        <p style={{ textAlign: "center", color: "#666" }}>
-          لا توجد تعليقات بعد.
-        </p>
+        <p style={{ textAlign: "center", color: "#666" }}>لا توجد تعليقات بعد.</p>
       )}
 
       {feedbacks.map((fb) => {
         const type = fb.role?.toLowerCase?.();
-        const fullImageUrl = fb.imageUrl?.startsWith("http")
-          ? fb.imageUrl
-          : `https://sewarwellnessclinic1.runasp.net${fb.imageUrl}`;
 
-        // ====== هنا اطبع ايميل صاحب التعليق ======
-        console.log("fb.authorEmail:", fb.authorEmail);
+        // ✅ معالجة روابط الصور
+        const fullImageUrls = (fb.imageUrls || []).map((url) => {
+          if (!url) return null;
+          // لو الرابط مش كامل، نضيف رابط السيرفر
+          if (!url.startsWith("http")) {
+            // نحذف أي / في البداية عشان مايبقاش //uploads
+            return `${API_BASE}/${url.replace(/^\/+/, "")}`;
+          }
+          return url;
+        }).filter(Boolean);
+
+        const isLoggedIn = Boolean(user && user.token);
+        const isOwner =
+          isLoggedIn &&
+          (
+            (fb.userId && user.userId && fb.userId === user.userId) ||
+            (fb.authorEmail && user.email && fb.authorEmail.toLowerCase() === user.email.toLowerCase()) ||
+            (fb.authorEmail && user.fullName &&
+              fb.authorEmail.split("@")[0].toLowerCase() === user.fullName.split(" ")[0].toLowerCase())
+          );
 
         return (
           <div
             key={fb.id}
-            id={`feedback-${fb.id}`}
             style={{
               background: "white",
               padding: "15px",
@@ -165,13 +160,7 @@ const FeedbackList = () => {
               position: "relative",
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                marginBottom: "5px",
-              }}
-            >
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "5px" }}>
               <h3 style={{ margin: 0, color: "#2a7371", fontSize: "18px" }}>
                 {type === "scheduler_admin"
                   ? "Sewar-Clinic"
@@ -183,14 +172,9 @@ const FeedbackList = () => {
             </div>
 
             {type === "patient" && (
-              <div
-                style={{
-                  color: "gold",
-                  fontSize: "20px",
-                  marginBottom: "10px",
-                }}
-              >
-                {"★".repeat(fb.stars || 0)}{"☆".repeat(5 - (fb.stars || 0))}
+              <div style={{ color: "gold", fontSize: "20px", marginBottom: "10px" }}>
+                {"★".repeat(fb.stars || 0)}
+                {"☆".repeat(5 - (fb.stars || 0))}
               </div>
             )}
 
@@ -200,36 +184,46 @@ const FeedbackList = () => {
               </p>
             )}
 
-            {type === "scheduler_admin" && fb.imageUrl && (
+            {fullImageUrls.length > 0 && (
               <div style={{ marginTop: "10px" }}>
-                {/\.(mp4|webm|mov)$/i.test(fullImageUrl) ? (
-                  <video
-                    src={fullImageUrl}
-                    controls
-                    style={{
-                      width: "100%",
-                      borderRadius: "10px",
-                      maxHeight: "400px",
-                      objectFit: "cover",
-                    }}
-                  />
-                ) : (
-                  <img
-                    src={fullImageUrl}
-                    alt="feedback"
-                    style={{
-                      width: "100%",
-                      borderRadius: "10px",
-                      maxHeight: "400px",
-                      objectFit: "cover",
-                    }}
-                  />
+                {fullImageUrls.map((url, i) =>
+                  /\.(mp4|webm|mov)$/i.test(url) ? (
+                    <video
+                      key={i}
+                      src={url}
+                      controls
+                      style={{
+                        width: "100%",
+                        borderRadius: "10px",
+                        maxHeight: "400px",
+                        objectFit: "cover",
+                        marginBottom: "10px",
+                      }}
+                    />
+                  ) : (
+                    <img
+                      key={i}
+                      src={url}
+                      alt="feedback"
+                      style={{
+                        width: "100%",
+                        borderRadius: "10px",
+                        maxHeight: "400px",
+                        objectFit: "cover",
+                        marginBottom: "10px",
+                      }}
+                      onError={(e) => {
+                        e.target.style.display = "none";
+                        console.warn("⚠️ صورة غير موجودة:", url);
+                      }}
+                    />
+                  )
                 )}
               </div>
             )}
 
-            {/* أزرار التعديل والحذف */}
-            {user?.email === fb.authorEmail && (
+            {/* ✅ الأزرار تظهر فقط لصاحب التعليق */}
+            {isOwner && (
               <div
                 style={{
                   display: "flex",
@@ -268,6 +262,7 @@ const FeedbackList = () => {
         );
       })}
 
+    
       {hasMore && feedbacks.length > 0 && (
         <div style={{ textAlign: "center", marginTop: "20px" }}>
           <button
