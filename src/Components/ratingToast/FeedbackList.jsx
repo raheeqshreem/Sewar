@@ -5,11 +5,9 @@ import { useNavigate } from "react-router-dom";
 
 const FeedbackList = () => {
   const [feedbacks, setFeedbacks] = useState([]);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
+  const [visibleCount, setVisibleCount] = useState(5); // عدد التعليقات المعروضة
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
-  const pageSize = 5;
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user"));
   const API_BASE = "https://sewarwellnessclinic1.runasp.net";
@@ -23,47 +21,28 @@ const FeedbackList = () => {
       return 0;
     });
 
-  const fetchFeedbacks = useCallback(async (currentPage = page) => {
-    if (loading || !hasMore) return;
+  const fetchFeedbacks = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await axios.get(
-        `${API_BASE}/api/Ranking/all?page=${currentPage}&pageSize=${pageSize}`
-      );
-      const newData = res.data || [];
-
-      if (currentPage === 1) {
-        setFeedbacks(sortData(newData));
-      } else {
-        setFeedbacks((prev) => {
-          const existingIds = new Set(prev.map((f) => f.id));
-          const unique = newData.filter((f) => !existingIds.has(f.id));
-          return sortData([...prev, ...unique]);
-        });
-      }
-
-      // ✅ تحديد إذا هناك المزيد من التعليقات
-      if (newData.length === 0 || newData.length < pageSize) {
-        setHasMore(false);
-      }
-
+      const res = await axios.get(`${API_BASE}/api/Ranking/all`);
+      const data = res.data || [];
+      setFeedbacks(sortData(data));
     } catch (err) {
       console.error("❌ خطأ في جلب التعليقات:", err);
     } finally {
       setLoading(false);
       setInitialLoading(false);
     }
-  }, [pageSize, hasMore]);
+  }, []);
 
   useEffect(() => {
-    fetchFeedbacks(page);
-  }, [page, fetchFeedbacks]);
+    fetchFeedbacks();
+  }, [fetchFeedbacks]);
 
   useEffect(() => {
     const handleScrollToFeedback = (e) => {
       const { id } = e.detail;
       if (!id) return;
-
       setTimeout(() => {
         const target = document.getElementById(`feedback-${id}`);
         if (target) {
@@ -73,7 +52,6 @@ const FeedbackList = () => {
         }
       }, 500);
     };
-
     window.addEventListener("scrollToFeedback", handleScrollToFeedback);
     return () =>
       window.removeEventListener("scrollToFeedback", handleScrollToFeedback);
@@ -98,6 +76,7 @@ const FeedbackList = () => {
         headers: { Authorization: `Bearer ${user?.token}` },
       });
       setFeedbacks((prev) => prev.filter((f) => f.id !== id));
+      setVisibleCount((prev) => Math.min(prev, feedbacks.length - 1)); // تحديث عدد التعليقات المعروضة
       alert("✅ تم حذف التعليق بنجاح");
     } catch (err) {
       console.error("❌ خطأ أثناء الحذف:", err);
@@ -128,11 +107,11 @@ const FeedbackList = () => {
         Feedback
       </h2>
 
-      {feedbacks.length === 0 && !hasMore && (
+      {feedbacks.length === 0 && (
         <p style={{ textAlign: "center", color: "#666" }}>لا توجد تعليقات بعد.</p>
       )}
 
-      {feedbacks.map((fb) => {
+      {feedbacks.slice(0, visibleCount).map((fb) => {
         const type = fb.role?.toLowerCase?.();
         const allMedia = [
           ...(fb.imageUrls || []),
@@ -271,10 +250,10 @@ const FeedbackList = () => {
         );
       })}
 
-      {hasMore && feedbacks.length > 0 && (
+      {visibleCount < feedbacks.length && (
         <div style={{ textAlign: "center", marginTop: "20px" }}>
           <button
-            onClick={() => setPage((p) => p + 1)}
+            onClick={() => setVisibleCount((prev) => prev + 5)}
             disabled={loading}
             style={{
               padding: "10px 20px",
