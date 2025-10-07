@@ -3,17 +3,18 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import FeedbackList from "./FeedbackList";
+
 export default function RatingToast() {
   const navigate = useNavigate();
-  const feedbackRef = useRef(null); // 🔹 مرجع للتعليق
+  const feedbackRef = useRef(null);
   const [summary, setSummary] = useState({
     totalRatings: 0,
     average: 0,
     percentages: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
   });
-
-  const [alertMessage, setAlertMessage] = useState(""); // 🔹 لعرض التنبيه
-  const [userFeedback, setUserFeedback] = useState(null); // 🔹 حفظ تقييم المستخدم
+const [userFeedbackId, setUserFeedbackId] = useState(null);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [userFeedback, setUserFeedback] = useState(null);
 
   useEffect(() => {
     axios
@@ -32,10 +33,9 @@ export default function RatingToast() {
     return "ممتاز";
   };
 
-  const handleWriteFeedback = () => {
+  const handleWriteFeedback = async () => {
     const user = JSON.parse(localStorage.getItem("user"));
 
-    // 🟡 لو المستخدم مش داخل → فقط نعرض توست بدون توجيه
     if (!user || !user.token) {
       toast.custom(
         () => (
@@ -51,49 +51,109 @@ export default function RatingToast() {
               boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
             }}
           >
-            👋  لتكتب رأيك يرجى تسجيل الدخول
+            👋 لتكتب رأيك يرجى تسجيل الدخول
           </div>
         ),
         { duration: 3000 }
-
       );
-      localStorage.removeItem("redirectAfterLogin"); // ❌ نحذف أي توجيه سابق
       localStorage.setItem("redirectAfterLogin", window.location.hash);
-      navigate("/signin")
-      return; // ❌ لا تنتقل لصفحة تسجيل الدخول تلقائيًا
+      navigate("/signin");
+      return;
     }
 
-    // 🟢 المستخدم داخل → نكمل كالمعتاد
-    axios
-      .get(
-        `https://sewarwellnessclinic1.runasp.net/api/Ranking/user/${user.email}`,
-        {
-          headers: { Authorization: `Bearer ${user?.token}` },
-        }
-      )
-      .then((res) => {
-        const feedback = Array.isArray(res.data) ? res.data[0] : null;
+    try {
+      const res = await axios.get(
+        "https://sewarwellnessclinic1.runasp.net/api/Ranking/check",
+        { headers: { Authorization: `Bearer ${user.token}` } }
+      );
 
-        if (feedback && feedback.id) {
-          setUserFeedback(feedback);
-          setAlertMessage("لقد قمت بكتابة تقييم من قبل ✅");
+      const role = user.roles?.[0]; // أو حسب كيف خزنت الرولات في localStorage
 
-          setTimeout(() => {
-            if (feedbackRef.current) {
-              feedbackRef.current.scrollIntoView({
-                behavior: "smooth",
-                block: "center",
-              });
-            }
-          }, 800);
-        } else {
-          navigate("/writefeedback");
-        }
-      })
-      .catch((err) => {
-        console.error("خطأ جلب تقييم المستخدم:", err.response || err);
+      if (role === "patient" && res.data.exists) {
+  toast.custom(
+    () => (
+      <div
+        style={{
+          padding: "16px 24px",
+          background: "#fee2e2",
+          color: "#991b1b",
+          borderRadius: "12px",
+          fontWeight: "bold",
+          fontSize: "18px",
+          textAlign: "center",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+        }}
+      >
+        ❌ لقد قمت بكتابة تقييم من قبل
+      </div>
+    ),
+    { duration: 3000 }
+  );
+
+  // ✅ خزّن id التعليق لو بيرجع من API (أو من بيانات user)
+  setUserFeedbackId(res.data.feedbackId);
+
+  // لو مش متوفر feedbackId في الـ API، ممكن تجيبه لاحقاً من FeedbackList نفسها
+
+  // أرسل event مخصص لFeedbackList
+  window.dispatchEvent(new CustomEvent("scrollToFeedback", { detail: { id: res.data.feedbackId } }));
+
+  return;
+}
+
+      if (role === "scheduler_admin") {
+        // المجدول دايمًا يسمح له بالكتابة
         navigate("/writefeedback");
-      });
+        return;
+      }
+
+      if (!["patient", "scheduler_admin"].includes(role)) {
+        toast.custom(
+          () => (
+            <div
+              style={{
+                padding: "16px 24px",
+                background: "#fee2e2",
+                color: "#991b1b",
+                borderRadius: "12px",
+                fontWeight: "bold",
+                fontSize: "18px",
+                textAlign: "center",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+              }}
+            >
+              ❌ هذا الدور لا يمكنه كتابة تقييم
+            </div>
+          ),
+          { duration: 3000 }
+        );
+        return;
+      }
+
+      // لو المريض ولم يكتب فيدباك سابق → يمكن توجيهه
+      navigate("/writefeedback");
+    } catch (err) {
+      console.error("خطأ التحقق من الفيدباك:", err.response || err);
+      toast.custom(
+        () => (
+          <div
+            style={{
+              padding: "16px 24px",
+              background: "#fee2e2",
+              color: "#991b1b",
+              borderRadius: "12px",
+              fontWeight: "bold",
+              fontSize: "18px",
+              textAlign: "center",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+            }}
+          >
+            ❌ حدث خطأ أثناء التحقق
+          </div>
+        ),
+        { duration: 3000 }
+      );
+    }
   };
 
   return (
@@ -108,7 +168,6 @@ export default function RatingToast() {
           position: "relative",
         }}
       >
-        {/* 🟡 التنبيه (Alert) */}
         {alertMessage && (
           <div
             style={{
@@ -128,7 +187,6 @@ export default function RatingToast() {
           </div>
         )}
 
-        {/* الصف الأول */}
         <div
           style={{
             display: "flex",
@@ -156,7 +214,6 @@ export default function RatingToast() {
           <span style={{ fontWeight: "bold" }}>{average}</span>
         </div>
 
-        {/* زر شاركنا رأيك */}
         <div
           onClick={handleWriteFeedback}
           style={{
@@ -178,7 +235,6 @@ export default function RatingToast() {
           ✍ شاركنا رأيك
         </div>
 
-        {/* الصندوق الأبيض */}
         <div
           style={{
             border: "1px solid #eee",
@@ -190,7 +246,6 @@ export default function RatingToast() {
             flexDirection: "column",
           }}
         >
-          {/* بيانات المستخدم لو موجودة */}
           {userFeedback && (
             <div
               ref={feedbackRef}
@@ -210,7 +265,6 @@ export default function RatingToast() {
             </div>
           )}
 
-          {/* التقييم العام */}
           <div style={{ display: "flex", gap: "20px" }}>
             <div style={{ flex: "1", textAlign: "center" }}>
               <h1 style={{ margin: "0", fontSize: "40px" }}>{average}</h1>

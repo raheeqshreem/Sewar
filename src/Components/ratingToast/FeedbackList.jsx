@@ -11,8 +11,7 @@ const FeedbackList = () => {
   const [initialLoading, setInitialLoading] = useState(true);
   const pageSize = 5;
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user")) || null;
-
+  const user = JSON.parse(localStorage.getItem("user"));
   const API_BASE = "https://sewarwellnessclinic1.runasp.net";
 
   const sortData = (data) =>
@@ -24,18 +23,16 @@ const FeedbackList = () => {
       return 0;
     });
 
-  const fetchFeedbacks = useCallback(async () => {
+  const fetchFeedbacks = useCallback(async (currentPage = page) => {
     if (loading || !hasMore) return;
     setLoading(true);
     try {
       const res = await axios.get(
-        `${API_BASE}/api/Ranking/all?page=${page}&pageSize=${pageSize}`
+        `${API_BASE}/api/Ranking/all?page=${currentPage}&pageSize=${pageSize}`
       );
+      const newData = res.data || [];
 
-      // 🔹 تعديل: تأكد من شكل البيانات
-      const newData = Array.isArray(res.data) ? res.data : res.data.data || [];
-
-      if (page === 1) {
+      if (currentPage === 1) {
         setFeedbacks(sortData(newData));
       } else {
         setFeedbacks((prev) => {
@@ -45,33 +42,42 @@ const FeedbackList = () => {
         });
       }
 
-      setHasMore(newData.length === pageSize); // 🔹 ضبط hasMore بدقة
+      // ✅ تحديد إذا هناك المزيد من التعليقات
+      if (newData.length === 0 || newData.length < pageSize) {
+        setHasMore(false);
+      }
+
     } catch (err) {
       console.error("❌ خطأ في جلب التعليقات:", err);
     } finally {
-      setLoading(false); // 🔹 مهم جدًا لإيقاف وميض الزر
+      setLoading(false);
       setInitialLoading(false);
     }
-  }, [loading, hasMore, page]);
+  }, [pageSize, hasMore]);
 
   useEffect(() => {
-    fetchFeedbacks();
+    fetchFeedbacks(page);
   }, [page, fetchFeedbacks]);
 
   useEffect(() => {
-    const handleScroll = () => {
-      if (
-        window.innerHeight + window.scrollY >=
-          document.body.offsetHeight - 100 &&
-        hasMore &&
-        !loading
-      ) {
-        setPage((prev) => prev + 1);
-      }
+    const handleScrollToFeedback = (e) => {
+      const { id } = e.detail;
+      if (!id) return;
+
+      setTimeout(() => {
+        const target = document.getElementById(`feedback-${id}`);
+        if (target) {
+          target.scrollIntoView({ behavior: "smooth", block: "center" });
+          target.style.boxShadow = "0 0 10px 3px #2a7371";
+          setTimeout(() => (target.style.boxShadow = "none"), 2000);
+        }
+      }, 500);
     };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [hasMore, loading]);
+
+    window.addEventListener("scrollToFeedback", handleScrollToFeedback);
+    return () =>
+      window.removeEventListener("scrollToFeedback", handleScrollToFeedback);
+  }, []);
 
   const getUsernameFromEmail = (email) =>
     email ? email.split("@")[0] : "مستخدم مجهول";
@@ -122,34 +128,39 @@ const FeedbackList = () => {
         Feedback
       </h2>
 
-      {feedbacks.length === 0 && !loading && (
+      {feedbacks.length === 0 && !hasMore && (
         <p style={{ textAlign: "center", color: "#666" }}>لا توجد تعليقات بعد.</p>
       )}
 
       {feedbacks.map((fb) => {
         const type = fb.role?.toLowerCase?.();
+        const allMedia = [
+          ...(fb.imageUrls || []),
+          ...(fb.videoUrls || []),
+          ...(fb.media || []),
+        ].filter(Boolean);
 
-        const fullImageUrls = (fb.imageUrls || []).map((url) => {
-          if (!url) return null;
-          if (!url.startsWith("http")) {
-            return `${API_BASE}/${url.replace(/^\/+/, "")}`;
-          }
-          return url;
-        }).filter(Boolean);
+        const fixedUrls = allMedia
+          .map((url) => {
+            if (!url) return null;
+            if (!url.startsWith("http")) {
+              return `${API_BASE}/${url.replace(/^\/+/, "")}`;
+            }
+            return url;
+          })
+          .filter(Boolean);
 
         const isLoggedIn = Boolean(user && user.token);
         const isOwner =
           isLoggedIn &&
-          (
-            (fb.userId && user.userId && fb.userId === user.userId) ||
-            (fb.authorEmail && user.email && fb.authorEmail.toLowerCase() === user.email.toLowerCase()) ||
-            (fb.authorEmail && user.fullName &&
-              fb.authorEmail.split("@")[0].toLowerCase() === user.fullName.split(" ")[0].toLowerCase())
-          );
+          fb.authorEmail &&
+          user.email &&
+          fb.authorEmail.toLowerCase() === user.email.toLowerCase();
 
         return (
           <div
             key={fb.id}
+            id={`feedback-${fb.id}`}
             style={{
               background: "white",
               padding: "15px",
@@ -183,9 +194,9 @@ const FeedbackList = () => {
               </p>
             )}
 
-            {fullImageUrls.length > 0 && (
+            {fixedUrls.length > 0 && (
               <div style={{ marginTop: "10px" }}>
-                {fullImageUrls.map((url, i) =>
+                {fixedUrls.map((url, i) =>
                   /\.(mp4|webm|mov)$/i.test(url) ? (
                     <video
                       key={i}
@@ -213,7 +224,7 @@ const FeedbackList = () => {
                       }}
                       onError={(e) => {
                         e.target.style.display = "none";
-                        console.warn("⚠️ صورة غير موجودة:", url);
+                        console.warn("⚠ صورة غير موجودة:", url);
                       }}
                     />
                   )
@@ -260,28 +271,22 @@ const FeedbackList = () => {
         );
       })}
 
-      {/* 🔹 زر عرض المزيد مع الحفاظ على التصميم */}
-      {feedbacks.length > 0 && (
+      {hasMore && feedbacks.length > 0 && (
         <div style={{ textAlign: "center", marginTop: "20px" }}>
           <button
             onClick={() => setPage((p) => p + 1)}
-            disabled={loading || !hasMore}
+            disabled={loading}
             style={{
               padding: "10px 20px",
               backgroundColor: "#2a7371",
               color: "white",
               border: "none",
               borderRadius: "8px",
-              cursor: loading || !hasMore ? "not-allowed" : "pointer",
-              opacity: loading || !hasMore ? 0.7 : 1,
-              transition: "opacity 0.3s",
+              cursor: "pointer",
+              opacity: loading ? 0.7 : 1,
             }}
           >
-            {loading
-              ? "جار التحميل..."
-              : hasMore
-              ? "عرض المزيد"
-              : "لا توجد تعليقات أخرى"}
+            {loading ? "جار التحميل..." : "عرض المزيد"}
           </button>
         </div>
       )}
