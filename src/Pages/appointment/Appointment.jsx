@@ -1,32 +1,50 @@
 import React, { useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react"; // أيقونات الأسهم
+import { ChevronLeft, ChevronRight, Check } from "lucide-react";
 import { Link } from "react-router-dom";
 
 function App() {
-  const [weekOffset, setWeekOffset] = useState(0); // تحريك الأسابيع
+  const [weekOffset, setWeekOffset] = useState(0);
+  const [selectedSlot, setSelectedSlot] = useState(null);
+
+  const DISPLAY_COUNT = 6; // السبت - الخميس (بدون جمعة)
 
   const getWeekDates = () => {
     const today = new Date();
-    const currentDay = today.getDay(); // الأحد=0 ... السبت=6
+    const startDate = new Date(today);
+    startDate.setHours(0, 0, 0, 0);
 
-    // نحسب بداية الأسبوع (السبت)
-    const saturday = new Date(today);
-    saturday.setDate(today.getDate() - ((currentDay + 1) % 7) + weekOffset * 7);
+    const start = new Date(startDate);
+    start.setDate(start.getDate() + weekOffset * 7);
 
-    // نرجع الأيام من السبت للخميس
-    const days = ["السبت", "الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس"];
-    return days.map((day, i) => {
-      const d = new Date(saturday);
-      d.setDate(saturday.getDate() + i);
-      return {
-        name: day,
-        date: d.toLocaleDateString("ar-EG", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-        }),
-      };
-    });
+    const dayNames = [
+      "الأحد",
+      "الاثنين",
+      "الثلاثاء",
+      "الأربعاء",
+      "الخميس",
+      "الجمعة",
+      "السبت",
+    ];
+
+    const result = [];
+    const cursor = new Date(start);
+
+    while (result.length < DISPLAY_COUNT) {
+      if (cursor.getDay() !== 5) {
+        result.push({
+          name: dayNames[cursor.getDay()],
+          dateObj: new Date(cursor),
+          date: cursor.toLocaleDateString("ar-EG", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+          }),
+        });
+      }
+      cursor.setDate(cursor.getDate() + 1);
+    }
+
+    return result;
   };
 
   const days = getWeekDates();
@@ -39,11 +57,29 @@ function App() {
       i + 1 < 12
         ? `${i + 1}:00 ص`
         : `${i + 1 === 12 ? 12 : i + 1 - 12}:00 م`;
-    times.push(`${start} - ${end}`);
+    times.push({ label: `${start} - ${end}`, hour: i });
   }
 
-  const nextWeek = () => setWeekOffset(weekOffset + 1);
-  const prevWeek = () => setWeekOffset(weekOffset - 1);
+  const nextWeek = () => setWeekOffset((prev) => prev + 1);
+  const prevWeek = () => {
+    if (weekOffset > 0) setWeekOffset((prev) => prev - 1);
+  };
+
+  // 🔹 دالة الضغط على موعد
+  const handleSelect = (day, time) => {
+    if (time.disabled) return; // منع اختيار الأوقات المنتهية
+    setSelectedSlot({ day, time: time.label });
+  };
+
+  // 🔹 دالة الضغط على الزر
+  const handleBookClick = (e) => {
+    if (!selectedSlot) {
+      e.preventDefault();
+      alert("الرجاء تحديد الوقت أولاً");
+    }
+  };
+
+  const now = new Date();
 
   return (
     <div
@@ -58,11 +94,16 @@ function App() {
     >
       {/* الأسهم */}
       <div className="d-flex justify-content-between align-items-center mb-3">
-        {/* 🔹 السهم الأيمن صار للأسبوع السابق */}
         <button
           onClick={prevWeek}
           className="btn btn-outline-info rounded-circle"
-          style={{ borderColor: "#00b7b3", color: "#00b7b3" }}
+          style={{
+            borderColor: "#00b7b3",
+            color: "#00b7b3",
+            opacity: weekOffset === 0 ? 0.4 : 1,
+            cursor: weekOffset === 0 ? "not-allowed" : "pointer",
+          }}
+          disabled={weekOffset === 0}
         >
           <ChevronRight />
         </button>
@@ -71,7 +112,6 @@ function App() {
           مواعيد الأسبوع
         </h5>
 
-        {/* 🔹 السهم الأيسر صار للأسبوع القادم */}
         <button
           onClick={nextWeek}
           className="btn btn-outline-info rounded-circle"
@@ -83,58 +123,82 @@ function App() {
 
       {/* الأيام والمواعيد */}
       <div className="row g-3 text-center">
-        {days.map((day) => (
-          <div key={day.name} className="col-6 col-md-2">
+        {days.map((day, idx) => (
+          <div key={day.date + "-" + idx} className="col-6 col-md-2">
             <div
               className="p-2 rounded shadow-sm"
               style={{
-                backgroundColor: "#2a7371", // تركوازي للخلفية
-                color: "beige", // بيج للنص
+                backgroundColor: "#2a7371",
+                color: "beige",
               }}
             >
               <h6 className="mb-0 fw-bold">{day.name}</h6>
               <small className="d-block mb-2">{day.date}</small>
 
-              {times.map((time, i) => (
-                <div
-                  key={i}
-                  className="border rounded py-1 mb-2 small"
-                  style={{
-                    backgroundColor: "#f5f5f5",
-                    color: "#333",
-                    cursor: "pointer",
-                    transition: "0.2s",
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.target.style.backgroundColor = "#e0f7f6")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.target.style.backgroundColor = "#f5f5f5")
-                  }
-                >
-                  {time}
-                </div>
-              ))}
+              {times.map((time, i) => {
+                const slotDate = new Date(day.dateObj);
+                slotDate.setHours(time.hour, 0, 0, 0);
+
+                // 🔸 نحدد إن كان هذا الوقت ماضي
+                const isPast = slotDate < now;
+
+                const isSelected =
+                  selectedSlot &&
+                  selectedSlot.day === day.date &&
+                  selectedSlot.time === time.label;
+
+                return (
+                  <div
+                    key={i}
+                    className="border rounded py-1 mb-2 small d-flex justify-content-center align-items-center gap-1"
+                    style={{
+                      backgroundColor: isSelected
+                        ? "#f7c8e0"
+                        : isPast
+                        ? "#ddd"
+                        : "#f5f5f5",
+                      color: isPast ? "#888" : "#333",
+                      cursor: isPast ? "not-allowed" : "pointer",
+                      transition: "0.2s",
+                    }}
+                    onClick={() => handleSelect(day.date, { ...time, disabled: isPast })}
+                    onMouseEnter={(e) => {
+                      if (!isSelected && !isPast)
+                        e.target.style.backgroundColor = "#e0f7f6";
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isSelected && !isPast)
+                        e.target.style.backgroundColor = "#f5f5f5";
+                    }}
+                  >
+                    {isSelected && (
+                      <Check size={14} color="#2a7371" strokeWidth={3} />
+                    )}
+                    {time.label}
+                  </div>
+                );
+              })}
             </div>
           </div>
         ))}
       </div>
 
       {/* الزر */}
-<div className="text-center mt-4">
-  <Link
-    to="/formappointment"
-    className="btn px-4 py-2 fw-bold"
-    style={{
-      backgroundColor: "#2a7371",
-      color: "beige",
-      border: "none",
-      textDecoration: "none", // علشان يشيل الخط تحت النص
-    }}
-  >
-    احجز موعدك
-  </Link>
-</div>
+      <div className="text-center mt-4">
+        <Link
+          to="/formappointment"
+          onClick={handleBookClick}
+          className="btn px-4 py-2 fw-bold"
+          style={{
+            backgroundColor: "#2a7371",
+            color: "beige",
+            border: "none",
+            textDecoration: "none",
+          }}
+        >
+          احجز موعدك
+        </Link>
+      </div>
     </div>
   );
 }

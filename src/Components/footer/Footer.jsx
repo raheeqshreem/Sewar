@@ -63,9 +63,9 @@ const Footer = () => {
             </h3>
             <div className={styles.timeItem}>
               <span>
-                من الأحد إلى الخميس:
+                من السبت إلى الخميس:
               </span>
-              <span>8:00 - 3:00</span>
+              <span> AM 9:00 - PM 5:00</span>
             </div>
             <div className={styles.socialContainer}>
               {/* Facebook Icon */}{" "}

@@ -131,11 +131,22 @@ export default function Navbar() {
                     الرئيسية
                   </Link>
                 </li>
-                <li className="nav-item">
-                  <Link className="nav-link" to={"/appointment"}>
-                    حجز موعد
-                  </Link>
-                </li>
+             <li className="nav-item">
+  <button
+    className="nav-link btn"
+    style={{ background: "none", border: "none", padding: 0 }}
+    onClick={() => {
+      if (user) {
+        navigate("/appointment");
+      } else {
+        localStorage.setItem("redirectAfterLogin", "/appointment");
+        navigate("/signin");
+      }
+    }}
+  >
+    حجز موعد
+  </button>
+</li>
               
                 <li className="nav-item">
                   <Link className="nav-link" aria-disabled="true" to={"/feedback"}>

@@ -56,7 +56,7 @@ const [userFeedbackId, setUserFeedbackId] = useState(null);
         ),
         { duration: 3000 }
       );
-      localStorage.setItem("redirectAfterLogin", window.location.hash);
+      localStorage.setItem("redirectAfterLogin", "/feedback");
       navigate("/signin");
       return;
     }

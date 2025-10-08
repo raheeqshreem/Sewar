@@ -112,6 +112,7 @@ const FeedbackList = () => {
       )}
 
       {feedbacks.slice(0, visibleCount).map((fb) => {
+        console.log(fb);
         const type = fb.role?.toLowerCase?.();
         const allMedia = [
           ...(fb.imageUrls || []),
@@ -153,7 +154,8 @@ const FeedbackList = () => {
               <h3 style={{ margin: 0, color: "#2a7371", fontSize: "18px" }}>
                 {type === "scheduler_admin"
                   ? "Sewar-Clinic"
-                  : getUsernameFromEmail(fb.authorEmail)}
+                  :fb.fullname ||
+                   getUsernameFromEmail(fb.authorEmail)}
               </h3>
               <span style={{ fontSize: "13px", color: "#777" }}>
                 {formatDate(fb.createdAt)}
