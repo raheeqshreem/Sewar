@@ -19,6 +19,7 @@ import styles from "./App.module.css"; // ✅ استدعاء الـ CSS Module
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import RatingToast from "./Components/ratingToast/RatingToast";
 import FeedbackList from "./Components/ratingToast/FeedbackList";
+import FormAppointment from "./Pages/appointment/FormAppointment";
 
 
 function App() {
@@ -39,6 +40,7 @@ function App() {
           <Route path="/signup" element={<Register />} />
           <Route path="/user" element={<Profile />} />
           <Route path="/appointment" element={<Appointment />} />
+           <Route path="/formappointment" element={<FormAppointment />} />
           <Route path="/communication" element={<Communication />} />
           <Route path="/feedback" element={<Feedback />} />
           <Route path="/inquiry" element={<Inquiry />} />
