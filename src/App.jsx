@@ -20,6 +20,10 @@ import '@fortawesome/fontawesome-free/css/all.min.css';
 import RatingToast from "./Components/ratingToast/RatingToast";
 import FeedbackList from "./Components/ratingToast/FeedbackList";
 import FormAppointment from "./Pages/appointment/FormAppointment";
+import MyInquiry from "./Pages/inquiry/MyInquiry";
+import ConsultationReplies from "./Pages/inquiry/ConsultationReplies";
+import Loader from "./Components/loader/Loader";
+import ConsultationDoctor from "./Pages/inquiry/ConsultationDoctor";
 
 
 function App() {
@@ -39,6 +43,8 @@ function App() {
           <Route path="/signin" element={<Login />} />
           <Route path="/signup" element={<Register />} />
           <Route path="/user" element={<Profile />} />
+                    <Route path="/loader" element={<Loader />} />
+
           <Route path="/appointment" element={<Appointment />} />
            <Route path="/formappointment" element={<FormAppointment />} />
           <Route path="/communication" element={<Communication />} />
@@ -48,7 +54,10 @@ function App() {
           <Route path="/forgetPassword" element={<ForgetPassword />} />
           <Route path="/resetPassword" element={<ResetPassword />} />
           <Route path="/writefeedback/:id" element={<WriteFeedback />} />
-                    <Route path="/writefeedback" element={<WriteFeedback />} />
+          <Route path="/writefeedback" element={<WriteFeedback />} />
+          <Route path="/myinquiry" element={<MyInquiry />} />
+          <Route path="/consultation-replies/:consultationId" element={<ConsultationReplies />} />
+          <Route path="/consultation-doctor" element={<ConsultationDoctor/>} />
 
           <Route path="/feedback" element={<Feedback />} />
           <Route path="/ratingtoast" element={<RatingToast />} />

@@ -62,13 +62,41 @@ export default function Navbar() {
           <span className="navbar-toggler-icon" />
         </button>
 
-        {/* اللوجو */}
-        <div className="logo">
-          <a href="/">
-            <img src={logoo} alt="Logo" />
-          </a>
-        </div>
+       {/* اللوجو + أيقونة الإشعارات */}
+<div className="d-flex align-items-center" style={{ gap: "12px" }}>
+  <a href="/" className="d-flex align-items-center">
+    <img
+      src={logoo}
+      alt="Logo"
+      style={{
+        height: "60px", // 🔸 نفس حجمك السابق (عدّل الرقم لو عندك حجم مخصص)
+        width: "auto",
+        objectFit: "contain",
+      }}
+    />
+  </a>
 
+  {/* 🔔 أيقونة الإشعارات (لون بيج وتظهر بكل الشاشات) */}
+  <button
+    className="btn position-relative"
+    onClick={() => navigate("/notifications")}
+    style={{
+      background: "none",
+      border: "none",
+      color: "#f5deb3", // 🎨 بيج
+      fontSize: "22px", // حجم مناسب بدون ما يصغّر اللوجو
+    }}
+  >
+    <i className="fa-solid fa-bell"></i>
+    {/* ✅ عدد الإشعارات (اختياري) */}
+    <span
+      className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+      style={{ fontSize: "10px" }}
+    >
+      3
+    </span>
+  </button>
+</div>
         {/* قائمة offcanvas */}
         <div
           ref={offcanvasRef}
@@ -92,24 +120,27 @@ export default function Navbar() {
               {/* شرط إظهار أزرار تسجيل الدخول / بروفايل */}
               {user ? (
                 <>
-                 <Link
-  className="btn-custom"
-  to={"/profile"}
-  style={{
-    display: "flex",
-    alignItems: "center",      // يصطف النص والأيقونة عمودياً
-    gap: "8px",                // مسافة بين الأيقونة والنص
-    whiteSpace: "nowrap",      // يمنع النص من الانكسار لسطر جديد
-    fontSize: "14px",          // حجم النص طبيعي
-    textDecoration: "none",    // إزالة أي underline للـ link
-    padding: "8px 16px",
-    borderRadius: "6px",
-  }}
->
-  <i className="fa-solid fa-user" style={{ fontSize: "16px" }}></i>
-  الصفحة الشخصية
-</Link>
-                  <button className="btn-custom"  onClick={handleLogout}>
+                  <Link
+                    className="btn-custom"
+                    to={"/profile"}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      whiteSpace: "nowrap",
+                      fontSize: "14px",
+                      textDecoration: "none",
+                      padding: "8px 16px",
+                      borderRadius: "6px",
+                    }}
+                  >
+                    <i
+                      className="fa-solid fa-user"
+                      style={{ fontSize: "16px" }}
+                    ></i>
+                    الصفحة الشخصية
+                  </Link>
+                  <button className="btn-custom" onClick={handleLogout}>
                     <i className="fa-solid fa-right-from-bracket"></i> تسجيل خروج
                   </button>
                 </>
@@ -131,35 +162,34 @@ export default function Navbar() {
                     الرئيسية
                   </Link>
                 </li>
-             <li className="nav-item">
-  <button
-    className="nav-link btn"
-    style={{ background: "none", border: "none", padding: 0 }}
-    onClick={() => {
-      if (user) {
-        navigate("/appointment");
-      } else {
-        localStorage.setItem("redirectAfterLogin", "/appointment");
-        navigate("/signin");
-      }
-    }}
-  >
-    حجز موعد
-  </button>
-</li>
-              
                 <li className="nav-item">
-                  <Link className="nav-link" aria-disabled="true" to={"/feedback"}>
+                  <button
+                    className="nav-link btn"
+                    style={{ background: "none", border: "none", padding: 0 }}
+                    onClick={() => {
+                      if (user) {
+                        navigate("/appointment");
+                      } else {
+                        localStorage.setItem("redirectAfterLogin", "/appointment");
+                        navigate("/signin");
+                      }
+                    }}
+                  >
+                    حجز موعد
+                  </button>
+                </li>
+                <li className="nav-item">
+                  <Link className="nav-link" to={"/feedback"}>
                     قيم تجربتك العلاجية
                   </Link>
                 </li>
                 <li className="nav-item">
-                  <Link className="nav-link" aria-disabled="true" to={"/inquiry"}>
+                  <Link className="nav-link" to={"/inquiry"}>
                     استشارة طبية
                   </Link>
                 </li>
                 <li className="nav-item">
-                  <Link className="nav-link" aria-disabled="true" to={"/file"}>
+                  <Link className="nav-link" to={"/file"}>
                     الملفات
                   </Link>
                 </li>

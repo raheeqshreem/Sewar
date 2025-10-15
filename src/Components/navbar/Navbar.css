@@ -38,6 +38,14 @@ a {
   direction: rtl;
 }
 
+
+
+
+
+
+
+
+
 .btn-custom {
   background-color: #2a7371; /* الخلفية */
   color: beige; /* لون النص */
@@ -189,4 +197,25 @@ a {
     /* يمكنك تعديل قيمة 0.4 لجعلها أغمق أو أفتح */
     background-color: rgba(0, 0, 0, 0.4) !important;
   }
+
+  
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
