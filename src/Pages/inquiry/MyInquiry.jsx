@@ -29,36 +29,35 @@ const MyInquiry = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  useEffect(() => {
+    fetchInquiries();
 
-useEffect(() => {
-      fetchInquiries();
+    if (location.state?.newReply) {
+  const reply = location.state.newReply;
 
-  if (location.state?.newReply) {
-    const reply = location.state.newReply;
-
-    setInquiries(prev =>
-      prev.map(i => {
-        if (i.id === reply.consultationId) {
-          if (reply.parentMessageId) {
-            return {
-              ...i,
-              messages: i.messages.map(msg =>
-                msg.id === reply.parentMessageId
-                  ? { ...msg, replies: [...(msg.replies || []), reply] }
-                  : msg
-              )
-            };
-          }
-          return { ...i, messages: [...(i.messages || []), reply] };
+  setInquiries((prev) =>
+    prev.map((i) => {
+      if (i.id === reply.consultationId) {
+        if (reply.parentMessageId) {
+          return {
+            ...i,
+            messages: i.messages.map((msg) =>
+              msg.id === reply.parentMessageId
+                ? { ...msg, replies: [...(msg.replies || []), reply] }
+                : msg
+            ),
+          };
         }
-        return i;
-      })
-    );
+        return { ...i, messages: [...(i.messages || []), reply] };
+      }
+      return i;
+    })
+  );
 
-    setNewReplyToScroll(reply.parentMessageId || reply.consultationId);
-    navigate(location.pathname, { replace: true });
-  }
-}, []);
+  setNewReplyToScroll(reply.parentMessageId || reply.consultationId);
+  navigate(location.pathname, { replace: true });
+}
+  }, []);
 
   useEffect(() => {
     if (newReplyToScroll) {
@@ -216,43 +215,84 @@ useEffect(() => {
     }
   };
 
-const renderReplies = (replies, inq) => {
-  if (!replies || replies.length === 0) return null;
-  return (
-    <div className="mt-2 me-3 border-end border-2 border-primary pe-2">
-      {replies.map((rep) => {
-        const isHighlighted = rep.id === newReplyToScroll;
-        return (
-          <div
-            key={rep.id}
-            ref={el => inquiryRefs.current[rep.id] = el}
-            className={`border rounded p-2 mt-2 ${isHighlighted ? 'border-warning shadow-sm bg-warning' : 'bg-light'}`}
-          >
-            <p className="mb-1 fw-bold text-primary">{rep.senderName || "-"}</p>
-            <p className="mb-2 text-primary">{rep.messageText}</p>
+  const renderReplies = (replies, inq) => {
+    if (!replies || replies.length === 0) return null;
+    return (
+      <div style={{ marginTop: "10px", marginRight: "20px", borderRight: "2px solid #2a7371", paddingRight: "10px" }}>
+        {replies.map((rep, rIdx) => (
+          <div key={rep.id} style={{ border: "1px solid #2a7371", borderRadius: "10px", padding: "10px", marginTop: "10px", backgroundColor: "#f8f8f8" }}>
+            <p style={{ marginBottom: "5px", color: "#2a7371", fontWeight: "bold" }}>{rep.senderName || "-"}</p>
+            <p style={{ marginBottom: "10px", color: "#2a7371" }}>{rep.messageText}</p>
 
             {rep.images?.length > 0 && (
-              <div className="d-flex flex-wrap gap-2 justify-content-end mb-2">
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", justifyContent: "flex-end", marginBottom: "10px" }}>
                 {rep.images.map((img, i) => (
-                  <Zoom key={i}>
-                    <img
-                      src={img.imageUrl?.startsWith("http") ? img.imageUrl : `https://sewarwellnessclinic1.runasp.net${img.imageUrl}`}
-                      alt="reply-nested"
-                      className="rounded"
-                      style={{ width: '80px', height: '80px', objectFit: 'cover' }}
-                    />
-                  </Zoom>
+                <Zoom>  <img key={i} src={img.imageUrl?.startsWith("http") ? img.imageUrl : `https://sewarwellnessclinic1.runasp.net${img.imageUrl}`} alt="reply-nested" style={{ width: "80px", height: "80px", objectFit: "cover", borderRadius: "5px" }} /></Zoom>
                 ))}
               </div>
             )}
 
-            {/* بقية الأكواد مثل أزرار الحذف والتعديل والرد */}
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+              {rep.senderRole === "patient" &&(
+                <>
+              <Trash2 title="حذف" color="#dc3545" style={{ cursor: "pointer" }} onClick={async () => {
+                if (!window.confirm("هل أنت متأكد من حذف هذا الرد؟")) return;
+                try {
+                  const user = JSON.parse(localStorage.getItem("user"));
+                  await axios.delete(`https://sewarwellnessclinic1.runasp.net/api/Consultation/reply/${rep.id}`, { headers: { Authorization: `Bearer ${user.token}` } });
+                  setInquiries(prev =>
+                    prev.map(i => {
+                      if (i.id === inq.id) {
+                        const removeReplyRecursively = (msgs, rid) => msgs.filter(m => {
+                          if (m.id === rid) return false;
+                          if (m.replies) m.replies = removeReplyRecursively(m.replies, rid);
+                          return true;
+                        });
+                        return { ...i, messages: removeReplyRecursively(i.messages, rep.id) };
+                      }
+                      return i;
+                    })
+                  );
+                  toast.success("تم حذف الرد");
+                } catch (err) {
+                  console.error(err);
+                  toast.error("❌ فشل حذف الرد");
+                }
+              }} />
+              <Edit title="تعديل" color="#2a7371" style={{ cursor: "pointer" }} onClick={() => {
+                setEditMessageId(rep.id);
+                setEditMessageText(rep.messageText);
+                const normalizedImages = rep.images?.map(img => ({ id: img.id, imageUrl: img.imageUrl })) || [];
+                setEditMessageImages(normalizedImages);
+                setEditMessageImagesToDelete([]);
+              }} />
+              </>)}
+              {/* زر الرد موجود لكل رسالة */}
+              <CornerUpRight  title="رد"color="#2a7371" style={{ cursor: "pointer" }} onClick={() => navigate(`/consultation-replies/${inq.id}`, { state: { replyToMessageId: rep.id } })} />
+            </div>
+
+            {editMessageId === rep.id && (
+              <div style={{ border: "1px solid #2a7371", borderRadius: "10px", padding: "15px", backgroundColor: "#f0f0f0", marginTop: "10px", textAlign: "right" }}>
+                <textarea className="form-control" value={editMessageText} onChange={(e) => setEditMessageText(e.target.value)} style={{ marginBottom: "10px" }} />
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", justifyContent: "flex-end", marginBottom: "10px" }}>
+                  {editMessageImages.map((img, index) => (
+                    <div key={img.id || (img instanceof File ? img.name : index)} style={{ position: "relative" }}>
+                    <Zoom> <img src={img instanceof File ? URL.createObjectURL(img) : img.imageUrl?.startsWith("http") ? img.imageUrl : `https://sewarwellnessclinic1.runasp.net${img.imageUrl}`} alt="edit-reply" style={{ width: "80px", height: "80px", objectFit: "cover", borderRadius: "5px" }} /></Zoom>
+                      <button onClick={() => removeEditMessageImage(index)} style={{ position: "absolute", top: "-5px", right: "-5px", background: "#c0392b", color: "white", border: "none", borderRadius: "50%", width: "20px", height: "20px", cursor: "pointer" }}>×</button>
+                    </div>
+                  ))}
+                </div>
+                <input type="file" multiple onChange={(e) => setEditMessageImages(prev => [...prev, ...Array.from(e.target.files)])} style={{ marginBottom: "10px" }} />
+                <button className="btn btn-success w-100" onClick={() => handleEditReply(rep.id)}>حفظ التعديل</button>
+              </div>
+            )}
+
+            {renderReplies(rep.replies, inq)}
           </div>
-        );
-      })}
-    </div>
-  );
-};
+        ))}
+      </div>
+    );
+  };
 
   return (
 
@@ -313,7 +353,7 @@ const renderReplies = (replies, inq) => {
             {inq.messages?.length > 0 && (
               <div style={{ marginTop: "15px" }}>
                 {inq.messages.map(msg => (
-                  <div key={msg.id}  ref={el => inquiryRefs.current[inq.id] = el}   style={{ border: "1px solid #2a7371", borderRadius: "10px", padding: "10px", marginTop: "10px", backgroundColor: "#fff", textAlign: "right" }}>
+                  <div key={msg.id} style={{ border: "1px solid #2a7371", borderRadius: "10px", padding: "10px", marginTop: "10px", backgroundColor: "#fff", textAlign: "right" }}>
                     <p style={{ marginBottom: "5px", color: "#2a7371", fontWeight: "bold" }}>{msg.senderName || "-"}</p>
                     <p style={{ marginBottom: "10px", color: "#2a7371" }}>{msg.messageText}</p>
 
