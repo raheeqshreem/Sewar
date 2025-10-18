@@ -126,18 +126,33 @@ function Login() {
         { duration: 10000 } // يظهر لمدة دقيقة
       );
       // ✅ بعد نجاح تسجيل الدخول
-      let redirectPath = localStorage.getItem("redirectAfterLogin");
+     // ✅ بعد نجاح تسجيل الدخول
+// بعد تسجيل الدخول بنجاح
+let redirectAfterLogin = localStorage.getItem("redirectAfterLogin");
+const userType = (sessionData.userType || "").toLowerCase();
 
-      // 🔹 لو القيمة فاضية أو الصفحة هي صفحة تسجيل الدخول نفسها، نرجع للرئيسية
-      if (!redirectPath || redirectPath === "/signin" || redirectPath === "/signup") {
-        redirectPath = "/";
-      }
+// إذا كانت هناك صفحة محفوظة
+if (redirectAfterLogin === "consultation") {
+  redirectAfterLogin =
+    userType === "doctor" || userType === "doctor_admin"
+      ? "/consultation-doctor"
+      : "/inquiry";
+} else if (!redirectAfterLogin || redirectAfterLogin === "/signin" || redirectAfterLogin === "/signup") {
+  // توجيه افتراضي حسب نوع المستخدم
+  if (userType === "doctor" || userType === "doctor_admin") {
+    redirectAfterLogin = "/consultation-doctor";
+  } else if (userType === "patient") {
+    redirectAfterLogin = "/inquiry";
+  } else {
+    redirectAfterLogin = "/";
+  }
+}
 
-      // 🧹 نحذف المفتاح بعد الاستخدام (علشان المرة الجاية يبدأ من جديد)
-      localStorage.removeItem("redirectAfterLogin");
+// حذف المفتاح بعد الاستخدام
+localStorage.removeItem("redirectAfterLogin");
 
-      // 🚀 نوجّه المستخدم تلقائيًا
-      navigate(redirectPath);
+// التوجيه النهائي
+navigate(redirectAfterLogin);
     } catch (error) {
       console.error("Login error full:", error.response?.data || error.message);
       toast.error(

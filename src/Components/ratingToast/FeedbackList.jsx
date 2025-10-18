@@ -2,11 +2,14 @@ import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { Edit, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
+import Zoom from 'react-medium-image-zoom'
+import 'react-medium-image-zoom/dist/styles.css'
+import Modal from "react-modal";
 const FeedbackList = () => {
   const [feedbacks, setFeedbacks] = useState([]);
   const [visibleCount, setVisibleCount] = useState(5); // عدد التعليقات المعروضة
   const [loading, setLoading] = useState(false);
+  const [zoomVideo, setZoomVideo] = useState(null);
   const [initialLoading, setInitialLoading] = useState(true);
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user"));
@@ -189,10 +192,13 @@ const FeedbackList = () => {
                         maxHeight: "400px",
                         objectFit: "cover",
                         marginBottom: "10px",
+                        cursor:"pointer"
                       }}
+                      onClick={()=>setZoomVideo(url)}
                     />
                   ) : (
-                    <img
+                  <Zoom> 
+                     <img
                       key={i}
                       src={url}
                       alt="feedback"
@@ -207,7 +213,7 @@ const FeedbackList = () => {
                         e.target.style.display = "none";
                         console.warn("⚠ صورة غير موجودة:", url);
                       }}
-                    />
+                    /></Zoom>
                   )
                 )}
               </div>
@@ -271,6 +277,50 @@ const FeedbackList = () => {
           </button>
         </div>
       )}
+
+
+
+    <Modal
+  isOpen={!!zoomVideo}
+  onRequestClose={() => setZoomVideo(null)}
+  style={{
+    content: {
+      top: "50%",
+      left: "50%",
+      right: "auto",
+      bottom: "auto",
+      transform: "translate(-50%, -50%)",
+      maxWidth: "90%",
+      maxHeight: "90%",
+      background: "transparent",
+      border: "none",
+      padding: "0"
+    },
+    overlay: {
+      backgroundColor: "rgba(0,0,0,0.8)"
+    }
+  }}
+>
+  {zoomVideo && (
+    <div
+      onClick={() => setZoomVideo(null)} // ← اضغط على الفيديو لإغلاقه
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center"
+      }}
+    >
+      <video
+        src={zoomVideo}
+        controls
+        autoPlay
+        style={{ width: "100%", height: "100%", objectFit: "contain" }}
+      />
+    </div>
+  )}
+</Modal>
     </div>
   );
 };

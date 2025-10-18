@@ -4,6 +4,8 @@ import { useNavigate, useParams, useLocation } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { ArrowLeft } from "lucide-react";
+import Zoom from 'react-medium-image-zoom'
+import 'react-medium-image-zoom/dist/styles.css'
 
 const ConsultationReplies = () => {
   const { consultationId } = useParams();
@@ -19,36 +21,44 @@ const ConsultationReplies = () => {
   }, []);
 
   const handleReplySend = async () => {
-    if (!replyText.trim() && replyImages.length === 0) {
-      return toast.error("⚠ الرجاء كتابة رد أو إضافة صورة");
+  if (!replyText.trim() && replyImages.length === 0) {
+    return toast.error("⚠ الرجاء كتابة رد أو إضافة صورة");
+  }
+
+  try {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!user || !user.token) {
+      toast.error("يجب تسجيل الدخول أولاً");
+      return;
     }
 
-    try {
-      const user = JSON.parse(localStorage.getItem("user"));
-      const formData = new FormData();
-      formData.append("MessageText", replyText);
-      formData.append("ParentMessageId", replyToMessageId ? replyToMessageId : ""); // ✅ null إذا رد على الاستشارة
-      replyImages.forEach((img) => formData.append("Images", img));
+    const formData = new FormData();
+    formData.append("MessageText", replyText);
+    formData.append("ParentMessageId", replyToMessageId ? replyToMessageId : "");
+    replyImages.forEach((img) => formData.append("Images", img));
 
-      const res = await axios.post(
-        `https://sewarwellnessclinic1.runasp.net/api/Consultation/${consultationId}/reply`,
-        formData,
-        { headers: { Authorization: `Bearer ${user.token}` } }
-      );
+    const res = await axios.post(
+      `https://sewarwellnessclinic1.runasp.net/api/Consultation/${consultationId}/reply`,
+      formData,
+      { headers: { Authorization: `Bearer ${user.token}` } }
+    );
 
-      toast.success("✅ تم إرسال الرد");
-      setReplyText("");
-      setReplyImages([]);
-      setReplyToMessageId(null);
+    toast.success("✅ تم إرسال الرد");
+    setReplyText("");
+    setReplyImages([]);
+    setReplyToMessageId(null);
 
-      // إرسال الرد للصفحة MyInquiry
-      navigate("/myinquiry", { state: { newReply: { ...res.data, consultationId, parentMessageId: replyToMessageId } } });
-    } catch (err) {
-      console.error(err);
-      toast.error("❌ فشل إرسال الرد");
+    // إعادة التوجيه حسب نوع المستخدم
+    if (user.userType?.toLowerCase() === "doctor" || user.userType?.toLowerCase() === "doctor_admin") {
+      navigate("/consultation-doctor");
+    } else {
+      navigate("/myinquiry");
     }
-  };
-
+  } catch (err) {
+    console.error(err);
+    toast.error("❌ فشل إرسال الرد");
+  }
+};
   const handleReplyImageChange = (e) => {
     setReplyImages((prev) => [...prev, ...Array.from(e.target.files)]);
   };
@@ -76,11 +86,11 @@ const ConsultationReplies = () => {
         <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginBottom: "10px" }}>
           {replyImages.map((img, idx) => (
             <div key={idx} style={{ position: "relative" }}>
-              <img
+            <Zoom> <img
                 src={URL.createObjectURL(img)}
                 alt={`preview-${idx}`}
                 style={{ width: "80px", height: "80px", objectFit: "cover", borderRadius: "5px" }}
-              />
+              /></Zoom> 
               <button
                 type="button"
                 onClick={() => removeReplyImage(idx)}
@@ -108,19 +118,31 @@ const ConsultationReplies = () => {
         </div>
       )}
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "20px" }}>
-        <button className="btn btn-success w-100" onClick={handleReplySend}>
-          إرسال الرد
-        </button>
-        <button
-          onClick={() => navigate("/myinquiry")}
-          className="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center"
-          style={{ borderRadius: "10px", gap: "6px", fontWeight: "500" }}
-        >
-          الرجوع للخلف
-          <ArrowLeft size={20} />
-        </button>
-      </div>
+     <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "20px" }}>
+  {/* زر إرسال الرد */}
+  <button className="btn btn-success w-100" onClick={handleReplySend}>
+    إرسال الرد
+  </button>
+
+  {/* زر الرجوع */}
+  <button
+    onClick={() => {
+      const user = JSON.parse(localStorage.getItem("user"));
+      if (!user) return navigate("/"); // لو ما فيه مستخدم يروح للصفحة الرئيسية
+
+      if (user.userType?.toLowerCase() === "doctor" || user.userType?.toLowerCase() === "doctor_admin") {
+        navigate("/consultation-doctor");
+      } else {
+        navigate("/myinquiry");
+      }
+    }}
+    className="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center"
+    style={{ borderRadius: "10px", gap: "6px", fontWeight: "500" }}
+  >
+    الرجوع للخلف
+    <ArrowLeft size={20} />
+  </button>
+</div>
     </div>
   );
 };

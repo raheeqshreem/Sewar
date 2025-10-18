@@ -1,6 +1,7 @@
 import "./Navbar.css";
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
+import axios from "axios";
 import logoo from "./../../assets/logoo.jpeg";
 
 export default function Navbar() {
@@ -8,6 +9,7 @@ export default function Navbar() {
   const navigate = useNavigate();
 
   const [user, setUser] = useState(null);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   // جلب حالة المستخدم من localStorage
   useEffect(() => {
@@ -17,31 +19,61 @@ export default function Navbar() {
     }
   }, []);
 
-  // تنظيف الـ backdrop
+  // جلب الإشعارات وعدد غير المقروءة
   useEffect(() => {
-    const offcanvasElement = offcanvasRef.current;
-
-    const handleOffcanvasClose = () => {
-      const backdrop = document.querySelector(".offcanvas-backdrop");
-      if (backdrop) {
-        backdrop.remove();
+    const fetchNotifications = async () => {
+      if (!user) return;
+      try {
+        const res = await axios.get(
+          "https://sewarwellnessclinic1.runasp.net/api/Notifications/my",
+          {
+            headers: { Authorization: `Bearer ${user.token}` },
+          }
+        );
+        const unread = res.data.filter((n) => !n.isRead).length;
+        setUnreadCount(unread);
+      } catch (err) {
+        console.error("حدث خطأ أثناء جلب الإشعارات:", err);
       }
     };
 
-    offcanvasElement.addEventListener(
-      "hidden.bs.offcanvas",
-      handleOffcanvasClose
-    );
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 30000); // تحديث كل 30 ثانية
+    return () => clearInterval(interval);
+  }, [user]);
 
-    return () => {
-      offcanvasElement.removeEventListener(
-        "hidden.bs.offcanvas",
-        handleOffcanvasClose
-      );
+  // تنظيف الـ backdrop عند إغلاق offcanvas
+  useEffect(() => {
+    const offcanvasElement = offcanvasRef.current;
+    const handleOffcanvasClose = () => {
+      const backdrop = document.querySelector(".offcanvas-backdrop");
+      if (backdrop) backdrop.remove();
     };
+
+    offcanvasElement.addEventListener("hidden.bs.offcanvas", handleOffcanvasClose);
+    return () => offcanvasElement.removeEventListener("hidden.bs.offcanvas", handleOffcanvasClose);
   }, []);
 
-  // دالة تسجيل الخروج
+
+
+
+// تحديث فوري لعدد الإشعارات عند تغيّر localStorage
+useEffect(() => {
+  const handleStorageChange = () => {
+    const savedUnread = localStorage.getItem("unreadCount");
+    if (savedUnread !== null) {
+      setUnreadCount(parseInt(savedUnread));
+    }
+  };
+
+  window.addEventListener("storage", handleStorageChange);
+  return () => window.removeEventListener("storage", handleStorageChange);
+}, []);
+
+
+
+
+  // تسجيل الخروج
   const handleLogout = () => {
     localStorage.removeItem("user");
     setUser(null);
@@ -51,7 +83,7 @@ export default function Navbar() {
   return (
     <nav className="navbar navbar-expand-lg fixed-top">
       <div className="container-fluid">
-        {/* زرار فتح offcanvas */}
+        {/* زر offcanvas */}
         <button
           className="btn btn-primary"
           type="button"
@@ -62,41 +94,31 @@ export default function Navbar() {
           <span className="navbar-toggler-icon" />
         </button>
 
-       {/* اللوجو + أيقونة الإشعارات */}
-<div className="d-flex align-items-center" style={{ gap: "12px" }}>
-  <a href="/" className="d-flex align-items-center">
-    <img
-      src={logoo}
-      alt="Logo"
-      style={{
-        height: "60px", // 🔸 نفس حجمك السابق (عدّل الرقم لو عندك حجم مخصص)
-        width: "auto",
-        objectFit: "contain",
-      }}
-    />
-  </a>
+        {/* اللوجو + أيقونة الإشعارات */}
+        <div className="d-flex align-items-center" style={{ flexDirection: "row", gap: "16px" }}>
+          <a href="/">
+            <img src={logoo} alt="Logo" style={{ height: "60px", width: "auto" }} />
+          </a>
 
-  {/* 🔔 أيقونة الإشعارات (لون بيج وتظهر بكل الشاشات) */}
-  <button
-    className="btn position-relative"
-    onClick={() => navigate("/notifications")}
-    style={{
-      background: "none",
-      border: "none",
-      color: "#f5deb3", // 🎨 بيج
-      fontSize: "22px", // حجم مناسب بدون ما يصغّر اللوجو
-    }}
-  >
-    <i className="fa-solid fa-bell"></i>
-    {/* ✅ عدد الإشعارات (اختياري) */}
-    <span
-      className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-      style={{ fontSize: "10px" }}
-    >
-      3
-    </span>
-  </button>
-</div>
+          {user && (
+            <button
+              className="btn position-relative"
+              onClick={() => navigate("/notifications")}
+              style={{ background: "none", border: "none", fontSize: "22px", color: "#f5deb3" }}
+            >
+              <i className="fa-solid fa-bell"></i>
+              {unreadCount > 0 && (
+                <span
+                  className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                  style={{ fontSize: "10px" }}
+                >
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+          )}
+        </div>
+
         {/* قائمة offcanvas */}
         <div
           ref={offcanvasRef}
@@ -111,13 +133,14 @@ export default function Navbar() {
               className="btn-close text-reset"
               data-bs-dismiss="offcanvas"
               aria-label="Close"
-            ></button>
+            />
           </div>
+
           <div className="offcanvas-body">
             <div className="login d-flex gap-2 flex-column flex-lg-row">
               <div className="toggleLogo"></div>
 
-              {/* شرط إظهار أزرار تسجيل الدخول / بروفايل */}
+              {/* أزرار تسجيل الدخول / بروفايل */}
               {user ? (
                 <>
                   <Link
@@ -134,10 +157,7 @@ export default function Navbar() {
                       borderRadius: "6px",
                     }}
                   >
-                    <i
-                      className="fa-solid fa-user"
-                      style={{ fontSize: "16px" }}
-                    ></i>
+                    <i className="fa-solid fa-user" style={{ fontSize: "16px" }}></i>
                     الصفحة الشخصية
                   </Link>
                   <button className="btn-custom" onClick={handleLogout}>
@@ -146,10 +166,22 @@ export default function Navbar() {
                 </>
               ) : (
                 <>
-                  <Link className="btn-custom" aria-label="التسجيل" to={"/signin"}>
-                    <i className="fa-solid fa-user"></i> التسجيل
-                  </Link>
-                  <Link className="btn-custom" aria-label="انشاء حساب" to={"/signup"}>
+                  <Link
+  className="btn-custom"
+  to="/signin"
+  onClick={() => {
+    if (!user) {
+      // حفظ الصفحة الحالية قبل الذهاب لتسجيل الدخول
+      localStorage.setItem(
+        "redirectAfterLogin",
+        window.location.pathname
+      );
+    }
+  }}
+>
+  تسجيل الدخول
+</Link>
+                  <Link className="btn-custom" to={"/signup"}>
                     <i className="fa-solid fa-user-plus"></i> انشاء حساب
                   </Link>
                 </>
@@ -158,7 +190,7 @@ export default function Navbar() {
               {/* باقي روابط النافبار */}
               <ul className="navbar-nav ms-auto mb-2 mb-lg-0 flex-column flex-lg-row">
                 <li className="nav-item">
-                  <Link className="nav-link" aria-current="page" to={"/"}>
+                  <Link className="nav-link" to={"/"}>
                     الرئيسية
                   </Link>
                 </li>
@@ -167,9 +199,8 @@ export default function Navbar() {
                     className="nav-link btn"
                     style={{ background: "none", border: "none", padding: 0 }}
                     onClick={() => {
-                      if (user) {
-                        navigate("/appointment");
-                      } else {
+                      if (user) navigate("/appointment");
+                      else {
                         localStorage.setItem("redirectAfterLogin", "/appointment");
                         navigate("/signin");
                       }
@@ -183,11 +214,29 @@ export default function Navbar() {
                     قيم تجربتك العلاجية
                   </Link>
                 </li>
-                <li className="nav-item">
-                  <Link className="nav-link" to={"/inquiry"}>
-                    استشارة طبية
-                  </Link>
-                </li>
+              <li className="nav-item">
+  <button
+    className="nav-link btn"
+    style={{ background: "none", border: "none", padding: 0 }}
+    onClick={() => {
+      if (!user) {
+        // لو غير مسجل دخول → احفظ الصفحة المطلوبة
+        localStorage.setItem("redirectAfterLogin", "consultation");
+        navigate("/signin");
+      } else {
+        // مسجل دخول → توجيه حسب نوع المستخدم
+        const userType = (user.userType || "").toLowerCase();
+        if (userType === "doctor" || userType === "doctor_admin") {
+          navigate("/consultation-doctor");
+        } else {
+          navigate("/inquiry");
+        }
+      }
+    }}
+  >
+    استشارة طبية
+  </button>
+</li>
                 <li className="nav-item">
                   <Link className="nav-link" to={"/file"}>
                     الملفات

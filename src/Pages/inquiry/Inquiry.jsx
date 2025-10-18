@@ -8,10 +8,26 @@ const Inquiry = () => {
   const [showModal, setShowModal] = useState(false);
   const [images, setImages] = useState([]);
   const [message, setMessage] = useState("");
+  const [ishasConsultation, setHasConsultation] = useState(false); // حالة ظهور الزر
   const whatsappNumber = "970592245331";
   const navigate = useNavigate();
 
   useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!user || !user.token) return;
+
+    // جلب نتيجة وجود استشارات سابقة
+    axios.get("https://sewarwellnessclinic1.runasp.net/api/Consultation/has-consultation", {
+      headers: { Authorization: `Bearer ${user.token}` }
+    })
+    .then(res => {
+      setHasConsultation(res.data.hasConsultation); // API يرجع true أو false
+    })
+    .catch(err => {
+      console.error(err);
+      toast.error("حدث خطأ أثناء التحقق من وجود استشارات سابقة");
+    });
+
     const redirectPath = localStorage.getItem("redirectAfterLogin");
     if (redirectPath && redirectPath === window.location.pathname) {
       setShowModal(true);
@@ -84,6 +100,7 @@ const Inquiry = () => {
 
       console.log("تم إرسال الاستشارة:", response.data);
       alert("تم إرسال استشارتك بنجاح!");
+      setHasConsultation(true); // ✅ بعد إرسال أول استشارة نعرض الزر مباشرة
       navigate("/myinquiry");
       setMessage("");
       setImages([]);
@@ -129,22 +146,38 @@ const Inquiry = () => {
         استشر وتلقى العلاج مع أفضل أخصائية
       </h4>
 
-      <button
-        className="btn"
-        style={{
-          border: "1px solid #2a7371",
-          color: "#2a7371",
-          backgroundColor: "transparent",
-          padding: "10px 25px",
-          fontWeight: "bold",
-          transition: "all 0.3s ease",
-        }}
-        onMouseEnter={(e) => (e.target.style.backgroundColor = "#f5e5d3")}
-        onMouseLeave={(e) => (e.target.style.backgroundColor = "transparent")}
-        onClick={handleWriteInquiry}
-      >
-        تواصل معنا الآن
-      </button>
+      {/* أزرار تواصل واستشارات */}
+      <div style={{ display: "flex", gap: "15px" }}>
+        <button
+          className="btn"
+          style={{
+            border: "1px solid #2a7371",
+            color: "#2a7371",
+            backgroundColor: "transparent",
+            padding: "10px 25px",
+            fontWeight: "bold",
+          }}
+          onClick={handleWriteInquiry}
+        >
+          تواصل معنا الآن
+        </button>
+
+        {ishasConsultation && (
+          <button
+            className="btn"
+            style={{
+              border: "1px solid #2a7371",
+              color: "#2a7371",
+              backgroundColor: "transparent",
+              padding: "10px 25px",
+              fontWeight: "bold",
+            }}
+            onClick={() => navigate("/myinquiry")}
+          >
+            استشاراتي السابقة
+          </button>
+        )}
+      </div>
 
       {showModal && (
         <div

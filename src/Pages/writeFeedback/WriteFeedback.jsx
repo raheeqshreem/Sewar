@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
+import Zoom from 'react-medium-image-zoom'
+import 'react-medium-image-zoom/dist/styles.css'
 
 const WriteFeedback = () => {
   const navigate = useNavigate();
@@ -187,7 +189,7 @@ const WriteFeedback = () => {
               {oldFiles.map((file, index) => (
                 <div key={index} style={{ display: "flex", alignItems: "center", marginBottom: "10px", border: "1px solid #ccc", borderRadius: "10px", padding: "5px" }}>
                   {file.type === "image" ? (
-                    <img src={file.url} alt="old preview" style={{ width: "80px", height: "80px", objectFit: "cover", borderRadius: "5px", marginRight: "10px" }} />
+                   <Zoom> <img src={file.url} alt="old preview" style={{ width: "80px", height: "80px", objectFit: "cover", borderRadius: "5px", marginRight: "10px" }} /></Zoom>
                   ) : (
                     <video src={file.url} controls style={{ width: "120px", height: "80px", borderRadius: "5px", marginRight: "10px" }} />
                   )}

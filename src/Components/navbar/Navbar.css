@@ -158,6 +158,16 @@ a {
   }
 
  
+
+.navbar-logo-notification {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 16px;
+}
+
+
+
+
   .navbar-nav {
     flex-direction: column !important;
     gap: 10px;
