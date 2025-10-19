@@ -28,7 +28,7 @@ export default function Notifications() {
     }
   };
 
- const handleNotificationClick = async (notification) => {
+const handleNotificationClick = async (notification) => {
   const user = JSON.parse(localStorage.getItem("user"));
   if (!user) {
     localStorage.setItem("redirectAfterLogin", "/notifications");
@@ -37,7 +37,7 @@ export default function Notifications() {
   }
 
   try {
-    // تعليم الإشعار كمقروء (PUT بدل POST حسب الباك)
+    // تعليم الإشعار كمقروء
     if (!notification.isRead) {
       await axios.put(
         `https://sewarwellnessclinic1.runasp.net/api/Notifications/mark-read/${notification.id}`,
@@ -46,17 +46,26 @@ export default function Notifications() {
       );
     }
 
-    // الانتقال حسب نوع المستخدم
+    const userType = (user.userType || "").toLowerCase();
+
+    if (!userType) return;
+
     if (notification.consultationId) {
-      const userType = (user.userType || "").toLowerCase();
-      if (userType === "patient") {
-        navigate("/myinquiry", {
-          state: { newReply: notification } // نرسل الإشعار كامل
+      if (userType === "doctor") {
+        // ✅ تمرير بيانات الإشعار مباشرة كـ state
+        navigate("/consultation-doctor", { 
+          state: { 
+            newReply: {
+              consultationId: notification.consultationId,
+              parentMessageId: notification.parentMessageId || null
+            } 
+          } 
         });
-      } else if (userType === "doctor" || userType === "doctor_admin") {
-        navigate("/consultation-doctor", {
-          state: { newReply: notification }
-        });
+      } else {
+        navigate("/myinquiry", { state: { newReply: {
+              consultationId: notification.consultationId,
+              parentMessageId: notification.parentMessageId || null
+            } } });
       }
     }
   } catch (err) {
@@ -67,23 +76,8 @@ export default function Notifications() {
   if (loading) return <p>جاري التحميل...</p>;
 
   return (
-    <div
-      style={{
-        padding: "120px 20px 20px",
-        maxWidth: "800px",
-        margin: "0 auto",
-        direction: "rtl",
-      }}
-    >
-      <h2
-        style={{
-          textAlign: "center",
-          color: "#2a7371",
-          marginBottom: "25px",
-        }}
-      >
-        الإشعارات
-      </h2>
+    <div style={{ padding: "120px 20px 20px", maxWidth: "800px", margin: "0 auto", direction: "rtl" }}>
+      <h2 style={{ textAlign: "center", color: "#2a7371", marginBottom: "25px" }}>الإشعارات</h2>
 
       {notifications.length === 0 ? (
         <p style={{ textAlign: "center", color: "#666" }}>لا توجد إشعارات</p>
@@ -102,20 +96,12 @@ export default function Notifications() {
                 cursor: n.consultationId ? "pointer" : "default",
                 transition: "0.3s",
               }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.backgroundColor = "#eefaf9")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.backgroundColor = n.isRead
-                  ? "#f8f9fa"
-                  : "#fff5f5")
-              }
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#eefaf9")}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = n.isRead ? "#f8f9fa" : "#fff5f5")}
             >
               <b style={{ color: "#2a7371" }}>{n.title}</b>
               <p style={{ margin: "8px 0", color: "#444" }}>{n.message}</p>
-              <small style={{ color: "#777" }}>
-                {new Date(n.createdAt).toLocaleString()}
-              </small>
+              <small style={{ color: "#777" }}>{new Date(n.createdAt).toLocaleString()}</small>
             </li>
           ))}
         </ul>
