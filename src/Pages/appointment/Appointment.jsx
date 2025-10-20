@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { ChevronLeft, ChevronRight, Check } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
-function App() {
+function Appointment() {
   const [weekOffset, setWeekOffset] = useState(0);
   const [selectedSlot, setSelectedSlot] = useState(null);
+  const navigate = useNavigate();
 
   const DISPLAY_COUNT = 6; // السبت - الخميس (بدون جمعة)
 
@@ -71,13 +73,51 @@ function App() {
     setSelectedSlot({ day, time: time.label });
   };
 
-  // 🔹 دالة الضغط على الزر
   const handleBookClick = (e) => {
-    if (!selectedSlot) {
-      e.preventDefault();
-      alert("الرجاء تحديد الوقت أولاً");
-    }
-  };
+  e.preventDefault();
+
+  const user = localStorage.getItem("user"); // 👈 هيك بنعرف إذا مسجل ولا لأ
+
+
+  if (!user) {
+ toast.custom(
+        () => (
+          <div
+            style={{
+              padding: "16px 24px",
+              background: "white",
+              color: "black",
+              borderRadius: "12px",
+              fontWeight: "bold",
+              fontSize: "20px",
+              textAlign: "center",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+            }}
+          >
+            👋 لتحجز موعدك يرجى تسجيل الدخول
+          </div>
+        ),
+        { duration: 3000 }
+      );
+
+
+
+
+    // 👇 المستخدم مش داخل، نحفظ الصفحة الحالية ونوديه لتسجيل الدخول
+    localStorage.setItem("redirectAfterLogin", "/appointment");
+    navigate("/signin");
+    return;
+  }
+  
+  if (!selectedSlot) {
+    alert("الرجاء تحديد الوقت أولاً");
+    return;
+  }
+
+  // 👇 المستخدم داخل فعلاً → نوديه للفورم
+  navigate("/formappointment", { state: { selectedSlot } });
+};
+   
 
   const now = new Date();
 
@@ -185,22 +225,20 @@ function App() {
 
       {/* الزر */}
       <div className="text-center mt-4">
-        <Link
-          to="/formappointment"
+        <button
           onClick={handleBookClick}
           className="btn px-4 py-2 fw-bold"
           style={{
             backgroundColor: "#2a7371",
             color: "beige",
             border: "none",
-            textDecoration: "none",
           }}
         >
           احجز موعدك
-        </Link>
+        </button>
       </div>
     </div>
   );
 }
 
-export default App;
+export default Appointment;

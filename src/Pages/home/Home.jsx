@@ -80,7 +80,7 @@ export default function Home() {
                   <Link
                     aria-label="احجز الأن"
                     className={`${styles.contactButton}`}
-                    to="/booking"
+                    to="/appointment"
                   >
                     احجز الأن{" "}
                     <svg
@@ -181,7 +181,7 @@ export default function Home() {
                   <Link
                     aria-label="احجز الأن"
                     className={`${styles.contactButton}`}
-                    to="/booking"
+                    to="/appointment"
                   >
                     احجز الأن{" "}
                     <svg
