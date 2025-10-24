@@ -1,0 +1,27 @@
+/* الصندوق الرئيسي */
+.react-datepicker-wrapper,
+.react-datepicker__input-container {
+  width: 100% !important;
+}
+
+/* الحقل الداخلي */
+.custom-date-input {
+  width: 100% !important;
+  height: 45px !important;
+  border: 2px solid #2a7371 !important;
+  border-radius: 7px !important;
+  color: #2a7371 !important;
+  text-align: right !important;
+  direction: rtl !important;
+  padding-right: 35px !important;
+  font-size: 16px !important;
+  background-color: #fff !important;
+  box-sizing: border-box !important;
+}
+
+/* لما المستخدم يضغط */
+.custom-date-input:focus {
+  border-color: #2a7371 !important;
+  box-shadow: 0 0 4px rgba(42, 115, 113, 0.5) !important;
+  outline: none !important;
+}

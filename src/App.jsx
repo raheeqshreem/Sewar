@@ -25,6 +25,8 @@ import ConsultationReplies from "./Pages/inquiry/ConsultationReplies";
 import Loader from "./Components/loader/Loader";
 import ConsultationDoctor from "./Pages/inquiry/ConsultationDoctor";
 import Notifications from "./Pages/inquiry/Notifications";
+import FormCaseReportWomen from "./Pages/report/FormCaseReportWomen";
+import ReportPreviewWomen from "./Pages/report/ReportPreviewWomen";
 
 
 function App() {
@@ -59,7 +61,9 @@ function App() {
           <Route path="/myinquiry" element={<MyInquiry />} />
           <Route path="/consultation-replies/:consultationId" element={<ConsultationReplies />} />
           <Route path="/consultation-doctor" element={<ConsultationDoctor/>} />
-                    <Route path="/consultation-doctor/:id" element={<ConsultationDoctor/>} />
+          <Route path="/consultation-doctor/:id" element={<ConsultationDoctor/>} />
+          <Route path="/FormCaseReportWomen" element={<FormCaseReportWomen/>} />
+          <Route path="/ReportPreviewWomen" element={<ReportPreviewWomen/>} />
 
           <Route path="/notifications" element={<Notifications/>} />
           <Route path="/feedback" element={<Feedback />} />

@@ -74,13 +74,12 @@ function Appointment() {
   };
 
   const handleBookClick = (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  const user = localStorage.getItem("user"); // 👈 هيك بنعرف إذا مسجل ولا لأ
+    const user = localStorage.getItem("user"); // 👈 هيك بنعرف إذا مسجل ولا لأ
 
-
-  if (!user) {
- toast.custom(
+    if (!user) {
+      toast.custom(
         () => (
           <div
             style={{
@@ -100,24 +99,20 @@ function Appointment() {
         { duration: 3000 }
       );
 
+      // 👇 المستخدم مش داخل، نحفظ الصفحة الحالية ونوديه لتسجيل الدخول
+      localStorage.setItem("redirectAfterLogin", "/appointment");
+      navigate("/signin");
+      return;
+    }
 
+    if (!selectedSlot) {
+      alert("الرجاء تحديد الوقت أولاً");
+      return;
+    }
 
-
-    // 👇 المستخدم مش داخل، نحفظ الصفحة الحالية ونوديه لتسجيل الدخول
-    localStorage.setItem("redirectAfterLogin", "/appointment");
-    navigate("/signin");
-    return;
-  }
-  
-  if (!selectedSlot) {
-    alert("الرجاء تحديد الوقت أولاً");
-    return;
-  }
-
-  // 👇 المستخدم داخل فعلاً → نوديه للفورم
-  navigate("/formappointment", { state: { selectedSlot } });
-};
-   
+    // 👇 المستخدم داخل فعلاً → نوديه للفورم
+    navigate("/formappointment", { state: { selectedSlot } });
+  };
 
   const now = new Date();
 
@@ -201,7 +196,14 @@ function Appointment() {
                       cursor: isPast ? "not-allowed" : "pointer",
                       transition: "0.2s",
                     }}
-                    onClick={() => handleSelect(day.date, { ...time, disabled: isPast })}
+                    title={
+                      isPast
+                        ? "❌ لا يمكنك حجز هذا الموعد، اختر موعد آخر"
+                        : ""
+                    }
+                    onClick={() =>
+                      handleSelect(day.date, { ...time, disabled: isPast })
+                    }
                     onMouseEnter={(e) => {
                       if (!isSelected && !isPast)
                         e.target.style.backgroundColor = "#e0f7f6";

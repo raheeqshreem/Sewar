@@ -1,76 +1,88 @@
 import "bootstrap/dist/css/bootstrap.min.css";
-import { useState } from "react";
+import { useState, forwardRef } from "react";
 import { Form, InputGroup } from "react-bootstrap";
-import {  useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { Calendar } from "lucide-react";
+import axios from "axios";
+import toast from "react-hot-toast";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import "./Appointment.css";
 
 export default function FormAppointment() {
-  const [step, setStep] = useState(1); // المرحلة: 1 بيانات، 2-3 أسئلة
-    const navigate = useNavigate();
-const [uploadedImages, setUploadedImages] = useState([]);
+  const [step, setStep] = useState(1);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const selectedSlotFromState = location.state?.selectedSlot || { day: "", time: "" };
+
+  const [uploadedImages, setUploadedImages] = useState([]);
   const [formData, setFormData] = useState({
     name: "",
-    age: "",
+    birthDate: null,
     phone: "",
     category: "",
     countryCode: "",
     job: "",
-    pregnancyAge: "",
     medicalStatus: "",
+    IDnumber: "",
   });
-
   const [errors, setErrors] = useState({});
-  const [answers, setAnswers] = useState({}); // إجابات الأسئلة
+  const [answers, setAnswers] = useState({});
 
-  // 🔹 عند تغيير أي حقل
+  const CustomDateInput = forwardRef(({ value, onClick, placeholder }, ref) => (
+    <div style={{ position: "relative" }}>
+      <input
+        ref={ref}
+        onClick={onClick}
+        value={value}
+        placeholder={placeholder}
+        readOnly
+        className="custom-date-input form-control"
+      />
+      <Calendar
+        size={20}
+        color="#2a7371"
+        style={{
+          position: "absolute",
+          right: "10px",
+          top: "50%",
+          transform: "translateY(-50%)",
+          pointerEvents: "none",
+        }}
+      />
+    </div>
+  ));
+
   const handleChange = (e) => {
-  const { name, value } = e.target;
-  if (step === 1) {
-    setFormData({ ...formData, [name]: value });
+    const { name, value } = e.target;
+    if (step === 1) {
+      setFormData({ ...formData, [name]: value });
 
-    let errorMsg = "";
-
-    if (name === "name") {
-      if (!value.trim()) errorMsg = "يجب إدخال الاسم";
-      else if (!/^[\u0621-\u064Aa-zA-Z\s]+$/.test(value.trim()))
+      let errorMsg = "";
+      if (name === "name" && !/^[\u0621-\u064Aa-zA-Z\s]+$/.test(value.trim()))
         errorMsg = "يجب أن يحتوي الاسم على حروف فقط";
+      if (name === "IDnumber" && value && !/^\d+$/.test(value)) errorMsg = "يرجى إدخال رقم";
+      if (name === "phone" && value && !/^\d+$/.test(value)) errorMsg = "يرجى إدخال رقم";
+      setErrors((prev) => ({ ...prev, [name]: errorMsg }));
+    } else {
+      setAnswers({ ...answers, [name]: value });
     }
+  };
 
-    if (name === "age" && value && !/^\d+$/.test(value)) errorMsg = "يرجى إدخال رقم";
-    if (name === "phone" && value && !/^\d+$/.test(value)) errorMsg = "يرجى إدخال رقم";
-
-    setErrors((prev) => ({ ...prev, [name]: errorMsg }));
-  } else {
-    setAnswers({ ...answers, [name]: value });
-  }
-};
-
-  // 🔸 التحقق من صحة البيانات
   const validate = () => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = "يجب إدخال الاسم";
-    else if (!/^[\u0621-\u064Aa-zA-Z\s]+$/.test(formData.name.trim()))
-      newErrors.name = "يجب أن يحتوي الاسم على حروف فقط";
-
-    if (!formData.age) 
-      newErrors.age = "يجب إدخال العمر ";
-    if (!formData.phone) 
-      newErrors.phone = "يجب إدخال رقم الهاتف";
-    
-
+    if (!formData.IDnumber) newErrors.IDnumber = "يجب إدخال رقم الهوية";
+    if (!formData.birthDate) newErrors.birthDate = "يجب إدخال تاريخ الميلاد";
+    if (!formData.phone) newErrors.phone = "يجب إدخال رقم الهاتف";
     if (!formData.countryCode) newErrors.countryCode = "اختر رمز الدولة";
     if (!formData.category) newErrors.category = "يجب اختيار الفئة";
-
-    if (formData.category === "نساء" || formData.category === "أطفال") {
-      if (!formData.medicalStatus.trim()) {
-        newErrors.medicalStatus = "يرجى اختيار حالتك المرضية";
-      }
-    }
-
+    if ((formData.category === "نساء" || formData.category === "أطفال") && !formData.medicalStatus)
+      newErrors.medicalStatus = "اختر الحالة المرضية";
     return newErrors;
   };
 
-  // 🔸 عند الضغط على زر التالي / تثبيت الحجز / إرسال
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (step === 1) {
@@ -81,8 +93,42 @@ const [uploadedImages, setUploadedImages] = useState([]);
       }
 
       if (formData.medicalStatus === "مراجعة") {
-        console.log("✅ تم تثبيت الحجز:", { formData });
-        alert("تم تثبيت موعدك بنجاح ✅");
+        if (!selectedSlotFromState.day || !selectedSlotFromState.time) {
+          toast.error("الرجاء اختيار موعد أولاً من صفحة المواعيد.");
+          return;
+        }
+
+        // payload للباك
+        const payload = {
+          fullname: formData.name || "غير محدد",
+          gender: 0,
+          phoneNumber: `${formData.countryCode}${formData.phone}`,
+          occupation: formData.job || "غير محدد",
+          birthDate: formData.birthDate,
+          idNumber: formData.IDnumber,
+          parentId: "0dee67e9-e250-45da-944f-12ed14ec76ca",
+          day: selectedSlotFromState.day,
+          time: selectedSlotFromState.time,
+          VisitTypee: 1, // مراجعة
+        };
+
+        toast.loading("جاري تثبيت الموعد...");
+        try {
+          const res = await axios.post(
+            "https://sewarwellnessclinic1.runasp.net/api/Child/save-basic-info",
+            payload
+          );
+          toast.dismiss();
+          toast.success("تم تثبيت موعدك بنجاح ✅", { duration: 3000 });
+          navigate("/appointment");
+        } catch (err) {
+          toast.dismiss();
+          const message =
+            err?.response?.data?.message ||
+            err?.response?.data?.Message ||
+            "حدث خطأ أثناء تثبيت الموعد.";
+          toast.error(message);
+        }
         return;
       }
 
@@ -90,17 +136,55 @@ const [uploadedImages, setUploadedImages] = useState([]);
     } else if (step === 2) {
       setStep(3);
     } else {
-      console.log("✅ تم إرسال البيانات:", { formData, answers });
-      alert("تم إرسال جميع البيانات بنجاح ✅");
+      // إرسال البيانات النهائية مع الأسئلة + الصور
+      const formPayload = new FormData();
+      formPayload.append("Fullname", formData.name);
+      formPayload.append("Gender", 0);
+      formPayload.append("PhoneNumber", `${formData.countryCode}${formData.phone}`);
+      formPayload.append("Occupation", formData.job || "غير محدد");
+      formPayload.append("BirthDate", formData.birthDate);
+      formPayload.append("IdNumber", formData.IDnumber);
+      formPayload.append("ParentId", "0dee67e9-e250-45da-944f-12ed14ec76ca");
+      formPayload.append("Day", selectedSlotFromState.day);
+      formPayload.append("Time", selectedSlotFromState.time);
+      formPayload.append("VisitTypee", 0); // جديدة
+
+      // إجابات الأسئلة
+      Object.keys(answers).forEach((key) => {
+        formPayload.append(key, answers[key]);
+      });
+
+      // الصور
+      uploadedImages.forEach((file, idx) => {
+        formPayload.append("OtherInvestigationsFiles", file);
+      });
+
+      toast.loading("جاري إرسال البيانات...");
+      try {
+        const res = await axios.post(
+          "https://sewarwellnessclinic1.runasp.net/api/Child/create-patient-appointment-report",
+          formPayload,
+          { headers: { "Content-Type": "multipart/form-data" } }
+        );
+        toast.dismiss();
+        toast.success("تم تثبيت موعدك بنجاح ✅", { duration: 3000 });
+        navigate("/appointment");
+      } catch (err) {
+        toast.dismiss();
+        const message =
+          err?.response?.data?.message ||
+          err?.response?.data?.Message ||
+          "حدث خطأ أثناء إرسال البيانات.";
+        toast.error(message);
+      }
     }
   };
 
-  // 🔹 زر السابق
   const handlePrevious = () => {
     if (step > 1) setStep(step - 1);
+    else navigate("/appointment");
   };
 
-  // 🔹 مكوّن الأسئلة (الجزء الأول والثاني)
   const renderQuestions = () => {
     const section1 = [
       "ماذا حدث معك؟",
@@ -127,126 +211,73 @@ const [uploadedImages, setUploadedImages] = useState([]);
       <div className="container" style={{ maxWidth: "600px" }}>
         <div className="p-4 rounded shadow" style={{ backgroundColor: "rgba(255,255,255,0.9)" }}>
           <h4 className="mb-4" style={{ color: "#2a7371" }}>
-            {step === 2 ? "الأسئلة الطبية (اختياري)" : "الأسئلة الطبية (اختياري)"}
+            الأسئلة الطبية (اختياري)
           </h4>
           <Form onSubmit={handleSubmit}>
             {questions.map((q, index) => (
               <Form.Group key={index} style={{ marginBottom: "25px" }}>
-  <Form.Label style={{ color: "#2a7371", float: "right" }}>{q}</Form.Label>
-  <Form.Control
-    as="textarea"
-    rows={2}
-    name={`q${step}-${index}`}
-    value={answers[`q${step}-${index}`] || ""}
-    onChange={handleChange}
-    style={{
-      border: "2px solid #2a7371",
-      color: "#2a7371",
-      direction: "rtl",
-      textAlign: "right",
-      borderRadius: "7px",
-    }}
-  />
+                <Form.Label style={{ color: "#2a7371", float: "right" }}>{q}</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={2}
+                  name={`q${step}-${index}`}
+                  value={answers[`q${step}-${index}`] || ""}
+                  onChange={handleChange}
+                  style={{
+                    border: "2px solid #2a7371",
+                    color: "#2a7371",
+                    direction: "rtl",
+                    textAlign: "right",
+                    borderRadius: "7px",
+                  }}
+                />
 
-  {/* 🖼️ رفع الصور + زر حذف */}
-  {index === section1.length - 1 && (
-    <>
-      <Form.Control
-        type="file"
-        multiple
-        onChange={(e) => {
-          const files = Array.from(e.target.files);
-          const urls = files.map((file) => URL.createObjectURL(file));
-          setUploadedImages((prev) => [...prev, ...urls]);
-        }}
-        style={{ marginTop: "10px" }}
-      />
-
-      <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "10px" }}>
-        {uploadedImages.map((img, idx) => (
-          <div key={idx} style={{ position: "relative", width: "80px", height: "80px" }}>
-            <img
-              src={img}
-              alt={`upload-${idx}`}
-              style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "5px" }}
-            />
-           <button
-  type="button"
-  onClick={() => setUploadedImages((prev) => prev.filter((_, i) => i !== idx))}
-  style={{
-    position: "absolute",
-    top: "2px",
-    right: "2px",
-    background: "red",
-    border: "none",
-    borderRadius: "50%",
-    width: "18px",
-    height: "18px",
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: "12px",
-    lineHeight: "18px",
-    textAlign: "center",
-    padding: "0",
-    cursor: "pointer",
-  }}
->
-  ✖
-</button>
-          </div>
-        ))}
-      </div>
-    </>
-  )}
-</Form.Group>
+                {index === section1.length - 1 && (
+                  <>
+                    <Form.Control
+                      type="file"
+                      multiple
+                      onChange={(e) => {
+                        const files = Array.from(e.target.files);
+                        setUploadedImages(files);
+                      }}
+                      style={{ marginTop: "10px" }}
+                    />
+                  </>
+                )}
+              </Form.Group>
             ))}
-           <div className="d-flex " style={{ gap: "20px" }}>
-  {step > 1 && (
-   <button
-    type="button"
-    onClick={() => {
-      if (step === 1) {
-        // ارجع لصفحة appointment
-        window.location.href = "/appointment"; // أو استخدم useNavigate إذا React Router
-      } else {
-        handlePrevious();
-      }
-    }}
-    style={{
-      flex: 1,
-      backgroundColor: "#2a7371",
-      border: "none",
-      fontSize: "20px",
-      padding: "12px 0",
-      color: "#fff",
-      borderRadius: "8px",
-    }}
-  >
-    ⬅️ السابق
-  </button>
-)}
-  
-  <button
-    type="submit"
-    style={{
-      flex:1,
-      backgroundColor: "#2a7371",
-      border: "none",
-      fontSize: "20px",
-      padding: "12px 24px",
-      color: "#fff",
-      borderRadius: "8px",
-    }}
-  >
-{step === 1 && formData.medicalStatus === "مراجعة"
-      ? "تثبيت الحجز"
-      : step === 1
-      ? "التالي ➡️"
-      : step === 2
-      ? "التالي ➡️"
-      : "إرسال ✅"}     
-  </button>
-</div>
+            <div className="d-flex" style={{ gap: "20px" }}>
+              <button
+                type="button"
+                onClick={handlePrevious}
+                style={{
+                  flex: 1,
+                  backgroundColor: "#2a7371",
+                  border: "none",
+                  fontSize: "20px",
+                  padding: "12px 0",
+                  color: "#fff",
+                  borderRadius: "8px",
+                }}
+              >
+                ⬅️ السابق
+              </button>
+              <button
+                type="submit"
+                style={{
+                  flex: 1,
+                  backgroundColor: "#2a7371",
+                  border: "none",
+                  fontSize: "20px",
+                  padding: "12px 0",
+                  color: "#fff",
+                  borderRadius: "8px",
+                }}
+              >
+                {step === 2 ? "التالي ➡️" : "إرسال ✅"}
+              </button>
+            </div>
           </Form>
         </div>
       </div>
@@ -254,120 +285,91 @@ const [uploadedImages, setUploadedImages] = useState([]);
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100dvh",
-        width: "100%",
-        padding: "100px 20px 50px 20px",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "flex-start",
-        alignItems: "center",
-        backgroundColor: "#f0f4f7",
-        overflowY: "auto",
-        color: "#2a7371",
-        textAlign: "center",
-        backgroundImage: `
-          radial-gradient(circle at 5% 10%, rgba(42,115,113,0.10) 25px, transparent 26px),
-          radial-gradient(circle at 20% 25%, rgba(42,115,113,0.08) 20px, transparent 21px),
-          radial-gradient(circle at 50% 75%, rgba(42,115,113,0.07) 20px, transparent 21px),
-          radial-gradient(circle at 90% 80%, rgba(42,115,113,0.09) 30px, transparent 25px),
-          radial-gradient(circle at 35% 40%, rgba(42,115,113,0.12) 30px, transparent 30px),
-          radial-gradient(circle at 50% 15%, rgba(42,115,113,0.10) 28px, transparent 29px),
-          radial-gradient(circle at 65% 35%, rgba(42,115,113,0.08) 35px, transparent 36px),
-          radial-gradient(circle at 40% 75%, rgba(42,115,113,0.07) 20px, transparent 21px),
-          radial-gradient(circle at 60% 80%, rgba(42,115,113,0.09) 30px, transparent 36px),
-          radial-gradient(circle at 80% 20%, rgba(42,115,113,0.09) 25px, transparent 26px),
-          radial-gradient(circle at 10% 60%, rgba(42,115,113,0.12) 30px, transparent 31px),
-          radial-gradient(circle at 25% 75%, rgba(42,115,113,0.07) 20px, transparent 21px),
-          radial-gradient(circle at 55% 90%, rgba(42,115,113,0.09) 30px, transparent 22px),
-          radial-gradient(circle at 75% 65%, rgba(42,115,113,0.11) 22px, transparent 23px)
-        `,
-        backgroundRepeat: "no-repeat",
-      }}
-    >
+    <div style={{ minHeight: "100vh", width: "100%", padding: "100px 20px 50px 20px", backgroundColor: "#f0f4f7", overflowY: "auto", color: "#2a7371", textAlign: "center" }}>
       {step === 1 ? (
         <div className="container" style={{ maxWidth: "500px" }}>
-          <div className="p-4 rounded shadow" style={{ backgroundColor: "rgba(255,255,255,0.9)", position : "relative" }}>
-
-
-<button
-    type="button"
-    onClick={() =>navigate( "/appointment")} // يرجع لصفحة المواعيد
-    style={{
-      position: "absolute",
-      top: "10px",
-      right: "10px",
-      background: "#faa3a3ff",
-      border: "none",
-      fontSize: "22px",
-      fontWeight: "bold",
-      color: "#faa3a3ff",
-      cursor: "pointer",
-    }}
-  >
-    ✖
-  </button>
-
-
-
+          <div className="p-4 rounded shadow" style={{ backgroundColor: "rgba(255,255,255,0.9)", position: "relative" }}>
+            <button
+              type="button"
+              onClick={() => navigate("/appointment")}
+              style={{
+                position: "absolute",
+                top: "10px",
+                right: "10px",
+                background: "#faa3a3ff",
+                border: "none",
+                fontSize: "22px",
+                fontWeight: "bold",
+                color: "#faa3a3ff",
+                cursor: "pointer",
+              }}
+            >
+              ✖
+            </button>
             <h3 className="mb-4" style={{ paddingBottom: "30px" }}>بيانات المريض</h3>
-
             <Form onSubmit={handleSubmit} noValidate>
               {/* الاسم */}
-              <Form.Group style={{ marginBottom: "30px" }} controlId="formName">
-                <Form.Control
-                  type="text"
-                  placeholder="أدخل اسم المريض"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  isInvalid={!!errors.name}
-                  style={{
-                    border: "2px solid #2a7371",
-                    color: "#2a7371",
-                    direction: "rtl",
-                    textAlign: "right",
-                  }}
-                />
+              <Form.Group style={{ marginBottom: "30px" }}>
+                <Form.Control type="text" placeholder="أدخل اسم المريض" name="name" value={formData.name} onChange={handleChange} isInvalid={!!errors.name} style={{ border: "2px solid #2a7371", color: "#2a7371", direction: "rtl", textAlign: "right" }} />
                 {errors.name && <div className="text-danger text-end mt-2">{errors.name}</div>}
               </Form.Group>
 
-              {/* العمر */}
-              <Form.Group style={{ marginBottom: "30px" }} controlId="formAge">
+              {/* تاريخ الميلاد */}
+              <Form.Group style={{ marginBottom: "30px" }}>
+               <DatePicker
+  selected={formData.birthDate ? new Date(formData.birthDate) : null}
+  onChange={(date) => {
+    setFormData({ ...formData, birthDate: date ? date.toISOString().split("T")[0] : "" });
+    if (date) {
+      setErrors((prev) => ({ ...prev, birthDate: "" })); // حذف رسالة الخطأ
+    }
+  }}
+  dateFormat="yyyy-MM-dd"
+  placeholderText="أدخل تاريخ ميلاد المريض"
+  customInput={<CustomDateInput />}
+/>
+                {errors.birthDate && <div className="text-danger text-end mt-2">{errors.birthDate}</div>}
+              </Form.Group>
+
+              {/* رقم الهوية */}
+              <Form.Group style={{ marginBottom: "30px" }}>
                 <Form.Control
                   type="text"
-                  placeholder="أدخل عمر المريض"
-                  name="age"
-                  value={formData.age}
+                  placeholder="أدخل رقم هوية المريض"
+                  name="IDnumber"
+                  value={formData.IDnumber}
                   onChange={handleChange}
-                  isInvalid={!!errors.age}
-                  style={{
-                    border: "2px solid #2a7371",
-                    color: "#2a7371",
-                    direction: "rtl",
-                    textAlign: "right",
-                  }}
+                  isInvalid={!!errors.IDnumber}
+                  style={{ border: "2px solid #2a7371", color: "#2a7371", direction: "rtl", textAlign: "right" }}
                 />
-                {errors.age && <div className="text-danger text-end mt-2">{errors.age}</div>}
+                {errors.IDnumber && <div className="text-danger text-end mt-2">{errors.IDnumber}</div>}
               </Form.Group>
 
               {/* الهاتف */}
-              <Form.Group style={{ marginBottom: "30px", direction: "rtl", textAlign: "right" }} controlId="formPhone">
+              <Form.Group style={{ marginBottom: "30px" }} controlId="formPhone">
                 <InputGroup>
+
+
+
+
+ <Form.Control
+                    type="text"
+                    placeholder="أدخل رقم الهاتف"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    isInvalid={!!errors.phone}
+                    style={{ border: "2px solid #2a7371", color: "#2a7371", direction: "rtl", textAlign: "right", borderRadius: "7px" }}
+                  />
+
+
+
                   <Form.Select
                     name="countryCode"
                     value={formData.countryCode}
                     onChange={handleChange}
                     isInvalid={!!errors.countryCode}
-                    style={{
-                      maxWidth: "160px",
-                      border: "2px solid #2a7371",
-                      color: "#2a7371",
-                      fontSize: "15px",
-                      marginLeft: "10px",
-                      borderRadius: "7px",
-                    }}
+                    style={{ maxWidth: "160px", border: "2px solid #2a7371", color: "#2a7371", fontSize: "15px", marginLeft: "10px", borderRadius: "7px" }}
                   >
                     <option value="">رمز الدولة</option>
                     <option value="+970">فلسطين +970</option>
@@ -378,88 +380,56 @@ const [uploadedImages, setUploadedImages] = useState([]);
                     <option value="+20">مصر +20</option>
                   </Form.Select>
 
-                  <Form.Control
-                    type="text"
-                    placeholder="أدخل رقم الهاتف"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    isInvalid={!!errors.phone}
-                    style={{
-                      border: "2px solid #2a7371",
-                      color: "#2a7371",
-                      direction: "rtl",
-                      textAlign: "right",
-                      borderRadius: "7px",
-                    }}
-                  />
+                 
                 </InputGroup>
-                {(errors.countryCode || errors.phone) && (
-                  <div className="text-danger text-end mt-2">{errors.countryCode || errors.phone}</div>
-                )}
+                {(errors.countryCode || errors.phone) && <div className="text-danger text-end mt-2">{errors.countryCode || errors.phone}</div>}
               </Form.Group>
 
               {/* الفئة */}
-              <Form.Group style={{ marginBottom: "30px" }} controlId="formCategory">
+              <Form.Group style={{ marginBottom: "30px" }}>
                 <Form.Select
                   name="category"
                   value={formData.category}
                   onChange={handleChange}
                   isInvalid={!!errors.category}
-                  style={{
-                    border: "2px solid #2a7371",
-                    color: "#2a7371",
-                    direction: "rtl",
-                    textAlign: "right",
-                  }}
+                  style={{ border: "2px solid #2a7371", color: "#2a7371", direction: "rtl", textAlign: "right" }}
                 >
                   <option value="">اختر الفئة...</option>
                   <option value="أطفال">أطفال</option>
                   <option value="نساء">نساء</option>
                 </Form.Select>
-{errors.category && <div className="text-danger text-end mt-2">{errors.category}</div>}
+                {errors.category && <div className="text-danger text-end mt-2">{errors.category}</div>}
               </Form.Group>
 
+              {/* حالة المرض والوظيفة */}
               {(formData.category === "نساء" || formData.category === "أطفال") && (
                 <>
                   {formData.category === "نساء" && (
-                    <Form.Group style={{ marginBottom: "30px" }} controlId="formJob">
+                    <Form.Group style={{ marginBottom: "30px" }}>
                       <Form.Control
                         type="text"
                         placeholder="الوظيفة (اختياري)"
                         name="job"
                         value={formData.job}
                         onChange={handleChange}
-                        style={{
-                          border: "2px solid #2a7371",
-                          color: "#2a7371",
-                          direction: "rtl",
-                          textAlign: "right",
-                        }}
+                        style={{ border: "2px solid #2a7371", color: "#2a7371", direction: "rtl", textAlign: "right" }}
                       />
                     </Form.Group>
                   )}
 
-                  <Form.Group style={{ marginBottom: "30px" }} controlId="formMedicalStatus">
+                  <Form.Group style={{ marginBottom: "30px" }}>
                     <Form.Select
                       name="medicalStatus"
                       value={formData.medicalStatus}
                       onChange={handleChange}
                       isInvalid={!!errors.medicalStatus}
-                      style={{
-                        border: "2px solid #2a7371",
-                        color: "#2a7371",
-                        direction: "rtl",
-                        textAlign: "right",
-                      }}
+                      style={{ border: "2px solid #2a7371", color: "#2a7371", direction: "rtl", textAlign: "right" }}
                     >
                       <option value="">اختر الحالة المرضية...</option>
                       <option value="جديدة">حالة مرضية جديدة</option>
                       <option value="مراجعة">مراجعة</option>
                     </Form.Select>
-                    {errors.medicalStatus && (
-                      <div className="text-danger text-end mt-2">{errors.medicalStatus}</div>
-                    )}
+                    {errors.medicalStatus && <div className="text-danger text-end mt-2">{errors.medicalStatus}</div>}
                   </Form.Group>
                 </>
               )}
@@ -467,15 +437,7 @@ const [uploadedImages, setUploadedImages] = useState([]);
               <button
                 type="submit"
                 className="w-100"
-                style={{
-                  backgroundColor: "#2a7371",
-                  border: "none",
-                  fontSize: "18px",
-                  padding: "10px",
-                  marginTop: "10px",
-                  color: "#fff",
-                  borderRadius: "8px",
-                }}
+                style={{ backgroundColor: "#2a7371", border: "none", fontSize: "18px", padding: "10px", marginTop: "10px", color: "#fff", borderRadius: "8px" }}
               >
                 {step === 1 && formData.medicalStatus === "مراجعة"
                   ? "تثبيت الحجز"
