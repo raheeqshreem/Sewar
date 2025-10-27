@@ -55,8 +55,12 @@ export default function FormAppointment() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
     if (step === 1) {
       setFormData({ ...formData, [name]: value });
+
+      // ✅ طباعة كل قيمة فور إدخالها
+      console.log("[Step 1] ${name} :", value);
 
       let errorMsg = "";
       if (name === "name" && !/^[\u0621-\u064Aa-zA-Z\s]+$/.test(value.trim()))
@@ -66,6 +70,9 @@ export default function FormAppointment() {
       setErrors((prev) => ({ ...prev, [name]: errorMsg }));
     } else {
       setAnswers({ ...answers, [name]: value });
+
+      // ✅ طباعة الإجابة فور إدخالها
+      console.log("[Step ${step}] ${name} :", value);
     }
   };
 
@@ -82,9 +89,23 @@ export default function FormAppointment() {
     return newErrors;
   };
 
+  const getTokenFromStorage = () => {
+    try {
+      const rawUser = localStorage.getItem("user");
+      if (rawUser) {
+        const parsed = JSON.parse(rawUser);
+        return parsed?.token || null;
+      }
+    } catch (err) {
+      console.warn("Failed to parse user from localStorage", err);
+    }
+    return null;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // === خطوة التنقل بين الخطوات ===
     if (step === 1) {
       const validationErrors = validate();
       if (Object.keys(validationErrors).length > 0) {
@@ -97,86 +118,99 @@ export default function FormAppointment() {
           toast.error("الرجاء اختيار موعد أولاً من صفحة المواعيد.");
           return;
         }
-
-        // payload للباك
-        const payload = {
-          fullname: formData.name || "غير محدد",
-          gender: 0,
-          phoneNumber: `${formData.countryCode}${formData.phone}`,
-          occupation: formData.job || "غير محدد",
-          birthDate: formData.birthDate,
-          idNumber: formData.IDnumber,
-          parentId: "0dee67e9-e250-45da-944f-12ed14ec76ca",
-          day: selectedSlotFromState.day,
-          time: selectedSlotFromState.time,
-          VisitTypee: 1, // مراجعة
-        };
-
-        toast.loading("جاري تثبيت الموعد...");
-        try {
-          const res = await axios.post(
-            "https://sewarwellnessclinic1.runasp.net/api/Child/save-basic-info",
-            payload
-          );
-          toast.dismiss();
-          toast.success("تم تثبيت موعدك بنجاح ✅", { duration: 3000 });
-          navigate("/appointment");
-        } catch (err) {
-          toast.dismiss();
-          const message =
-            err?.response?.data?.message ||
-            err?.response?.data?.Message ||
-            "حدث خطأ أثناء تثبيت الموعد.";
-          toast.error(message);
-        }
-        return;
       }
 
       setStep(2);
-    } else if (step === 2) {
+      return;
+    }
+
+    if (step === 2) {
       setStep(3);
-    } else {
-      // إرسال البيانات النهائية مع الأسئلة + الصور
-      const formPayload = new FormData();
-      formPayload.append("Fullname", formData.name);
-      formPayload.append("Gender", 0);
-      formPayload.append("PhoneNumber", `${formData.countryCode}${formData.phone}`);
-      formPayload.append("Occupation", formData.job || "غير محدد");
-      formPayload.append("BirthDate", formData.birthDate);
-      formPayload.append("IdNumber", formData.IDnumber);
-      formPayload.append("ParentId", "0dee67e9-e250-45da-944f-12ed14ec76ca");
-      formPayload.append("Day", selectedSlotFromState.day);
-      formPayload.append("Time", selectedSlotFromState.time);
-      formPayload.append("VisitTypee", 0); // جديدة
+      return;
+    }
 
-      // إجابات الأسئلة
-      Object.keys(answers).forEach((key) => {
-        formPayload.append(key, answers[key]);
-      });
+    // === خطوة الإرسال النهائي ===
+    const formPayload = new FormData();
 
-      // الصور
-      uploadedImages.forEach((file, idx) => {
-        formPayload.append("OtherInvestigationsFiles", file);
-      });
+    formPayload.append("Fullname", formData.name);
 
-      toast.loading("جاري إرسال البيانات...");
-      try {
-        const res = await axios.post(
-          "https://sewarwellnessclinic1.runasp.net/api/Child/create-patient-appointment-report",
-          formPayload,
-          { headers: { "Content-Type": "multipart/form-data" } }
-        );
-        toast.dismiss();
-        toast.success("تم تثبيت موعدك بنجاح ✅", { duration: 3000 });
-        navigate("/appointment");
-      } catch (err) {
-        toast.dismiss();
-        const message =
-          err?.response?.data?.message ||
-          err?.response?.data?.Message ||
-          "حدث خطأ أثناء إرسال البيانات.";
-        toast.error(message);
+
+    formPayload.append("Gender", formData.category === "نساء" ?  "1" :"0");
+    formPayload.append("PhoneNumber",` ${formData.countryCode}${formData.phone}`);
+    formPayload.append("Occupation", formData.job || "غير محدد");
+    formPayload.append("BirthDate", formData.birthDate);
+    formPayload.append("IdNumber", formData.IDnumber);
+    formPayload.append("Diagnose", answers["q2-0"] || "");
+    formPayload.append("PresentHistory", answers["q2-1"] || "");
+    formPayload.append("ChronicDisease", answers["q2-4"] || "");
+    formPayload.append("Medication", answers["q2-4"] || "");
+    formPayload.append("FamilyHistory", answers["q2-5"] || "");
+    formPayload.append("PreviousSurgeries", answers["q2-4"] || "");
+    formPayload.append("SocialHistory", answers["q2-5"] || "");
+    formPayload.append("OtherInvestigationsText", JSON.stringify(answers));
+
+
+    formPayload.append("VisitTypee", formData.category === "نساء" ?"1" :"0");
+    formPayload.append("PainAssessment", answers["q3-0"] || "");
+    formPayload.append("Time", selectedSlotFromState.time);
+    formPayload.append("Day", selectedSlotFromState.day);
+    uploadedImages.forEach((file) => formPayload.append("OtherInvestigationsFiles", file));
+
+    // ✅ طباعة كل البيانات قبل الإرسال النهائي
+    console.log("=== كل بيانات formData قبل الإرسال النهائي ===");
+    for (const [key, value] of Object.entries(formData)) {
+      console.log("${key} :", value);
+    }
+    console.log("=== كل بيانات answers قبل الإرسال النهائي ===");
+    for (const [key, value] of Object.entries(answers)) {
+      console.log("${key} :", value);
+    }
+    console.log("=== الملفات المرفوعة ===", uploadedImages);
+
+    // ✅ نسخة preview من FormData
+    const previewPayload = {};
+    formPayload.forEach((value, key) => {
+      if (previewPayload[key]) {
+        if (!Array.isArray(previewPayload[key])) previewPayload[key] = [previewPayload[key]];
+        previewPayload[key].push(value);
+      } else {
+        previewPayload[key] = value;
       }
+    });
+    console.log("=== نسخة البيانات الجاهزة للإرسال للباك ===", previewPayload);
+
+    const token = getTokenFromStorage();
+    if (!token) {
+      toast.error("الرجاء تسجيل الدخول أولاً لإتمام العملية.");
+      return;
+    }
+
+    toast.loading("جاري إرسال البيانات...");
+    try {
+      const res = await axios.post(
+        "https://sewarwellnessclinic1.runasp.net/api/Child/create-patient-appointment-report",
+        formPayload,
+        {
+          headers: {
+            Authorization:` Bearer ${token}`,
+          },
+        }
+      );
+      toast.dismiss();
+      toast.success("تم تثبيت موعدك بنجاح ✅", { duration: 3000 });
+
+      // إعادة تعيين الـ state
+      setAnswers({});
+      setUploadedImages([]);
+      setStep(1);
+      navigate("/appointment");
+    } catch (err) {
+      toast.dismiss();
+      const message =
+        err?.response?.data?.message ||
+        err?.response?.data?.Message ||
+        "حدث خطأ أثناء إرسال البيانات.";
+      toast.error(message);
     }
   };
 
