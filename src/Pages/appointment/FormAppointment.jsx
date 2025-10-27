@@ -151,6 +151,7 @@ export default function FormAppointment() {
 
 
     formPayload.append("VisitTypee", formData.category === "نساء" ?"1" :"0");
+    
     formPayload.append("PainAssessment", answers["q3-0"] || "");
     formPayload.append("Time", selectedSlotFromState.time);
     formPayload.append("Day", selectedSlotFromState.day);
