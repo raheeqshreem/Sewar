@@ -9,7 +9,6 @@ import Appointment from "./Pages/appointment/Appointment";
 import Communication from "./Pages/communication/Communication";
 import Feedback from "./Pages/feedback/Feedback";
 import Inquiry from "./Pages/inquiry/Inquiry";
-import File from "./Pages/file/File";
 import ForgetPassword from "./Pages/forgetPassword/ForgetPassword";
 import ResetPassword from "./Pages/forgetPassword/ResetPassword";
 import WriteFeedback from "./Pages/writeFeedback/WriteFeedback";
@@ -25,8 +24,17 @@ import ConsultationReplies from "./Pages/inquiry/ConsultationReplies";
 import Loader from "./Components/loader/Loader";
 import ConsultationDoctor from "./Pages/inquiry/ConsultationDoctor";
 import Notifications from "./Pages/inquiry/Notifications";
-import FormCaseReportWomen from "./Pages/report/FormCaseReportWomen";
+import ReportPreviewKids from "./Pages/report/ReportPreviewKids";
 import ReportPreviewWomen from "./Pages/report/ReportPreviewWomen";
+import ViewAppointments from "./Pages/appointment/ViewAppointments";
+import UsersList from './Pages/appointment/UsersList';
+import FilesPage from "./Pages/file/FilesPage";
+import Visite from "./Pages/file/Visite";
+import FilesPagePatient from "./Pages/file/FilesPagePatient";
+import VisitePatient from "./Pages/file/VisitePatient";
+import ReportKids from "./Pages/report/ReportKids";
+import ReportWomen from "./Pages/report/ReportWomen";
+import Admin from "./Pages/home/Admin";
 
 
 function App() {
@@ -48,12 +56,15 @@ function App() {
           <Route path="/user" element={<Profile />} />
                     <Route path="/loader" element={<Loader />} />
 
+          <Route path="/users" element={<UsersList />} />
+
+          <Route path="/viewappointments" element={<ViewAppointments />} />
           <Route path="/appointment" element={<Appointment />} />
            <Route path="/formappointment" element={<FormAppointment />} />
           <Route path="/communication" element={<Communication />} />
           <Route path="/feedback" element={<Feedback />} />
           <Route path="/inquiry" element={<Inquiry />} />
-          <Route path="/file" element={<File />} />
+          <Route path="/FilesPage" element={<FilesPage/>} />
           <Route path="/forgetPassword" element={<ForgetPassword />} />
           <Route path="/resetPassword" element={<ResetPassword />} />
           <Route path="/writefeedback/:id" element={<WriteFeedback />} />
@@ -62,8 +73,18 @@ function App() {
           <Route path="/consultation-replies/:consultationId" element={<ConsultationReplies />} />
           <Route path="/consultation-doctor" element={<ConsultationDoctor/>} />
           <Route path="/consultation-doctor/:id" element={<ConsultationDoctor/>} />
-          <Route path="/FormCaseReportWomen" element={<FormCaseReportWomen/>} />
+          <Route path="/ReportPreviewKids" element={<ReportPreviewKids/>} />
           <Route path="/ReportPreviewWomen" element={<ReportPreviewWomen/>} />
+<Route path="/ReportPreviewWomen/:reportId" element={<ReportPreviewWomen />} />
+<Route path="/ReportWomen/:reportId" element={<ReportWomen />} />
+          <Route path="/ReportKids/:reportId" element={<ReportKids/>} />
+
+          <Route path="/ReportPreviewKids/:reportId" element={<ReportPreviewKids/>} />
+          <Route path="/visites" element={<Visite/>} />
+                    <Route path="/VisitePatient/:childId" element={<VisitePatient/>} />
+
+          <Route path="/FilesPagePatient" element={<FilesPagePatient/>} />
+          <Route path="/admin" element={<Admin/>} />
 
           <Route path="/notifications" element={<Notifications/>} />
           <Route path="/feedback" element={<Feedback />} />
@@ -71,6 +92,13 @@ function App() {
           <Route path="/feedbacklist" element={<FeedbackList />} />
 
         </Routes>
+
+
+
+
+
+
+        
       </div>
 
       {!hideLayout && <Footer />}

@@ -145,106 +145,11 @@ console.log("Other images home:", data.objectivesAndFindings?.oimages);
 
 
 
-  // 🔹 دالة التغيير لأي حقل
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  // 🔹 دالة الإرسال (زر الحفظ)
-const handleSubmit = async (e) => {
-  e.preventDefault();
-
-  try {
-    // نبني FormData
-    const formDataToSend = new FormData();
-
-    // الحقول النصية
-    formDataToSend.append("ReportId", parseInt(reportId));
-    formDataToSend.append("ChildInfo.Fullname", formData.patientName);
-    formDataToSend.append("ChildInfo.Occupation", formData.occupation);
-    formDataToSend.append("ChildInfo.BirthDate", formData.dateOfBirth ? `${formData.dateOfBirth}T00:00:00` : "");
-    formDataToSend.append("ChildInfo.Gender", formData.gender);
-formDataToSend.append(
-  "date",
-  formData.date ? `${formData.date}T00:00:00` : ""
-);
-
-    formDataToSend.append("CaseReport.Chronic_Disease", formData.chronicDiseases);
-    formDataToSend.append("CaseReport.Medication", formData.medications);
-        formDataToSend.append("CaseReport.phDignosis", formData.physioDiagnosis);
-
-    formDataToSend.append("CaseReport.Family_History", formData.familyHistory);
-    formDataToSend.append("CaseReport.Previous_Surgeries", formData.surgeries);
-    formDataToSend.append("CaseReport.Present_History", formData.presentHistory);
-    formDataToSend.append("CaseReport.Social_History", formData.socialHistory);
-    formDataToSend.append("CaseReport.Dignosis", formData.medicalDiagnosis);
-    formDataToSend.append("CaseReport.Other_Investigations", formData.otherFindings);
-
-    formDataToSend.append("Assesment.ShortTermText", formData.shortGoals);
-    formDataToSend.append("Assesment.Problemlist", formData.listOfProblem);
-    formDataToSend.append("Assesment.PlanOfcareText", formData.planOfCare);
-    formDataToSend.append("Assesment.LongTermText", formData.longGoals);
-
-    formDataToSend.append("ObjectivesAndFindings.Observation", formData.observationFindings);
-    formDataToSend.append("ObjectivesAndFindings.palpation", formData.palpationFindings);
-    formDataToSend.append("ObjectivesAndFindings.pain_assesment", formData.painFindings);
-    formDataToSend.append("ObjectivesAndFindings.sensation", formData.sensationFindings);
-    formDataToSend.append("ObjectivesAndFindings.rom_findings", formData.romFindings);
-    formDataToSend.append("ObjectivesAndFindings.mmt_findings", formData.mmtFindings);
-    formDataToSend.append("ObjectivesAndFindings.reflexes", formData.reflexFindings);
-    formDataToSend.append("ObjectivesAndFindings.join_muscle_circufernec", formData.jointsFindings); // ✅ أضف هذا السطر
-formDataToSend.append("Assesment.homeprogrem", formData.homeProgram);
-
-    formDataToSend.append("ObjectivesAndFindings.special_tests", formData.specialTestFindings);
-// Other investigations
-otherImages.forEach(file => {
-  if (file instanceof File) {
-    formDataToSend.append("CaseReport.OtherInvestigationsFiles", file);
-  } else {
-    formDataToSend.append("CaseReport.ExistingImageUrls", file.id);
-  }
-});
-
-// Plan of Care
-planImages.forEach(file => {
-  if (file instanceof File) {
-    formDataToSend.append("Assesment.AssesmentFiles", file);
-  } else {
-    formDataToSend.append("Assesment.ExistingImageUrls", file.id);
-  }
-});
-
-// Home Program
-homeImages.forEach(file => {
-  if (file instanceof File) {
-    formDataToSend.append("ObjectivesAndFindings.ObjectivesAndFindingsFiles", file);
-  } else {
-    formDataToSend.append("ObjectivesAndFindings.ExistingImageUrls", file.id);
-  }
-});
-
-    // إرسال الطلب
-    const response = await axios.post(
-      "https://sewarwellnessclinic1.runasp.net/api/kidReport/update-report",
-      formDataToSend,
-      {
-        headers: { "Content-Type": "multipart/form-data" },
-      }
-    );
-
-    console.log("Response:", response.data);
-    alert("✅ تم رفع التقرير والصور بنجاح!");
-  } catch (err) {
-    console.error(err);
-    alert("❌ حدث خطأ أثناء رفع التقرير.");
-  }
-};
 
 
 
   const handleGoBack = () => {
-  navigate("/FilesPage");
+  navigate("/FilesPagePatient");
 };
 
   return (
@@ -279,7 +184,7 @@ homeImages.forEach(file => {
 </div>
       <h4 style={headerStyle}>Weekly case Report Guide</h4>
 
-      <form onSubmit={handleSubmit}>
+      <form >
         {/* Subjective block */}
         <div className="row mb-2">
           <div className="col-12" style={turquoiseBorder}>
@@ -289,7 +194,6 @@ homeImages.forEach(file => {
     type="date"
     name="date"                   // ⬅️ ربط الاسم بالـ state
     value={formData.date}         // ⬅️ ربط القيمة بالـ state
-    onChange={handleChange}       // ⬅️ دالة التغيير
     className="form-control"
     style={{
       borderColor: "#2a7371",
@@ -310,7 +214,6 @@ homeImages.forEach(file => {
       type="text"
       name="patientName"
       value={formData.patientName}
-      onChange={handleChange}
       className="form-control"
       style={{
         borderColor: "#2a7371",
@@ -327,7 +230,6 @@ homeImages.forEach(file => {
     type="date"
     name="dateOfBirth"
     value={formData.dateOfBirth}
-    onChange={handleChange}
     className="form-control"
     style={{
       borderColor: "#2a7371",
@@ -343,7 +245,6 @@ homeImages.forEach(file => {
     <select
       name="gender"
       value={formData.gender}
-      onChange={handleChange}
       className="form-control"
       style={{
         borderColor: "#2a7371",
@@ -364,7 +265,6 @@ homeImages.forEach(file => {
       type="text"
       name="occupation"
       value={formData.occupation}
-      onChange={handleChange}
       className="form-control"
       style={{
         borderColor: "#2a7371",
@@ -380,18 +280,18 @@ homeImages.forEach(file => {
 
             <div className="mt-3">
               <label>Medical diagnosis</label>
-              <textarea name="medicalDiagnosis" rows={3} value={formData.medicalDiagnosis} onChange={handleChange} className="form-control" style={{ borderColor: "#2a7371" }} />
+              <textarea name="medicalDiagnosis" rows={3} value={formData.medicalDiagnosis} className="form-control" style={{ borderColor: "#2a7371" }} />
             </div>
 
             <div className="mt-3">
               <label>Physiotherapy diagnosis</label>
               <textarea name="physioDiagnosis" rows={3} value={formData.physioDiagnosis}
- onChange={handleChange} className="form-control" style={{ borderColor: "#2a7371" }} />
+  className="form-control" style={{ borderColor: "#2a7371" }} />
             </div>
 
             <div className="mt-3">
               <label>Present history (briefly)</label>
-              <textarea name="presentHistory" rows={3} value={formData.presentHistory} onChange={handleChange} className="form-control" style={{ borderColor: "#2a7371" }} />
+              <textarea name="presentHistory" rows={3} value={formData.presentHistory}  className="form-control" style={{ borderColor: "#2a7371" }} />
             </div>
           </div>
         </div>
@@ -414,7 +314,6 @@ homeImages.forEach(file => {
       name="chronicDiseases"
       rows={3}
       value={formData.chronicDiseases}
-      onChange={handleChange}
       className="form-control border-0"
       style={{ background: "transparent", resize: "none", textAlign: "center" }}
     />
@@ -426,7 +325,6 @@ homeImages.forEach(file => {
       name="medications"
       rows={3}
       value={formData.medications}
-      onChange={handleChange}
       className="form-control border-0"
       style={{ background: "transparent", resize: "none", textAlign: "center" }}
     />
@@ -438,7 +336,6 @@ homeImages.forEach(file => {
       name="surgeries"
       rows={3}
       value={formData.surgeries}
-      onChange={handleChange}
       className="form-control border-0"
       style={{ background: "transparent", resize: "none", textAlign: "center" }}
     />
@@ -447,7 +344,7 @@ homeImages.forEach(file => {
 
             <div className="mt-3">
               <label>Social history:</label>
-              <textarea name="socialHistory" rows={3} value={formData.socialHistory} onChange={handleChange} className="form-control" style={{ borderColor: "#2a7371" }} />
+              <textarea name="socialHistory" rows={3} value={formData.socialHistory} className="form-control" style={{ borderColor: "#2a7371" }} />
             </div>
 
          {/* Other investigations images */}
@@ -457,7 +354,6 @@ homeImages.forEach(file => {
     name="otherFindings"
     rows={2}
     value={formData.otherFindings}
-    onChange={handleChange}
     className="form-control mb-2"
     style={{ borderColor: "#2a7371" }}
   />
@@ -468,26 +364,11 @@ homeImages.forEach(file => {
       type="file"
       accept="image/*"
       multiple
-      onChange={(e) => {
-        const files = Array.from(e.target.files);
-        // نخزّن الملفات نفسها (File objects)
-        setOtherImages((prev) => [...prev, ...files]);
-      }}
+     
       style={{ display: "none" }}
       id="otherUpload"
     />
-    <label
-      htmlFor="otherUpload"
-      className="btn btn-sm"
-      style={{
-        backgroundColor: "#2a7371",
-        color: "white",
-        fontWeight: 600,
-        marginBottom: "10px",
-      }}
-    >
-      + Add Images
-    </label>
+    
 
     <div className="d-flex flex-wrap gap-2">
       {otherImages.map((file, i) => {
@@ -515,24 +396,7 @@ homeImages.forEach(file => {
               }}
               onClick={() => setZoomImage(src)}
             />
-            <button
-              type="button"
-              onClick={() => setOtherImages((prev) => prev.filter((_, idx) => idx !== i))}
-              style={{
-                position: "absolute",
-                top: "-8px",
-                right: "-8px",
-                backgroundColor: "#2a7371",
-                color: "white",
-                border: "none",
-                borderRadius: "50%",
-                width: "24px",
-                height: "24px",
-                cursor: "pointer",
-              }}
-            >
-              ×
-            </button>
+           
           </div>
         );
       })}
@@ -547,7 +411,7 @@ homeImages.forEach(file => {
           <div className="col-12" style={turquoiseBorder}>
             <label>Objectives :-</label>
             <h6>Observation findings:</h6>
-            <textarea name="observationFindings" rows={3} value={formData.observationFindings} onChange={handleChange} className="form-control" style={{ borderColor: "#2a7371" }} />
+            <textarea name="observationFindings" rows={3} value={formData.observationFindings} className="form-control" style={{ borderColor: "#2a7371" }} />
           </div>
         </div>
 
@@ -555,28 +419,28 @@ homeImages.forEach(file => {
         <div className="row mb-3">
           <div className="col-12" style={largeBox}>
             <p><strong>Palpation findings</strong></p>
-            <textarea name="palpationFindings" rows={2} value={formData.palpationFindings} onChange={handleChange} className="form-control mb-2" style={{ borderColor: "#2a7371" }} />
+            <textarea name="palpationFindings" rows={2} value={formData.palpationFindings}  className="form-control mb-2" style={{ borderColor: "#2a7371" }} />
 
             <p><strong>Pain assessment findings</strong></p>
-            <textarea name="painFindings" rows={2} value={formData.painFindings} onChange={handleChange} className="form-control mb-2" style={{ borderColor: "#2a7371" }} />
+            <textarea name="painFindings" rows={2} value={formData.painFindings} className="form-control mb-2" style={{ borderColor: "#2a7371" }} />
 
             <p><strong>Sensation findings</strong></p>
-            <textarea name="sensationFindings" rows={2} value={formData.sensationFindings} onChange={handleChange} className="form-control mb-2" style={{ borderColor: "#2a7371" }} />
+            <textarea name="sensationFindings" rows={2} value={formData.sensationFindings}  className="form-control mb-2" style={{ borderColor: "#2a7371" }} />
 
             <p><strong>Joints and muscle circumference findings</strong></p>
-            <textarea name="jointsFindings" rows={2} value={formData.jointsFindings} onChange={handleChange} className="form-control mb-2" style={{ borderColor: "#2a7371" }} />
+            <textarea name="jointsFindings" rows={2} value={formData.jointsFindings}  className="form-control mb-2" style={{ borderColor: "#2a7371" }} />
 
             <p><strong>ROM Findings</strong></p>
-            <textarea name="romFindings" rows={2} value={formData.romFindings} onChange={handleChange} className="form-control mb-2" style={{ borderColor: "#2a7371" }} />
+            <textarea name="romFindings" rows={2} value={formData.romFindings}  className="form-control mb-2" style={{ borderColor: "#2a7371" }} />
 
             <p><strong>MMT findings</strong></p>
-            <textarea name="mmtFindings" rows={2} value={formData.mmtFindings} onChange={handleChange} className="form-control mb-2" style={{ borderColor: "#2a7371" }} />
+            <textarea name="mmtFindings" rows={2} value={formData.mmtFindings} className="form-control mb-2" style={{ borderColor: "#2a7371" }} />
 
             <p><strong>Reflexes findings</strong></p>
-            <textarea name="reflexFindings" rows={2} value={formData.reflexFindings} onChange={handleChange} className="form-control mb-2" style={{ borderColor: "#2a7371" }} />
+            <textarea name="reflexFindings" rows={2} value={formData.reflexFindings} className="form-control mb-2" style={{ borderColor: "#2a7371" }} />
 
             <p><strong>Special test findings</strong></p>
-            <textarea name="specialTestFindings" rows={2} value={formData.specialTestFindings} onChange={handleChange} className="form-control" style={{ borderColor: "#2a7371" }} />
+            <textarea name="specialTestFindings" rows={2} value={formData.specialTestFindings} className="form-control" style={{ borderColor: "#2a7371" }} />
           </div>
         </div>
 
@@ -585,7 +449,7 @@ homeImages.forEach(file => {
           <div className="col-12" style={turquoiseBorder}>
             <h6>Assessment evaluation :-</h6>
             <label>List of problem:</label>
-            <textarea name="listOfProblem" rows={4} value={formData.listOfProblem} onChange={handleChange} className="form-control" style={{ borderColor: "#2a7371" }} />
+            <textarea name="listOfProblem" rows={4} value={formData.listOfProblem}  className="form-control" style={{ borderColor: "#2a7371" }} />
           </div>
         </div>
 
@@ -594,11 +458,11 @@ homeImages.forEach(file => {
           <h6>Goals :-</h6>
           <div className="col-md-6" style={{ border: "1px solid #2a7371", padding: 12 }}>
             <h6>Short term goals</h6>
-            <textarea name="shortGoals" rows={4} value={formData.shortGoals} onChange={handleChange} className="form-control" style={{ borderColor: "#2a7371" }} />
+            <textarea name="shortGoals" rows={4} value={formData.shortGoals}  className="form-control" style={{ borderColor: "#2a7371" }} />
           </div>
           <div className="col-md-6" style={{ border: "1px solid #2a7371", padding: 12 }}>
             <h6>Long term goals</h6>
-            <textarea name="longGoals" rows={4} value={formData.longGoals} onChange={handleChange} className="form-control" style={{ borderColor: "#2a7371" }} />
+            <textarea name="longGoals" rows={4} value={formData.longGoals}  className="form-control" style={{ borderColor: "#2a7371" }} />
           </div>
         </div>
 
@@ -612,7 +476,6 @@ homeImages.forEach(file => {
       name="planOfCare"
       rows={4}
       value={formData.planOfCare}
-      onChange={handleChange}
       className="form-control mb-3"
       style={{ borderColor: "#2a7371", color: "#2a7371", fontWeight: 600 }}
     />
@@ -623,27 +486,12 @@ homeImages.forEach(file => {
         type="file"
         accept="image/*"
         multiple
-       onChange={(e) => {
-  const files = Array.from(e.target.files);
-  setPlanImages((prev) => [...prev, ...files]);
-}}
+      
 
         style={{ display: "none" }}
         id="planUpload"
       />
-      <label
-        htmlFor="planUpload"
-        className="btn btn-sm"
-        style={{
-          backgroundColor: "#2a7371",
-          color: "white",
-          fontWeight: 600,
-          marginBottom: "10px",
-        }}
-      >
-        + Add Images
-      </label>
-
+      
       <div className="d-flex flex-wrap gap-2">
       {planImages.map((file, i) => {
   const src = file instanceof File
@@ -664,24 +512,7 @@ homeImages.forEach(file => {
         }}
         onClick={() => setZoomImage(src)}
       />
-      <button
-        type="button"
-        onClick={() => setPlanImages((prev) => prev.filter((_, idx) => idx !== i))}
-        style={{
-          position: "absolute",
-          top: "-8px",
-          right: "-8px",
-          backgroundColor: "#2a7371",
-          color: "white",
-          border: "none",
-          borderRadius: "50%",
-          width: "24px",
-          height: "24px",
-          cursor: "pointer",
-        }}
-      >
-        ×
-      </button>
+      
     </div>
   );
 })}
@@ -702,7 +533,6 @@ homeImages.forEach(file => {
       name="homeProgram"
       rows={4}
       value={formData.homeProgram}
-      onChange={handleChange}
       className="form-control mb-3"
       style={{ borderColor: "#2a7371", color: "#2a7371", fontWeight: 600 }}
     />
@@ -713,25 +543,11 @@ homeImages.forEach(file => {
         type="file"
         accept="image/*"
         multiple
-        onChange={(e) => {
-          const files = Array.from(e.target.files);
-          setHomeImages(prev => [...prev, ...files]); // نفس طريقة البلين
-        }}
+      
         style={{ display: "none" }}
         id="homeUpload"
       />
-      <label
-        htmlFor="homeUpload"
-        className="btn btn-sm"
-        style={{
-          backgroundColor: "#2a7371",
-          color: "white",
-          fontWeight: 600,
-          marginBottom: "10px",
-        }}
-      >
-        + Add Images
-      </label>
+     
 
       <div className="d-flex flex-wrap gap-2">
        {homeImages.map((file, i) => {
@@ -754,24 +570,7 @@ homeImages.forEach(file => {
                 }}
                 onClick={() => setZoomImage(src)}
               />
-              <button
-                type="button"
-                onClick={() => setHomeImages(prev => prev.filter((_, idx) => idx !== i))}
-                style={{
-                  position: "absolute",
-                  top: "-8px",
-                  right: "-8px",
-                  backgroundColor: "#2a7371",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "50%",
-                  width: "24px",
-                  height: "24px",
-                  cursor: "pointer",
-                }}
-              >
-                ×
-              </button>
+              
             </div>
           );
         })}
@@ -786,21 +585,7 @@ homeImages.forEach(file => {
           <div className="col-12 text-right text-muted">PT.Sewar shreem</div>
         </div>
 
-        <div className="text-center mt-4 mb-5">
-          <button
-            type="submit"
-            className="btn"
-            style={{
-              backgroundColor: "#2a7371",
-              color: "white",
-              fontWeight: 600,
-              padding: "10px 30px"
-            }}
-          >
-            حفظ التقرير
-          </button>
-        </div>
-
+       
 
 
   {/* كل الحقول ورفع الصور هنا */}

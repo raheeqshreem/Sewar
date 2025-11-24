@@ -3,14 +3,22 @@ import styles from "./Home.module.css";
 import { Link } from "react-router-dom";
 import { useInView } from "react-intersection-observer";
 import Sewar from "./../../assets/Sewar.jpeg";
+import axios from "axios";
 
 export default function Home() {
   const [user, setUser] = useState(null);
+const [slides, setSlides] = useState([]);
 
   const { ref: doctorSectionRef, inView: isDoctorSectionVisible } = useInView({
     triggerOnce: true,
     threshold: 0.1,
   });
+useEffect(() => {
+  axios
+    .get("https://sewarwellnessclinic1.runasp.net/api/Images")
+    .then((res) => setSlides(res.data))
+    .catch((err) => console.log(err));
+}, []);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -18,6 +26,8 @@ export default function Home() {
       const parsedUser = JSON.parse(storedUser);
       parsedUser.userType = "Doctor"; // للتجربة
       setUser(parsedUser);
+      console.log("Loaded user:", parsedUser);
+
     }
 
     const carousel = document.querySelector("#carouselExampleInterval");
@@ -55,191 +65,71 @@ export default function Home() {
     <>
       <div className={styles.longPage}>
         {/* Carousel Section (No changes here) */}
-        <div
-          id="carouselExampleInterval"
-          className="carousel slide"
-          data-bs-ride="carousel"
-        >
-          {/* ... محتوى الكاروسيل كما هو ... */}
-          <div className="carousel-inner">
-            <div
-              className={`carousel-item active ${styles.carouselItem}`}
-              data-bs-interval="10000"
-            >
-              <div className={styles.imageWrapper}>
-                <img
-                  src="https://www.rehabeg.clinic/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fbg2.02d5cb28.jpg&w=1200&q=75"
-                  className="d-block w-100"
-                  alt="Rehab Center Background"
-                />
-                <div className={styles.overlay}></div>
-                <div className={styles.carouselCaptionCustom}>
-                  <h2>مركز سوار للعلاج الطبيعي</h2>
-                  <h1>أفضل حل للحياة المؤلمة</h1>
-                  <p>نقدم لك أفضل رعاية صحية بأحدث الطرق العلاجية</p>
-                  <Link
-                    aria-label="احجز الأن"
-                    className={`${styles.contactButton}`}
-                    to="/appointment"
-                  >
-                    احجز الأن{" "}
-                    <svg
-                      stroke="currentColor"
-                      fill="none"
-                      strokeWidth="2"
-                      viewBox="0 0 24 24"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="Icon"
-                      height="1em"
-                      width="1em"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                      <line x1="16" y1="2" x2="16" y2="6" />
-                      <line x1="8" y1="2" x2="8" y2="6" />
-                      <line x1="3" y1="10" x2="21" y2="10" />
-                    </svg>
-                  </Link>
-                  {user?.userType === "Doctor" && (
-                    <Link
-                      aria-label="لوحة التحكم"
-                      className={`${styles.contactButton} ms-3`}
-                      to="/admin"
-                    >
-                      لوحة التحكم
-                    </Link>
-                  )}
-                </div>
-              </div>
-            </div>
-            <div
-              className={`carousel-item ${styles.carouselItem}`}
-              data-bs-interval="2000"
-            >
-              <div className={styles.imageWrapper}>
-                <img
-                  src="https://www.rehabeg.clinic/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fbg1.819013bf.jpg&w=1200&q=75"
-                  className="d-block w-100"
-                  alt="Specialized Team"
-                />
-                <div className={styles.overlay}></div>
-                <div className={styles.carouselCaptionCustom}>
-                  <h2>مركز سوار للعلاج الطبيعي</h2>
-                  <h1>فريق طبي متخصص</h1>
-                  <p>أطباء متخصصون وخبرة كبيرة في العلاج الطبيعي</p>
-                  <Link
-                    aria-label="احجز الأن"
-                    className={`${styles.contactButton}`}
-                    to="/booking"
-                  >
-                    احجز الأن{" "}
-                    <svg
-                      stroke="currentColor"
-                      fill="none"
-                      strokeWidth="2"
-                      viewBox="0 0 24 24"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="Icon"
-                      height="1em"
-                      width="1em"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                      <line x1="16" y1="2" x2="16" y2="6" />
-                      <line x1="8" y1="2" x2="8" y2="6" />
-                      <line x1="3" y1="10" x2="21" y2="10" />
-                    </svg>
-                  </Link>
-                  {user?.userType === "Doctor" && (
-                    <Link
-                      aria-label="لوحة التحكم"
-                      className={`${styles.contactButton} ms-3`}
-                      to="/admin"
-                    >
-                      لوحة التحكم
-                    </Link>
-                  )}
-                </div>
-              </div>
-            </div>
-            <div className={`carousel-item ${styles.carouselItem}`}>
-              <div className={styles.imageWrapper}>
-                <img
-                  src="https://www.rehabeg.clinic/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fbg4.8efbc61e.jpg&w=1200&q=75"
-                  className="d-block w-100"
-                  alt="Custom Therapy Programs"
-                />
-                <div className={styles.overlay}></div>
-                <div
-                  className={`${styles.carouselCaptionCustom} ${styles.noSelect}`}
-                >
-                  <h2>مركز سوار للعلاج الطبيعي</h2>
-                  <h1>برامج علاجية مخصصة</h1>
-                  <p>نقدم برامج علاجية تناسب كل حالة فردية</p>
-                  <Link
-                    aria-label="احجز الأن"
-                    className={`${styles.contactButton}`}
-                    to="/appointment"
-                  >
-                    احجز الأن{" "}
-                    <svg
-                      stroke="currentColor"
-                      fill="none"
-                      strokeWidth="2"
-                      viewBox="0 0 24 24"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="Icon"
-                      height="1em"
-                      width="1em"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                      <line x1="16" y1="2" x2="16" y2="6" />
-                      <line x1="8" y1="2" x2="8" y2="6" />
-                      <line x1="3" y1="10" x2="21" y2="10" />
-                    </svg>
-                  </Link>
-                  {user?.userType === "Doctor" && (
-                    <Link
-                      aria-label="لوحة التحكم"
-                      className={`${styles.contactButton} ms-3`}
-                      to="/admin"
-                    >
-                      لوحة التحكم
-                    </Link>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-          <button
-            className={`carousel-control-prev ${styles.carouselControlPrev}`}
-            type="button"
-            data-bs-target="#carouselExampleInterval"
-            data-bs-slide="prev"
-          >
-            <span
-              className={`carousel-control-prev-icon ${styles.carouselControlPrevIcon}`}
-              aria-hidden="true"
-            ></span>
-            <span className="visually-hidden">Previous</span>
-          </button>
-          <button
-            className={`carousel-control-next ${styles.carouselControlNext}`}
-            type="button"
-            data-bs-target="#carouselExampleInterval"
-            data-bs-slide="next"
-          >
-            <span
-              className={`carousel-control-next-icon ${styles.carouselControlNextIcon}`}
-              aria-hidden="true"
-            ></span>
-            <span className="visually-hidden">Next</span>
-          </button>
-        </div>
+       <div
+  id="carouselExampleInterval"
+  className="carousel slide position-relative"
+  data-bs-ride="carousel"
+>
+  {/* Carousel inner */}
+  <div className="carousel-inner">
+    {slides.map((item, index) => (
+      <div
+        key={item.id}
+        className={`carousel-item ${index === 0 ? "active" : ""}`}
+      >
+        <img
+          src={`https://sewarwellnessclinic1.runasp.net${item.imageUrl}`}
+          className="d-block w-100"
+          alt={`slide-${index + 1}`}
+        />
+
+        <div className={styles.overlay}></div>
+       <div className={styles.carouselCaptionCustom}>
+  {item.text1 && <h2>{item.text1}</h2>}
+  {item.text2 && <h1>{item.text2}</h1>}
+  {item.text3 && <p>{item.text3}</p>}
+
+  {user && (
+    <Link to="/admin" className="btn btn-primary mt-3">
+      لوحة التحكم
+    </Link>
+  )}
+</div>
+
+      </div>
+    ))}
+  </div>
+
+
+
+  {/* Carousel controls */}
+  <button
+    className={`carousel-control-prev ${styles.carouselControlPrev}`}
+    type="button"
+    data-bs-target="#carouselExampleInterval"
+    data-bs-slide="prev"
+  >
+    <span
+      className={`carousel-control-prev-icon ${styles.carouselControlPrevIcon}`}
+      aria-hidden="true"
+    ></span>
+    <span className="visually-hidden">Previous</span>
+  </button>
+  <button
+    className={`carousel-control-next ${styles.carouselControlNext}`}
+    type="button"
+    data-bs-target="#carouselExampleInterval"
+    data-bs-slide="next"
+  >
+    <span
+      className={`carousel-control-next-icon ${styles.carouselControlNextIcon}`}
+      aria-hidden="true"
+    ></span>
+    <span className="visually-hidden">Next</span>
+  </button>
+</div>
+
+
 
         {/* Doctor Section - (Updated with floating animation and fixed background) */}
         <section

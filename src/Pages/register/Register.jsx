@@ -11,6 +11,9 @@ import GoogleLoginButton from "../GoogleLoginButton";
 function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [showComfirmPassword, setShowComfirmPassword] = useState(false);
+  const user = JSON.parse(localStorage.getItem("user"));
+console.log(JSON.parse(localStorage.getItem("user")));
+const isSecretary = user?.userType === "scheduler_admin"; // تحقق إذا المستخدم سكرتير
   useEffect(() => {
     // هذا الكود يضيف خلفية خاصة للصفحة عند الدخول إليها
     document.body.classList.add(styles.loginBody);
@@ -55,7 +58,14 @@ function Register() {
 
       toast.success(res.data || "تم انشاء حسابك بنجاح.");
       reset();
+
+
+      if(isSecretary){
+      navigate("/users");}
+      else{
       navigate("/signin");
+
+      }
     } catch (err) {
       const msg =
         err?.response?.data?.message || err?.response?.data || err.message;

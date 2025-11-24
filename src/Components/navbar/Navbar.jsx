@@ -145,7 +145,7 @@ useEffect(() => {
                 <>
                   <Link
                     className="btn-custom"
-                    to={"/profile"}
+                    to={"/user"}
                     style={{
                       display: "flex",
                       alignItems: "center",
@@ -227,11 +227,29 @@ useEffect(() => {
     استشارة طبية
   </button>
 </li>
-                <li className="nav-item">
-                  <Link className="nav-link" to={"/file"}>
-                    الملفات
-                  </Link>
-                </li>
+               <li className="nav-item">
+<button
+  className="nav-link btn"
+  style={{ background: "none", border: "none", padding: 0 }}
+  onClick={() => {
+    if (!user) {
+      localStorage.setItem("redirectAfterLogin", "files");
+      navigate("/signin");
+    } else {
+      const type = (user.userType || "").toLowerCase();
+      if (type === "patient") {
+        navigate("/FilesPagePatient");
+      } else {
+        navigate("/FilesPage");
+      }
+    }
+  }}
+>
+  الملفات
+</button>
+
+</li>
+
               </ul>
             </div>
           </div>

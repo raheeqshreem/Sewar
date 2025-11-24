@@ -128,31 +128,51 @@ function Login() {
       // ✅ بعد نجاح تسجيل الدخول
      // ✅ بعد نجاح تسجيل الدخول
 // بعد تسجيل الدخول بنجاح
+// قراءة الصفحة المطلوبة قبل تسجيل الدخول
 let redirectAfterLogin = localStorage.getItem("redirectAfterLogin");
 const userType = (sessionData.userType || "").toLowerCase();
 
-// إذا كانت هناك صفحة محفوظة
-if (redirectAfterLogin === "consultation") {
+// --- معالجة حالات التحويل --- //
+
+// 1️⃣ حالة الملفات
+if (redirectAfterLogin === "files") {
+  // توجيه حسب نوع المستخدم
+  if (userType === "patient") {
+    redirectAfterLogin = "/FilesPagePatient";
+  } else {
+    redirectAfterLogin = "/FilesPage";
+  }
+}
+
+// 2️⃣ حالة الاستشارة
+else if (redirectAfterLogin === "consultation") {
   redirectAfterLogin =
     userType === "doctor" || userType === "doctor_admin"
       ? "/consultation-doctor"
       : "/inquiry";
-} else if (!redirectAfterLogin || redirectAfterLogin === "/signin" || redirectAfterLogin === "/signup") {
-  // توجيه افتراضي حسب نوع المستخدم
+}
+
+// 3️⃣ لو ما في redirect محفوظ (دخول عادي)
+else if (
+  !redirectAfterLogin ||
+  redirectAfterLogin === "/signin" ||
+  redirectAfterLogin === "/signup"
+) {
   if (userType === "doctor" || userType === "doctor_admin") {
-    redirectAfterLogin = "/consultation-doctor";
+    redirectAfterLogin = "/FilesPage";
   } else if (userType === "patient") {
-    redirectAfterLogin = "/inquiry";
+    redirectAfterLogin = "/";
   } else {
     redirectAfterLogin = "/";
   }
 }
 
-// حذف المفتاح بعد الاستخدام
+// 4️⃣ احذف المفتاح بعد الاستخدام
 localStorage.removeItem("redirectAfterLogin");
 
-// التوجيه النهائي
+// 5️⃣ التوجيه النهائي
 navigate(redirectAfterLogin);
+
     } catch (error) {
       console.error("Login error full:", error.response?.data || error.message);
       toast.error(

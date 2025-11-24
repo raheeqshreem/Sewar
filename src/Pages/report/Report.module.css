@@ -1,0 +1,19 @@
+@media print {
+  /* إخفاء العناصر غير المطلوبة أثناء الطباعة */
+  .navbar,
+  .footer,
+  .no-print {
+    display: none !important;
+  }
+
+  /* عرض التقرير فقط */
+  #report {
+    display: block;
+  }
+
+  /* الحفاظ على الألوان والخطوط */
+  body {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+}

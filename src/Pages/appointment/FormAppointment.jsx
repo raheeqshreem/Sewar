@@ -8,13 +8,19 @@ import toast from "react-hot-toast";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./Appointment.css";
+import React, {  useEffect } from "react";
 
 export default function FormAppointment() {
   const [step, setStep] = useState(1);
   const navigate = useNavigate();
   const location = useLocation();
-  const selectedSlotFromState = location.state?.selectedSlot || { day: "", time: "" };
 
+  const selectedSlotFromState = location.state?.selectedSlot || { day: "", time: "" };
+const user = JSON.parse(localStorage.getItem("user"));
+console.log(JSON.parse(localStorage.getItem("user")));
+const email = user?.email;
+console.log("email : " , email);
+const isSecretary = user?.userType === "scheduler_admin"; // تحقق إذا المستخدم سكرتير
   const [uploadedImages, setUploadedImages] = useState([]);
   const [formData, setFormData] = useState({
     name: "",
@@ -29,15 +35,113 @@ export default function FormAppointment() {
   const [errors, setErrors] = useState({});
   const [answers, setAnswers] = useState({});
 
+
+
+
+
+const [childId, setChildId] = useState();
+const [email1, setEmail1] = useState();
+
+
+useEffect(() => {
+  const id = localStorage.getItem("selectedChildId");
+  if (id) setChildId(parseInt(id, 10));
+
+  const storedEmail = localStorage.getItem("selectedEmail"); // أو استخدم البريد إذا خزنته عند اختيار المستخدم
+  if (storedEmail) setEmail1(storedEmail);
+}, []);
+
+
+
+
+useEffect(() => {
+  const storedIdNumber = localStorage.getItem("selectedIDNumber");
+  console.log("📦 storedIdNumber:", storedIdNumber);
+  if (!storedIdNumber) return;
+
+  const token = getTokenFromStorage();
+  console.log("🔑 token:", token);
+  if (!token) return;
+
+  axios
+    .get(
+      `https://sewarwellnessclinic1.runasp.net/api/appointmentscheduler/get-patient-data-by-idnumber/${storedIdNumber}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+    .then((res) => {
+      console.log("✅ Response received:", res);
+      const data = res.data;
+      console.log("📄 Data from API:", data);
+
+      // 👇 نتحقق من وجود موعد مسبق
+      if (data && data.childId) {
+        console.log("🎯 الحالة: عنده موعد مسبق ✅");
+        let countryCode = "";
+        let phone = "";
+
+        if (data.phoneNumber) {
+          const match = data.phoneNumber.match(/^(\+\d{2,3})(\d+)$/);
+          if (match) {
+            countryCode = match[1];
+            phone = match[2];
+          }
+        }
+
+        console.log("📋 تعبئة الفورم بالقيم التالية:", {
+          name: data.fullname,
+          birthDate: data.birthDate,
+          phone,
+          category: data.gender,
+          countryCode,
+          job: data.occupation,
+          IDnumber: data.idNumber,
+        });
+
+        setFormData({
+          name: data.fullname || "",
+          birthDate: data.birthDate
+            ? data.birthDate.split("T")[0]
+            : null,
+          phone: phone,
+          category: data.gender === "kid" ? "أطفال" : "نساء",
+          countryCode: countryCode || "",
+          job: data.occupation || "",
+          IDnumber: data.idNumber || "",
+        });
+
+        // 🧹 نحذف المفتاح بعد الاستخدام الناجح
+        localStorage.removeItem("selectedIDNumber");
+        console.log("🧹 تم حذف selectedIDNumber من localStorage بعد الاستخدام ✅");
+      } else {
+        console.log("🚫 الحالة: لا يوجد موعد مسبق (الفورم يظل فاضي).");
+      }
+    })
+    .catch((err) => {
+      console.error("❌ خطأ عند جلب بيانات المريض:", err);
+    });
+}, []);
+
+
+
+
   const CustomDateInput = forwardRef(({ value, onClick, placeholder }, ref) => (
     <div style={{ position: "relative" }}>
       <input
         ref={ref}
-        onClick={onClick}
         value={value}
+        onClick={onClick}
         placeholder={placeholder}
         readOnly
-        className="custom-date-input form-control"
+        style={{
+          width: "100%",
+          padding: "10px 40px 10px 12px",
+          border: "2px solid #2a7371",
+          borderRadius: "7px",
+          color: "#2a7371",
+          direction: "rtl",
+          textAlign: "right",
+          background: "white",
+        }}
       />
       <Calendar
         size={20}
@@ -55,24 +159,18 @@ export default function FormAppointment() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
     if (step === 1) {
       setFormData({ ...formData, [name]: value });
-
-      // ✅ طباعة كل قيمة فور إدخالها
-      console.log("[Step 1] ${name} :", value);
 
       let errorMsg = "";
       if (name === "name" && !/^[\u0621-\u064Aa-zA-Z\s]+$/.test(value.trim()))
         errorMsg = "يجب أن يحتوي الاسم على حروف فقط";
       if (name === "IDnumber" && value && !/^\d+$/.test(value)) errorMsg = "يرجى إدخال رقم";
       if (name === "phone" && value && !/^\d+$/.test(value)) errorMsg = "يرجى إدخال رقم";
+
       setErrors((prev) => ({ ...prev, [name]: errorMsg }));
     } else {
       setAnswers({ ...answers, [name]: value });
-
-      // ✅ طباعة الإجابة فور إدخالها
-      console.log("[Step ${step}] ${name} :", value);
     }
   };
 
@@ -102,83 +200,39 @@ export default function FormAppointment() {
     return null;
   };
 
-  const handleSubmit = async (e) => {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  const handleSubmit1 = async (e) => {
     e.preventDefault();
 
-    // === خطوة التنقل بين الخطوات ===
-    if (step === 1) {
-      const validationErrors = validate();
-      if (Object.keys(validationErrors).length > 0) {
-        setErrors(validationErrors);
-        return;
-      }
+   if (step === 1) {
+  const validationErrors = validate();
+  if (Object.keys(validationErrors).length > 0) {
+    setErrors(validationErrors);
+    return;
+  }
 
-      if (formData.medicalStatus === "مراجعة") {
-        if (!selectedSlotFromState.day || !selectedSlotFromState.time) {
-          toast.error("الرجاء اختيار موعد أولاً من صفحة المواعيد.");
-          return;
-        }
-      }
-
-      setStep(2);
+  // ✅ في حالة "مراجعة" نرسل الطلب مباشرة للباك
+  if (isSecretary) {
+    if (!selectedSlotFromState.day || !selectedSlotFromState.time) {
+      toast.error("الرجاء اختيار موعد أولاً من صفحة المواعيد.");
       return;
     }
-
-    if (step === 2) {
-      setStep(3);
-      return;
-    }
-
-    // === خطوة الإرسال النهائي ===
-    const formPayload = new FormData();
-
-    formPayload.append("Fullname", formData.name);
-
-
-    formPayload.append("Gender", formData.category === "نساء" ?  "1" :"0");
-    formPayload.append("PhoneNumber",` ${formData.countryCode}${formData.phone}`);
-    formPayload.append("Occupation", formData.job || "غير محدد");
-    formPayload.append("BirthDate", formData.birthDate);
-    formPayload.append("IdNumber", formData.IDnumber);
-    formPayload.append("Diagnose", answers["q2-0"] || "");
-    formPayload.append("PresentHistory", answers["q2-1"] || "");
-    formPayload.append("ChronicDisease", answers["q2-4"] || "");
-    formPayload.append("Medication", answers["q2-4"] || "");
-    formPayload.append("FamilyHistory", answers["q2-5"] || "");
-    formPayload.append("PreviousSurgeries", answers["q2-4"] || "");
-    formPayload.append("SocialHistory", answers["q2-5"] || "");
-    formPayload.append("OtherInvestigationsText", JSON.stringify(answers));
-
-
-    formPayload.append("VisitTypee", formData.category === "نساء" ?"1" :"0");
-    
-    formPayload.append("PainAssessment", answers["q3-0"] || "");
-    formPayload.append("Time", selectedSlotFromState.time);
-    formPayload.append("Day", selectedSlotFromState.day);
-    uploadedImages.forEach((file) => formPayload.append("OtherInvestigationsFiles", file));
-
-    // ✅ طباعة كل البيانات قبل الإرسال النهائي
-    console.log("=== كل بيانات formData قبل الإرسال النهائي ===");
-    for (const [key, value] of Object.entries(formData)) {
-      console.log("${key} :", value);
-    }
-    console.log("=== كل بيانات answers قبل الإرسال النهائي ===");
-    for (const [key, value] of Object.entries(answers)) {
-      console.log("${key} :", value);
-    }
-    console.log("=== الملفات المرفوعة ===", uploadedImages);
-
-    // ✅ نسخة preview من FormData
-    const previewPayload = {};
-    formPayload.forEach((value, key) => {
-      if (previewPayload[key]) {
-        if (!Array.isArray(previewPayload[key])) previewPayload[key] = [previewPayload[key]];
-        previewPayload[key].push(value);
-      } else {
-        previewPayload[key] = value;
-      }
-    });
-    console.log("=== نسخة البيانات الجاهزة للإرسال للباك ===", previewPayload);
 
     const token = getTokenFromStorage();
     if (!token) {
@@ -186,35 +240,421 @@ export default function FormAppointment() {
       return;
     }
 
-    toast.loading("جاري إرسال البيانات...");
+
+    const payload = {
+      fullname: formData.name,
+      gender: formData.category === "نساء" ? "1" : "0",
+      phoneNumber: `${formData.countryCode}${formData.phone}`,
+      occupation: formData.job || "غير محدد",
+      birthDate: formData.birthDate
+        ? new Date(formData.birthDate).toISOString()
+        : null,
+      idNumber: formData.IDnumber,
+      day: selectedSlotFromState.day,
+      time: selectedSlotFromState.time,
+        VisitTypee: formData.medicalStatus === "جديدة" ? "1" : "0",
+childId:childId,
+    };
+    console.log("=== payload قبل الإرسال (handleSubmit1) ===");
+console.log(payload);
+
+    toast.loading("جاري تثبيت الموعد...");
+
+Object.entries(payload).forEach(([key, value]) => {
+  console.log(`${key}:`, value);
+});
+
+console.log("=== بيانات السكرتير قبل الإرسال ===");
+console.log("childId:", childId);
+console.log("selectedSlotFromState:", selectedSlotFromState);
+console.log("payload:", {
+  fullname: formData.name,
+  gender: formData.category === "نساء" ? "1" : "0",
+  phoneNumber: `${formData.countryCode}${formData.phone}`,
+  occupation: formData.job || "غير محدد",
+  birthDate: formData.birthDate ? new Date(formData.birthDate).toISOString() : null,
+  idNumber: formData.IDnumber,
+  day: selectedSlotFromState.day,
+  time: selectedSlotFromState.time,
+  VisitTypee: formData.medicalStatus === "جديدة" ? "1" : "0",
+  childId: childId,
+});
+
+
+
     try {
       const res = await axios.post(
-        "https://sewarwellnessclinic1.runasp.net/api/Child/create-patient-appointment-report",
-        formPayload,
-        {
-          headers: {
-            Authorization:` Bearer ${token}`,
-          },
-        }
+        "https://sewarwellnessclinic1.runasp.net/api/appointmentscheduler/create-appointment-existing-child",
+        payload,
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-      toast.dismiss();
-      toast.success("تم تثبيت موعدك بنجاح ✅", { duration: 3000 });
 
-      // إعادة تعيين الـ state
-      setAnswers({});
-      setUploadedImages([]);
-      setStep(1);
+      toast.dismiss();
+      console.log("✅ استجابة الباك:", res.data);
+      toast.success("تم تثبيت موعد المراجعة بنجاح ✅", { duration: 3000 });
+
+      setFormData({
+        name: "",
+        birthDate: null,
+        phone: "",
+        category: "",
+        countryCode: "",
+        job: "",
+        medicalStatus: "",
+        IDnumber: "",
+       
+      });
+
+      navigate("/viewappointments");
+    } catch (err) {
+      toast.dismiss();
+      console.error("❌ خطأ أثناء الإرسال:", err.response?.data || err);
+      const message =
+        err.response?.data?.message ||
+        err.response?.data?.Message ||
+        "حدث خطأ أثناء تثبيت الموعد.";
+      toast.error(message);
+    }
+
+    return; // ⛔ نوقف هنا لأننا ما بننتقل للخطوة الثانية
+  }
+
+}
+  };
+
+
+
+
+
+
+
+
+
+
+
+
+
+  const handleSubmit2 = async (e) => {
+    e.preventDefault();
+
+   if (step === 1) {
+  const validationErrors = validate();
+  if (Object.keys(validationErrors).length > 0) {
+    setErrors(validationErrors);
+    return;
+  }
+
+  // ✅ في حالة "مراجعة" نرسل الطلب مباشرة للباك
+  if (isSecretary) {
+    if (!selectedSlotFromState.day || !selectedSlotFromState.time) {
+      toast.error("الرجاء اختيار موعد أولاً من صفحة المواعيد.");
+      return;
+    }
+
+    const token = getTokenFromStorage();
+    if (!token) {
+      toast.error("الرجاء تسجيل الدخول أولاً لإتمام العملية.");
+      return;
+    }
+
+
+    const payload = {
+      fullname: formData.name,
+      gender: formData.category === "نساء" ? "1" : "0",
+      phoneNumber: `${formData.countryCode}${formData.phone}`,
+      occupation: formData.job || "غير محدد",
+      birthDate: formData.birthDate
+        ? new Date(formData.birthDate).toISOString()
+        : null,
+      idNumber: formData.IDnumber,
+      day: selectedSlotFromState.day,
+      time: selectedSlotFromState.time,
+        VisitTypee: formData.medicalStatus === "جديدة" ? "1" : "0",
+email:email1,
+    };
+    console.log("=== payload قبل الإرسال (handleSubmit1) ===");
+console.log(payload);
+
+    toast.loading("جاري تثبيت الموعد...");
+
+
+console.log("=== بيانات السكرتير قبل الإرسال ===");
+console.log("childId:", childId);
+console.log("selectedSlotFromState:", selectedSlotFromState);
+console.log("payload:", {
+  fullname: formData.name,
+  gender: formData.category === "نساء" ? "1" : "0",
+  phoneNumber: `${formData.countryCode}${formData.phone}`,
+  occupation: formData.job || "غير محدد",
+  birthDate: formData.birthDate ? new Date(formData.birthDate).toISOString() : null,
+  idNumber: formData.IDnumber,
+  day: selectedSlotFromState.day,
+  time: selectedSlotFromState.time,
+  VisitTypee: formData.medicalStatus === "جديدة" ? "1" : "0",
+  email: email1,
+});
+
+
+
+    try {
+      const res = await axios.post(
+        "https://sewarwellnessclinic1.runasp.net/api/appointmentscheduler/create-patient-appointment-by-email",
+        payload,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      toast.dismiss();
+      console.log("✅ استجابة الباك:", res.data);
+      toast.success("تم تثبيت موعد المراجعة بنجاح ✅", { duration: 3000 });
+
+      setFormData({
+        name: "",
+        birthDate: null,
+        phone: "",
+        category: "",
+        countryCode: "",
+        job: "",
+        medicalStatus: "",
+        IDnumber: "",
+       
+      });
+
+      navigate("/viewappointments");
+    } catch (err) {
+      toast.dismiss();
+      console.error("❌ خطأ أثناء الإرسال:", err.response?.data || err);
+      const message =
+        err.response?.data?.message ||
+        err.response?.data?.Message ||
+        "حدث خطأ أثناء تثبيت الموعد.";
+      toast.error(message);
+    }
+
+    return; // ⛔ نوقف هنا لأننا ما بننتقل للخطوة الثانية
+  }
+
+}
+  };
+
+
+
+
+
+
+
+
+
+
+
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+   if (step === 1) {
+  const validationErrors = validate();
+  if (Object.keys(validationErrors).length > 0) {
+    setErrors(validationErrors);
+    return;
+  }
+
+  // ✅ في حالة "مراجعة" نرسل الطلب مباشرة للباك
+  if (formData.medicalStatus === "مراجعة") {
+    if (!selectedSlotFromState.day || !selectedSlotFromState.time) {
+      toast.error("الرجاء اختيار موعد أولاً من صفحة المواعيد.");
+      return;
+    }
+
+    const token = getTokenFromStorage();
+    if (!token) {
+      toast.error("الرجاء تسجيل الدخول أولاً لإتمام العملية.");
+      return;
+    }
+
+    const payload = {
+      fullname: formData.name,
+      gender: formData.category === "نساء" ? 1 : 0,
+      phoneNumber: `${formData.countryCode}${formData.phone}`,
+      occupation: formData.job || "غير محدد",
+      birthDate: formData.birthDate
+        ? new Date(formData.birthDate).toISOString()
+        : null,
+      idNumber: formData.IDnumber,
+      day: selectedSlotFromState.day,
+      time: selectedSlotFromState.time,
+    };
+
+    toast.loading("جاري تثبيت الموعد...");
+    try {
+      const res = await axios.post(
+        "https://sewarwellnessclinic1.runasp.net/api/Child/save-basic-info",
+        payload,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      toast.dismiss();
+      console.log("✅ استجابة الباك:", res.data);
+      toast.success("تم تثبيت موعد المراجعة بنجاح ✅", { duration: 3000 });
+
+      setFormData({
+        name: "",
+        birthDate: null,
+        phone: "",
+        category: "",
+        countryCode: "",
+        job: "",
+        medicalStatus: "",
+        IDnumber: "",
+      });
+
       navigate("/appointment");
     } catch (err) {
       toast.dismiss();
+      console.error("❌ خطأ أثناء الإرسال:", err.response?.data || err);
       const message =
-        err?.response?.data?.message ||
-        err?.response?.data?.Message ||
-        "حدث خطأ أثناء إرسال البيانات.";
+        err.response?.data?.message ||
+        err.response?.data?.Message ||
+        "حدث خطأ أثناء تثبيت الموعد.";
       toast.error(message);
     }
-  };
 
+    return; // ⛔ نوقف هنا لأننا ما بننتقل للخطوة الثانية
+  }
+
+  // في باقي الحالات (جديدة) نكمل الخطوات العادية
+  setStep(2);
+  return;
+}
+
+    if (step === 2) {
+      setStep(3);
+      return;
+    }
+
+    // 🟢 داخل handleSubmit، استبدل الجزء من بعد if (step === 2) {...} بهذا 👇
+
+if (step === 3) {
+  // توزيع الأسئلة حسب المطلوب
+  const Diagnose = answers["q2-4"] || ""; // تشخيص الطبيب إن وجد
+
+  const PresentHistory = [
+    answers["q2-0"], // ماذا حدث معك؟
+    answers["q2-1"], // متى بدأت المشكلة؟
+    answers["q2-2"], // كيف بدأت؟
+    answers["q2-3"], // هل أخذت علاج أو فحوصات؟
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  const ChronicDisease = answers["q2-5"] || ""; // الأمراض المزمنة
+  const Medication = answers["q2-6"] || ""; // الأدوية المستمرة
+  const PreviousSurgeries = answers["q2-7"] || ""; // العمليات السابقة
+  const SocialHistory = answers["q2-8"] || ""; // التأثير على الحياة اليومية
+  const OtherInvestigationsText = answers["q2-9"] || ""; // الفحوصات والتحاليل (النص فقط)
+
+  const PainAssessment = [
+    answers["q3-0"], // طبيعة الألم
+    answers["q3-1"], // الشدة من 0 إلى 10
+    answers["q3-2"], // مستمر أم متقطع
+    answers["q3-3"], // العوامل التي تزيد أو تخفف
+    answers["q3-4"], // أعراض مصاحبة
+    answers["q3-5"], // انتقال الألم
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  // 🧾 إنشاء الـ FormData بنفس شكل الباك
+  const formPayload = new FormData();
+  formPayload.append("Fullname", formData.name);
+  formPayload.append("Gender", formData.category === "نساء" ? "1" : "0");
+  formPayload.append("PhoneNumber", `${formData.countryCode}${formData.phone}`);
+  formPayload.append("Occupation", formData.job || "غير محدد");
+  formPayload.append("BirthDate", formData.birthDate ? new Date(formData.birthDate).toISOString() : null);
+  formPayload.append("IdNumber", formData.IDnumber);
+  formPayload.append("VisitTypee", formData.medicalStatus === "جديدة" ? "1" : "0");
+  formPayload.append("Time", selectedSlotFromState.time);
+  formPayload.append("Day", selectedSlotFromState.day);
+
+  // 🟢 الحقول الطبية حسب المطلوب
+  formPayload.append("Diagnose", Diagnose);
+  formPayload.append("PresentHistory", PresentHistory);
+  formPayload.append("ChronicDisease", ChronicDisease);
+  formPayload.append("Medication", Medication);
+  formPayload.append("PreviousSurgeries", PreviousSurgeries);
+  formPayload.append("SocialHistory", SocialHistory);
+  formPayload.append("OtherInvestigationsText", OtherInvestigationsText);
+  formPayload.append("PainAssessment", PainAssessment);
+
+  // 🖼️ الملفات
+  uploadedImages.forEach((file) => formPayload.append("OtherInvestigationsFiles", file));
+
+  const token = getTokenFromStorage();
+  if (!token) {
+    toast.error("الرجاء تسجيل الدخول أولاً لإتمام العملية.");
+    return;
+  }
+
+  toast.loading("جاري إرسال البيانات...");
+  try {
+    console.log("=== FormData قبل الإرسال ===");
+    for (let [key, value] of formPayload.entries()) {
+      console.log(key, ":", value);
+    }
+
+  const res = await axios.post(
+  "https://sewarwellnessclinic1.runasp.net/api/Child/create-patient-appointment-report",
+  formPayload,
+  { headers: { Authorization: `Bearer ${token}` } }
+);
+
+console.log("✅ Res Data:", res.data); // تأكد من وجود muscleToneIds و milestoneIds هنا
+
+const { reportId, muscleToneIds, milestoneIds } = res.data;
+
+navigate("/ReportPreviewKids", {
+  state: {
+    reportId,
+    muscleToneIds,
+    milestoneIds,
+  },
+});
+
+
+    toast.dismiss();
+    toast.success("تم تثبيت موعدك بنجاح ✅", { duration: 3000 });
+
+    setAnswers({});
+    setUploadedImages([]);
+    setStep(1);
+    navigate("/appointment");
+  } catch (err) {
+    toast.dismiss();
+    console.error("=== Axios Error Response ===");
+    console.error(err.response?.data || err);
+    const message =
+      err?.response?.data?.message || err?.response?.data?.Message || "حدث خطأ أثناء إرسال البيانات.";
+    toast.error(message);
+  }
+}
+  };
+const handleFinalSubmit = (e) => {
+      e.preventDefault();
+
+  const fromPage = localStorage.getItem("fromPage");
+
+  if (isSecretary) {
+    // سكرتير: نختار حسب الصفحة
+    if (fromPage === "viewAppointments") {
+      handleSubmit1(e);
+    } else if (fromPage === "usersList") {
+      handleSubmit2(e);
+    } else {
+      toast.error("لم يتم تحديد مصدر الزر.");
+    }
+  } else {
+    // مريض: نستخدم handleSubmit العادي
+    handleSubmit(e);
+  }
+};
   const handlePrevious = () => {
     if (step > 1) setStep(step - 1);
     else navigate("/appointment");
@@ -226,7 +666,10 @@ export default function FormAppointment() {
       "متى بدأت المشكلة؟",
       "كيف بدأت؟ فجأة أم تدريجياً؟",
       "هل أخدت علاج أو عملت فحوصات؟",
-      "هل تعاني من أمراض مزمنة ؟ هل يوجد أدوية تتناولها باستمرار ؟هل قمت باجراء عمليات جراحية سابقة ؟",
+            "تشخيص الطبيب أن وجد",
+      "هل تعاني من أمراض مزمنة ؟",
+      " هل يوجد أدوية تتناولها باستمرار ؟ " ,
+      " هل قمت باجراء عمليات جراحية سابقة ؟",
       "كيف أثّرت حالتك المرضية على حياتك اليومية؟ مثل عملك، حياتك العائلية ، مكان سكنك أو تنقلك؟",
       "هل سبق لك أن أجريت فحوصات تصوير مثل الأشعة السينية أو الرنين المغناطيسي المتعلقة بهذه المشكلة؟ وإذا كان الجواب نعم، هل يمكنك تزويدي بنتائج هذه الفحوصات؟",
     ];
@@ -267,21 +710,91 @@ export default function FormAppointment() {
                   }}
                 />
 
-                {index === section1.length - 1 && (
-                  <>
-                    <Form.Control
-                      type="file"
-                      multiple
-                      onChange={(e) => {
-                        const files = Array.from(e.target.files);
-                        setUploadedImages(files);
-                      }}
-                      style={{ marginTop: "10px" }}
-                    />
-                  </>
-                )}
+               {index === section1.length - 1 && step === 2 && (
+  <>
+    {/* رفع الملفات */}
+    <Form.Control
+      type="file"
+      multiple
+      accept="image/*"
+      onChange={(e) => {
+        const files = Array.from(e.target.files);
+        // دمج الصور الجديدة مع القديمة بدون تكرار
+        setUploadedImages((prev) => [...prev, ...files]);
+      }}
+      style={{ marginTop: "10px" }}
+    />
+
+    {/* عرض الصور المرفوعة */}
+    {uploadedImages.length > 0 && (
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "10px",
+          marginTop: "15px",
+        }}
+      >
+        {uploadedImages.map((img, i) => {
+          const previewUrl = URL.createObjectURL(img);
+          return (
+            <div
+              key={i}
+              style={{
+                position: "relative",
+                width: "100px",
+                height: "100px",
+                border: "2px solid #2a7371",
+                borderRadius: "10px",
+                overflow: "hidden",
+              }}
+            >
+              {/* زر الحذف */}
+              <button
+                type="button"
+                onClick={() => {
+                  setUploadedImages((prev) =>
+                    prev.filter((_, index) => index !== i)
+                  );
+                }}
+                style={{
+                  position: "absolute",
+                  top: "3px",
+                  right: "3px",
+                  background: "rgba(250, 67, 67, 0.8)",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "50%",
+                  width: "22px",
+                  height: "22px",
+                  fontSize: "14px",
+                  lineHeight: "18px",
+                  cursor: "pointer",
+                }}
+              >
+                ×
+              </button>
+
+              {/* عرض الصورة */}
+              <img
+                src={previewUrl}
+                alt={`uploaded-${i}`}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                }}
+              />
+            </div>
+          );
+        })}
+      </div>
+    )}
+  </>
+)}
               </Form.Group>
             ))}
+
             <div className="d-flex" style={{ gap: "20px" }}>
               <button
                 type="button"
@@ -296,7 +809,7 @@ export default function FormAppointment() {
                   borderRadius: "8px",
                 }}
               >
-                ⬅️ السابق
+                ⬅ السابق
               </button>
               <button
                 type="submit"
@@ -310,7 +823,7 @@ export default function FormAppointment() {
                   borderRadius: "8px",
                 }}
               >
-                {step === 2 ? "التالي ➡️" : "إرسال ✅"}
+                {step === 2 ? "التالي ➡" : "إرسال ✅"}
               </button>
             </div>
           </Form>
@@ -320,10 +833,23 @@ export default function FormAppointment() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", width: "100%", padding: "100px 20px 50px 20px", backgroundColor: "#f0f4f7", overflowY: "auto", color: "#2a7371", textAlign: "center" }}>
+    <div
+      style={{
+        minHeight: "100vh",
+        width: "100%",
+        padding: "100px 20px 50px 20px",
+        backgroundColor: "#f0f4f7",
+        overflowY: "auto",
+        color: "#2a7371",
+        textAlign: "center",
+      }}
+    >
       {step === 1 ? (
         <div className="container" style={{ maxWidth: "500px" }}>
-          <div className="p-4 rounded shadow" style={{ backgroundColor: "rgba(255,255,255,0.9)", position: "relative" }}>
+          <div
+            className="p-4 rounded shadow"
+            style={{ backgroundColor: "rgba(255,255,255,0.9)", position: "relative" }}
+          >
             <button
               type="button"
               onClick={() => navigate("/appointment")}
@@ -341,33 +867,51 @@ export default function FormAppointment() {
             >
               ✖
             </button>
-            <h3 className="mb-4" style={{ paddingBottom: "30px" }}>بيانات المريض</h3>
-            <Form onSubmit={handleSubmit} noValidate>
-              {/* الاسم */}
+
+            <h3 className="mb-4" style={{ paddingBottom: "30px" }}>
+              بيانات المريض
+            </h3>
+
+<Form onSubmit={(e) =>  handleFinalSubmit(e) }>
+
               <Form.Group style={{ marginBottom: "30px" }}>
-                <Form.Control type="text" placeholder="أدخل اسم المريض" name="name" value={formData.name} onChange={handleChange} isInvalid={!!errors.name} style={{ border: "2px solid #2a7371", color: "#2a7371", direction: "rtl", textAlign: "right" }} />
+                <Form.Control
+                  type="text"
+                  placeholder="أدخل اسم المريض"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  isInvalid={!!errors.name}
+                  style={{
+                    border: "2px solid #2a7371",
+                    color: "#2a7371",
+                    direction: "rtl",
+                    textAlign: "right",
+                  }}
+                />
                 {errors.name && <div className="text-danger text-end mt-2">{errors.name}</div>}
               </Form.Group>
 
-              {/* تاريخ الميلاد */}
               <Form.Group style={{ marginBottom: "30px" }}>
-               <DatePicker
-  selected={formData.birthDate ? new Date(formData.birthDate) : null}
-  onChange={(date) => {
-    setFormData({ ...formData, birthDate: date ? date.toISOString().split("T")[0] : "" });
-    if (date) {
-      setErrors((prev) => ({ ...prev, birthDate: "" })); // حذف رسالة الخطأ
-    }
-  }}
-  dateFormat="yyyy-MM-dd"
-  placeholderText="أدخل تاريخ ميلاد المريض"
-  customInput={<CustomDateInput />}
-/>
-                {errors.birthDate && <div className="text-danger text-end mt-2">{errors.birthDate}</div>}
+                <DatePicker
+                  selected={formData.birthDate ? new Date(formData.birthDate) : null}
+                  onChange={(date) => {
+                    setFormData({
+                      ...formData,
+                      birthDate: date ? date.toISOString().split("T")[0] : "",
+                    });
+                    if (date) setErrors((prev) => ({ ...prev, birthDate: "" }));
+                  }}
+                  dateFormat="yyyy-MM-dd"
+                  placeholderText="أدخل تاريخ ميلاد المريض"
+                  customInput={<CustomDateInput />}
+                />
+                {errors.birthDate && (
+                  <div className="text-danger text-end mt-2">{errors.birthDate}</div>
+                )}
               </Form.Group>
 
-              {/* رقم الهوية */}
-              <Form.Group style={{ marginBottom: "30px" }}>
+              <Form.Group style={{ marginBottom: "30px" }} controlId="formID">
                 <Form.Control
                   type="text"
                   placeholder="أدخل رقم هوية المريض"
@@ -375,36 +919,48 @@ export default function FormAppointment() {
                   value={formData.IDnumber}
                   onChange={handleChange}
                   isInvalid={!!errors.IDnumber}
-                  style={{ border: "2px solid #2a7371", color: "#2a7371", direction: "rtl", textAlign: "right" }}
+                  style={{
+                    border: "2px solid #2a7371",
+                    color: "#2a7371",
+                    direction: "rtl",
+                    textAlign: "right",
+                  }}
                 />
-                {errors.IDnumber && <div className="text-danger text-end mt-2">{errors.IDnumber}</div>}
+                {errors.IDnumber && (
+                  <div className="text-danger text-end mt-2">{errors.IDnumber}</div>
+                )}
               </Form.Group>
 
-              {/* الهاتف */}
               <Form.Group style={{ marginBottom: "30px" }} controlId="formPhone">
                 <InputGroup>
-
-
-
-
- <Form.Control
+                  <Form.Control
                     type="text"
                     placeholder="أدخل رقم الهاتف"
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
                     isInvalid={!!errors.phone}
-                    style={{ border: "2px solid #2a7371", color: "#2a7371", direction: "rtl", textAlign: "right", borderRadius: "7px" }}
+                    style={{
+                      border: "2px solid #2a7371",
+                      color: "#2a7371",
+                      direction: "rtl",
+                      textAlign: "right",
+                      borderRadius: "7px",
+                    }}
                   />
-
-
-
                   <Form.Select
                     name="countryCode"
                     value={formData.countryCode}
                     onChange={handleChange}
                     isInvalid={!!errors.countryCode}
-                    style={{ maxWidth: "160px", border: "2px solid #2a7371", color: "#2a7371", fontSize: "15px", marginLeft: "10px", borderRadius: "7px" }}
+                    style={{
+                      maxWidth: "160px",
+                      border: "2px solid #2a7371",
+                      color: "#2a7371",
+                      fontSize: "15px",
+                      marginLeft: "10px",
+                      borderRadius: "7px",
+                    }}
                   >
                     <option value="">رمز الدولة</option>
                     <option value="+970">فلسطين +970</option>
@@ -414,29 +970,36 @@ export default function FormAppointment() {
                     <option value="+971">الإمارات +971</option>
                     <option value="+20">مصر +20</option>
                   </Form.Select>
-
-                 
                 </InputGroup>
-                {(errors.countryCode || errors.phone) && <div className="text-danger text-end mt-2">{errors.countryCode || errors.phone}</div>}
+                {(errors.countryCode || errors.phone) && (
+                  <div className="text-danger text-end mt-2">
+                    {errors.countryCode || errors.phone}
+                  </div>
+                )}
               </Form.Group>
 
-              {/* الفئة */}
               <Form.Group style={{ marginBottom: "30px" }}>
                 <Form.Select
                   name="category"
                   value={formData.category}
                   onChange={handleChange}
                   isInvalid={!!errors.category}
-                  style={{ border: "2px solid #2a7371", color: "#2a7371", direction: "rtl", textAlign: "right" }}
+                  style={{
+                    border: "2px solid #2a7371",
+                    color: "#2a7371",
+                    direction: "rtl",
+                    textAlign: "right",
+                  }}
                 >
                   <option value="">اختر الفئة...</option>
                   <option value="أطفال">أطفال</option>
                   <option value="نساء">نساء</option>
                 </Form.Select>
-                {errors.category && <div className="text-danger text-end mt-2">{errors.category}</div>}
+                {errors.category && (
+                  <div className="text-danger text-end mt-2">{errors.category}</div>
+                )}
               </Form.Group>
 
-              {/* حالة المرض والوظيفة */}
               {(formData.category === "نساء" || formData.category === "أطفال") && (
                 <>
                   {formData.category === "نساء" && (
@@ -447,7 +1010,12 @@ export default function FormAppointment() {
                         name="job"
                         value={formData.job}
                         onChange={handleChange}
-                        style={{ border: "2px solid #2a7371", color: "#2a7371", direction: "rtl", textAlign: "right" }}
+                        style={{
+                          border: "2px solid #2a7371",
+                          color: "#2a7371",
+                          direction: "rtl",
+                          textAlign: "right",
+                        }}
                       />
                     </Form.Group>
                   )}
@@ -458,30 +1026,38 @@ export default function FormAppointment() {
                       value={formData.medicalStatus}
                       onChange={handleChange}
                       isInvalid={!!errors.medicalStatus}
-                      style={{ border: "2px solid #2a7371", color: "#2a7371", direction: "rtl", textAlign: "right" }}
+                      style={{
+                        border: "2px solid #2a7371",
+                        color: "#2a7371",
+                        direction: "rtl",
+                        textAlign: "right",
+                      }}
                     >
                       <option value="">اختر الحالة المرضية...</option>
                       <option value="جديدة">حالة مرضية جديدة</option>
                       <option value="مراجعة">مراجعة</option>
                     </Form.Select>
-                    {errors.medicalStatus && <div className="text-danger text-end mt-2">{errors.medicalStatus}</div>}
+                    {errors.medicalStatus && (
+                      <div className="text-danger text-end mt-2">{errors.medicalStatus}</div>
+                    )}
                   </Form.Group>
                 </>
               )}
 
-              <button
-                type="submit"
-                className="w-100"
-                style={{ backgroundColor: "#2a7371", border: "none", fontSize: "18px", padding: "10px", marginTop: "10px", color: "#fff", borderRadius: "8px" }}
-              >
-                {step === 1 && formData.medicalStatus === "مراجعة"
-                  ? "تثبيت الحجز"
-                  : step === 1
-                  ? "التالي ➡️"
-                  : step === 2
-                  ? "التالي ➡️"
-                  : "إرسال ✅"}
-              </button>
+             <button 
+  type="submit"
+  style={{
+    backgroundColor: "#2a7371",
+    border: "none",
+    fontSize: "20px",
+    padding: "12px 0",
+    color: "#fff",
+    width: "100%",
+    borderRadius: "8px",
+  }}
+>
+  {formData.medicalStatus === "مراجعة"|| isSecretary ? "تثبيت الموعد ✅" : "التالي ➡"}
+</button>
             </Form>
           </div>
         </div>

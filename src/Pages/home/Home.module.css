@@ -453,3 +453,120 @@ body {
   height: auto;
    animation: moveUpDown 3s ease-in-out infinite;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.adminContainer {
+  background: linear-gradient(135deg, #e0f7fa, #ffffff);
+  border-radius: 15px;
+  padding: 40px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.heading {
+  font-weight: bold;
+  color: #00796b;
+  text-shadow: 1px 1px 2px #b2dfdb;
+    margin-top: 80px; /* أو أي قيمة تريدها */
+
+}
+
+.formWrapper {
+  background: #ffffffcc;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease;
+}
+
+.formWrapper:hover {
+  transform: translateY(-5px);
+}
+
+.label {
+  font-weight: 600;
+  color: #004d40;
+}
+
+.input {
+  border-radius: 10px;
+  border: 1px solid #b2dfdb;
+  transition: all 0.3s ease;
+}
+
+.input:focus {
+  border-color: #00796b;
+  box-shadow: 0 0 8px #80cbc4;
+}
+
+.submitButton {
+  background: linear-gradient(90deg, #00796b, #004d40);
+  color: #fff;
+  font-weight: bold;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.submitButton:hover {
+  background: linear-gradient(90deg, #004d40, #00796b);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+.previewWrapper {
+  position: relative;
+  display: inline-block;
+  margin-top: 10px;
+}
+
+.previewImage {
+  max-width: 200px;
+  max-height: 150px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.removeBtn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #ff4d4f;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 24px;
+  text-align: center;
+}
