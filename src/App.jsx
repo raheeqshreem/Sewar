@@ -1,4 +1,6 @@
 import { Route, Routes, useLocation } from "react-router-dom";
+import { useEffect } from "react";
+
 import Footer from "./Components/footer/Footer";
 import Navbar from "./Components/navbar/Navbar";
 import Home from "./Pages/home/Home";
@@ -46,6 +48,16 @@ import Content from "./Components/OurSpecialties/Content";
 
 function App() {
   const location = useLocation();
+  // هذا الكود بمسح تسجيل الدخول فقط عند فتح الرابط لأول مرة
+useEffect(() => {
+  const visited = sessionStorage.getItem("visited");
+  if (!visited) {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    sessionStorage.setItem("visited", "true");
+  }
+}, []);
+
   const hideLayout = ["/signin", "/signup","/forgetPassword","/resetPassword"].includes(location.pathname);
 
   return (
