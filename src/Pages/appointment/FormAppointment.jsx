@@ -173,22 +173,46 @@ const handleEditLocation = (visiteId, currentLocation) => {
     </div>
   ));
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    if (step === 1) {
-      setFormData({ ...formData, [name]: value });
+ const handleChange = (e) => {
+  const { name, value } = e.target;
 
-      let errorMsg = "";
-      if (name === "name" && !/^[\u0621-\u064Aa-zA-Z\s]+$/.test(value.trim()))
-        errorMsg = "يجب أن يحتوي الاسم على حروف فقط";
-      if (name === "IDnumber" && value && !/^\d+$/.test(value)) errorMsg = "يرجى إدخال رقم";
-      if (name === "phone" && value && !/^\d+$/.test(value)) errorMsg = "يرجى إدخال رقم";
+  // Regex لكشف الأرقام العربية (٠١٢٣٤٥٦٧٨٩)
+  const arabicNumberRegex = /[\u0660-\u0669]/;
 
-      setErrors((prev) => ({ ...prev, [name]: errorMsg }));
-    } else {
-      setAnswers({ ...answers, [name]: value });
+  if (step === 1) {
+    setFormData({ ...formData, [name]: value });
+
+    let errorMsg = "";
+
+    // 🔹 تحقق من الاسم: حروف فقط
+    if (name === "name" && !/^[\u0621-\u064Aa-zA-Z\s]+$/.test(value.trim())) {
+      errorMsg = "يجب أن يحتوي الاسم على حروف فقط";
     }
-  };
+
+    // 🔹 تحقق من رقم الهوية
+    if (name === "IDnumber") {
+      if (arabicNumberRegex.test(value)) {
+        errorMsg = "يرجى إدخال رقم الهوية بالأرقام الإنجليزية فقط (0-9)";
+      } else if (value && !/^\d+$/.test(value)) {
+        errorMsg = "يرجى إدخال رقم";
+      }
+    }
+
+    // 🔹 تحقق من رقم الهاتف
+    if (name === "phone") {
+      if (arabicNumberRegex.test(value)) {
+        errorMsg = "يرجى إدخال رقم الهاتف بالأرقام الإنجليزية فقط (0-9)";
+      } else if (value && !/^\d+$/.test(value)) {
+        errorMsg = "يرجى إدخال رقم";
+      }
+    }
+
+    setErrors((prev) => ({ ...prev, [name]: errorMsg }));
+  } else {
+    setAnswers({ ...answers, [name]: value });
+  }
+};
+
 
   const validate = () => {
     const newErrors = {};
@@ -875,23 +899,31 @@ const handleFinalSubmit = (e) => {
             className="p-4 rounded shadow"
             style={{ backgroundColor: "rgba(255,255,255,0.9)", position: "relative" }}
           >
-            <button
-              type="button"
-              onClick={() => navigate("/appointment")}
-              style={{
-                position: "absolute",
-                top: "10px",
-                right: "10px",
-                background: "#faa3a3ff",
-                border: "none",
-                fontSize: "22px",
-                fontWeight: "bold",
-                color: "#faa3a3ff",
-                cursor: "pointer",
-              }}
-            >
-              ✖
-            </button>
+           <button
+  type="button"
+  onClick={() => navigate("/appointment")}
+  style={{
+    position: "absolute",
+    top: "10px",
+    right: "10px",
+    background: "#faa3a3", // الخلفية وردية
+    border: "none",
+    fontSize: "24px",
+    fontWeight: "bold",
+    color: "#fff", // نص أبيض ليظهر فوق الخلفية
+    width: "35px",
+    height: "35px",
+    borderRadius: "50%",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    lineHeight: "1",
+  }}
+>
+  ✖
+</button>
+
 
             <h3 className="mb-4" style={{ paddingBottom: "30px" }}>
               بيانات المريض
