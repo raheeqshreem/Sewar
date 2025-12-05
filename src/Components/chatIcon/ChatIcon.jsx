@@ -36,7 +36,7 @@ const ChatIcon = () => {
 
       {/* الزر */}
       <a
-        href="https://wa.me/1234567890"
+        href="https://wa.me/+970592245331"
         target="_blank"
         rel="noopener noreferrer"
         onMouseEnter={() => setHover(true)}
