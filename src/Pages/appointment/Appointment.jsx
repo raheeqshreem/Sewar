@@ -163,12 +163,6 @@ const handleBookClick = () => {
   }
 
 
-
-
-
-  
-
-
   // لو السكرتير ضغط على زر "إضافة موعد" => treat as patient
   if (asPatient) {
     if (!selectedSlot) {
@@ -181,12 +175,12 @@ const handleBookClick = () => {
 
 
  // ✅ استرجاع ID الطفل من localStorage
-    const childId = localStorage.getItem("selectedChildId");
+   /* const childId = localStorage.getItem("selectedChildId");
 
    const email = localStorage.getItem("selectedEmail");
 navigate("/formappointment", {
   state: { selectedSlot, childId, email },
-});
+});*/
 
     
   if (isSecretary) {
@@ -194,13 +188,29 @@ navigate("/formappointment", {
     return;
   }
 
+  // حالة المريض العادي
+if (!isSecretary && !asPatient) {
   if (!selectedSlot) {
     toast.error("الرجاء تحديد الوقت أولاً");
-    return;
+    return; // لا ينقل لصفحة الفورم
   }
+// فقط إذا اختار موعد
+    const childId = localStorage.getItem("selectedChildId");
+    const email = localStorage.getItem("selectedEmail");
+    navigate("/formappointment", { state: { selectedSlot, childId, email } });
+    return;
+}
 
-  navigate("/formappointment", { state: { selectedSlot } });
+// حالة السكرتير
+if (isSecretary) {
+  navigate("/viewappointments");
+  return;
+}
+
 };
+
+
+
 
   const handleDelete = async (appointmentId) => {
     const token = localStorage.getItem("token") || JSON.parse(localStorage.getItem("user"))?.token;

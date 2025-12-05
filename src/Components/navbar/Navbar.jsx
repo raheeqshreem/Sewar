@@ -95,9 +95,10 @@ useEffect(() => {
         </button>
 
         {/* اللوجو + أيقونة الإشعارات */}
-        <div className="d-flex align-items-center" style={{ flexDirection: "row", gap: "16px" }}>
+        <div className="d-flex align-items-center" style={{direction:"ltr", flexDirection: "row", gap: "16px" }}>
           <a href="/">
-            <img src={logoo} alt="Logo" style={{ height: "60px", width: "auto" }} />
+            <img src={logoo} alt="Logo"   className="main-logo"
+  />
           </a>
 
           {user && (

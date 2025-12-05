@@ -391,11 +391,25 @@ const handleUpdate = async (values) => {
           <span className="text-muted">→</span>
         </div>
       </div>
+      {/* ==== بطاقة جديدة لعرض تخصصات المركز ==== */}
+    <div className="col-12">
+      <div
+        className="p-3 rounded-3 shadow-sm d-flex justify-content-between align-items-center"
+        style={{ background: "#f7faf9", cursor: "pointer" }}
+        onClick={() => navigate("/OurSpecialties")} // الرابط لصفحة التخصصات
+      >
+        <span style={{ color: accentColor, fontWeight: "500" }}>
+          🩺 عرض تخصصات المركز
+        </span>
+        <span className="text-muted">→</span>
+      </div>
+    </div>
     </>
   )}
 
   {/* === إذا كان المستخدم دكتور → يظهر زر واحد فقط === */}
   {isDoctor && (
+    <>
     <div className="col-12">
       <div
         className="p-3 rounded-3 shadow-sm d-flex justify-content-between align-items-center"
@@ -408,27 +422,26 @@ const handleUpdate = async (values) => {
         <span className="text-muted">→</span>
       </div>
     </div>
+
+    <div className="col-12">
+      <div
+        className="p-3 rounded-3 shadow-sm d-flex justify-content-between align-items-center"
+        style={{ background: "#f7faf9", cursor: "pointer" }}
+        onClick={() => navigate("/OurSpecialties")} // الرابط لصفحة التخصصات
+      >
+        <span style={{ color: accentColor, fontWeight: "500" }}>
+          🩺 عرض تخصصات المركز
+        </span>
+        <span className="text-muted">→</span>
+      </div>
+    </div>
+</>
   )}
 
 </div>
 
 
-            {/* ملفاتي */}
-          {/* ملفاتي – يظهر فقط للمريض */}
-{!isDoctor && (
-  <div className="col-12 mt-3">
-    <div
-      className="p-3 rounded-3 shadow-sm d-flex justify-content-between align-items-center"
-      style={{ background: "#f7faf9", cursor: "pointer" }}
-      onClick={() => navigate("/FilesPagePatient")}
-    >
-      <span style={{ color: accentColor, fontWeight: "500" }}>
-        📁 مواعيدي وتقاريري
-      </span>
-      <span className="text-muted">→</span>
-    </div>
-  </div>
-)}
+          
 
 
             {/* زر تعديل البيانات */}

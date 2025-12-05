@@ -33,6 +33,8 @@ const VisitePatient = () => {
         (date ? `&date=${encodeURIComponent(date)}` : "");
 
       const response = await axios.get(url);
+      console.log("DATA FROM BACK:", response.data);
+
       setVisites(response.data);
 
       // حساب مجموع التكاليف
@@ -67,6 +69,39 @@ const VisitePatient = () => {
     if (!dateFilter) return;
     fetchVisites(dateFilter);
   };
+
+
+
+const handleEditLocation = async (appointmentId, currentLocation) => {
+  const newLocation = prompt("عدل مكان الزيارة:", currentLocation);
+
+  if (newLocation !== null) {
+    try {
+      await axios.put(
+        `https://sewarwellnessclinic1.runasp.net/api/FilesPage/appointments/update-address/${appointmentId}`,
+        { appointmentlocation: newLocation }
+      );
+
+      // تحديث الواجهة فورياً
+      setVisites(prev =>
+        prev.map(v =>
+          v.appointmentid === appointmentId
+            ? { ...v, appointmentLocation: newLocation }
+            : v
+        )
+      );
+
+      alert("تم التحديث بنجاح!");
+    } catch (err) {
+      console.error("خطأ في تحديث المكان:", err);
+      alert("فشل تحديث المكان على السيرفر.");
+    }
+  }
+};
+
+
+
+
 
   return (
     <div
@@ -135,7 +170,7 @@ const VisitePatient = () => {
           <div className="table-responsive" style={{ overflowX: "auto" }}>
             <table
               className="table table-hover table-bordered text-center align-middle"
-              style={{ width: "100%" }}
+  style={{ width: "100%", tableLayout: "fixed" }} // ⬅️ المهم هنا
             >
               <thead
                 style={{
@@ -148,6 +183,8 @@ const VisitePatient = () => {
                 <tr>
                   <th>التاريخ</th>
                   <th>الوقت</th>
+                    <th>المكان</th>   {/* ⬅️ تمت الإضافة */}
+
                   <th>نوع الزيارة</th>
                   <th>اسم الجلسة</th>
                   <th>سعر الجلسة</th>
@@ -168,6 +205,31 @@ const VisitePatient = () => {
                       {new Date(v.date).toLocaleDateString("ar-EG")}
                     </td>
                     <td>{formatTime(v.time)}</td>
+
+
+
+<td style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "5px" }}>
+  <span>{v.appointmentLocation || "—"}</span>
+  {/* أيقونة التعديل */}
+<button
+  onClick={() =>
+    handleEditLocation(v.appointmentid, v.appointmentLocation)
+  }
+  style={{
+    background: "none",
+    border: "none",
+    cursor: "pointer",
+    color: accentColor,
+  }}
+  title="تعديل المكان"
+>
+  ✏️
+</button>
+
+
+</td>
+
+
                     <td>{v.type === 1 ? "جلسة جديدة" : "جلسة مراجعة"}</td>
                     <td>{v.sessionName || "—"}</td>
                     <td>{v.cost !== null ? `${v.cost} ₪` : "—"}</td>

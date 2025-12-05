@@ -3,12 +3,17 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import FeedbackList from "./FeedbackList";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 
 
 export default function RatingToast() {
+
+  
   const navigate = useNavigate();
   const feedbackRef = useRef(null);
+
+  
   const [summary, setSummary] = useState({
     totalRatings: 0,
     average: 0,
@@ -17,6 +22,42 @@ export default function RatingToast() {
 const [userFeedbackId, setUserFeedbackId] = useState(null);
   const [alertMessage, setAlertMessage] = useState("");
   const [userFeedback, setUserFeedback] = useState(null);
+const [services, setServices] = useState([]);
+            
+
+
+
+
+
+
+const [startIndex, setStartIndex] = useState(0);
+
+  const itemsPerPage = 3;
+
+  const handleNext = () => {
+    if (startIndex + itemsPerPage < services.length) {
+      setStartIndex(startIndex + itemsPerPage);
+    }
+  };
+
+  const handlePrev = () => {
+    if (startIndex - itemsPerPage >= 0) {
+      setStartIndex(startIndex - itemsPerPage);
+    }
+  };
+
+  const visibleServices = services.slice(startIndex, startIndex + itemsPerPage);
+  
+
+
+
+
+useEffect(() => {
+  axios
+    .get("https://sewarwellnessclinic1.runasp.net/api/Services/services/simple")
+    .then((res) => setServices(res.data))
+    .catch((err) => console.error("Error fetching services:", err));
+}, []);
 
   useEffect(() => {
     axios
@@ -237,6 +278,11 @@ const [userFeedbackId, setUserFeedbackId] = useState(null);
           ✍ شاركنا رأيك
         </div>
 
+
+
+
+
+
         <div
           style={{
             border: "1px solid #eee",
@@ -248,6 +294,10 @@ const [userFeedbackId, setUserFeedbackId] = useState(null);
             flexDirection: "column",
           }}
         >
+
+
+
+          
           {userFeedback && (
             <div
               ref={feedbackRef}
@@ -289,6 +339,9 @@ const [userFeedbackId, setUserFeedbackId] = useState(null);
                 {totalRatings.toLocaleString()} reviews
               </p>
             </div>
+
+
+
 
             <div style={{ flex: "2" }}>
               {[5, 4, 3, 2, 1].map((star) => {
@@ -339,6 +392,136 @@ const [userFeedbackId, setUserFeedbackId] = useState(null);
             </div>
           </div>
         </div>
+
+
+
+
+
+
+
+
+<div
+  style={{
+    position: "relative",
+    maxWidth: "600px",
+    margin: "0 auto",
+    marginTop: "150px",
+    marginBottom: "150px",
+    overflow: "visible",
+        overflowX: "hidden",   // ← هذا يلغي السكروول الأفقي
+
+    zIndex: 50,
+  }}
+>
+  <h2
+    style={{
+      textAlign: "center",
+      fontWeight: "bold",
+      fontSize: "24px",
+      textShadow: "2px 2px 6px rgba(0,0,0,0.3)",
+      color: "#2a7371",
+      marginBottom: "60px",
+    }}
+  >
+    اختر الخدمة لعرض تقييمها
+  </h2>
+
+  <div
+    style={{
+      position: "relative",
+      maxWidth: "600px",
+      margin: "0 auto",
+      overflow: "visible",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      gap: "10px",
+      zIndex: 50,
+    }}
+  >
+    {/* السهم الأيسر */}
+    <div
+      onClick={handlePrev}
+      style={{
+        position: "absolute",
+        left: "-10px",
+        top: "50%",
+        transform: "translateY(-50%)",
+        cursor: startIndex === 0 ? "not-allowed" : "pointer",
+        zIndex: 100,
+      }}
+    >
+      <ChevronLeft size={40} color="#2a7371" />
+    </div>
+
+    {/* المستطيلات */}
+   <div style={{ display: "flex", gap: "15px" }}>
+  {visibleServices.map((srv) => (
+    <div
+      key={srv.id}
+      onClick={() =>
+navigate("/ratingtoastCards", { 
+  state: { 
+    serviceId: srv.id, 
+    serviceTitle: srv.title // ⭐ أرسل اسم الخدمة أيضًا
+  } 
+})
+      }
+      style={{
+        minWidth: "140px",
+        height: "80px",
+        borderRadius: "25px", // حواف منحنية
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        background: "linear-gradient(135deg, #2a7371, #4db6ac)", // تدرج جذاب
+        color: "#fff",
+        fontWeight: "bold",
+        fontSize: "18px",
+        boxShadow: "0 6px 15px rgba(0,0,0,0.25)",
+        cursor: "pointer",
+        transition: "transform 0.3s, box-shadow 0.3s",
+        padding: "0 20px", // ⭐ إضافة padding أفقي لتوسيع المسافة
+        textAlign: "center",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = "translateY(-5px)";
+        e.currentTarget.style.boxShadow = "0 10px 20px rgba(0,0,0,0.3)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = "translateY(0)";
+        e.currentTarget.style.boxShadow = "0 6px 15px rgba(0,0,0,0.25)";
+      }}
+    >
+      {srv.title}
+    </div>
+  ))}
+</div>
+
+
+    {/* السهم الأيمن */}
+    <div
+      onClick={handleNext}
+      style={{
+        position: "absolute",
+        right: "-10px",
+        top: "50%",
+        transform: "translateY(-50%)",
+        cursor:
+          startIndex + itemsPerPage >= services.length
+            ? "not-allowed"
+            : "pointer",
+        zIndex: 100,
+      }}
+    >
+      <ChevronRight size={40} color="#2a7371" />
+    </div>
+  </div>
+</div>
+
+
+
+
         <FeedbackList />
       </div>
     </>

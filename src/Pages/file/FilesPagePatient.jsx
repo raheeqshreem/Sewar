@@ -177,6 +177,34 @@ const FilesPagePatient = () => {
       alert("فشل إنشاء التقرير.");
     }
   };
+  const handleEditPhone = async (childId) => {
+  // 1️⃣ فتح prompt لأخذ الرقم الجديد
+  const newPhone = window.prompt("أدخل رقم الهاتف الجديد:");
+  if (!newPhone) return; // إذا ضغط على إلغاء أو ترك الحقل فارغ
+
+  try {
+    // 2️⃣ إرسال الطلب للـ API
+    const url = `https://sewarwellnessclinic1.runasp.net/api/FilesPage/update-phone/${childId}`;
+    await axios.put(
+      url,
+      { phoneNumber: newPhone },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    // 3️⃣ تحديث الـ state محلياً ليظهر الرقم الجديد فوراً
+    setFiles((prevFiles) =>
+      prevFiles.map((f) =>
+        f.id === childId ? { ...f, phonnumber: newPhone } : f
+      )
+    );
+
+    alert("تم تحديث رقم الهاتف بنجاح ✅");
+  } catch (err) {
+    console.error(err);
+    alert("فشل تحديث رقم الهاتف.");
+  }
+};
+
 
   useEffect(() => {
     if (modalData) {
@@ -216,37 +244,87 @@ const FilesPagePatient = () => {
 
         {!loading && files.length > 0 && (
           <div className="table-responsive">
-            <table className="table table-hover table-bordered text-center align-middle">
-              <thead style={{ backgroundColor: accentColor, color: "#fff" }}>
-                <tr>
-                  <th>الاسم الكامل</th>
-                  <th>رقم الهوية</th>
-                  <th>المواعيد</th>
-                  <th>التقارير</th>
-                </tr>
-              </thead>
+<table
+  className="table table-hover table-bordered text-center align-middle"
+  style={{ tableLayout: "fixed", width: "100%" }}
+>
+           <thead style={{ backgroundColor: accentColor, color: "#fff" }}>
+  <tr>
+    <th style={{ width: "20%" }}>الاسم الكامل</th>
+    <th style={{ width: "20%" }}>رقم الهاتف</th>
+    <th style={{ width: "20%" }}>رقم الهوية</th>
+    <th style={{ width: "20%" }}>المواعيد</th>
+    <th style={{ width: "20%" }}>التقارير</th>
+  </tr>
+</thead>
+
               <tbody>
                 {files.map((file) => (
                   <tr key={file.id}>
                     <td className="fw-semibold">{file.fullName}</td>
+
+
+
+                    
+<td style={{ direction: "ltr", textAlign: "right" }}>
+  <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center" }}>
+    <span>{file.phonnumber}</span>
+    <button
+      onClick={() => handleEditPhone(file.id)}
+      style={{
+        background: "none",
+        border: "none",
+        padding: "0",
+        marginLeft: "5px",
+        cursor: "pointer"
+      }}
+      title="تعديل الرقم"  // 👈 هذي تظهر النص عند تمرير الماوس
+    >
+      <i className="bi bi-pencil-fill" style={{ fontSize: "14px", color: "#2a7371" }}></i>
+    </button>
+  </div>
+</td>
+
+
+
+
                     <td>{file.idNumber}</td>
+                    
                     <td>
-                      <button
-                        className="btn btn-sm fw-bold"
-                        style={{ backgroundColor: accentColor, color: "#fff" }}
-                        onClick={() => navigate(`/VisitePatient/${file.id}`, { state: { childId: file.id, fullName: file.fullName, gender: file.gender } })}
-                      >
-                        المواعيد
-                      </button>
+                    <button
+  className="btn btn-lg fw-bold"
+  style={{
+    backgroundColor: accentColor,
+    color: "#fff",
+    padding: "10px 20px",
+    fontSize: "1rem",
+    minWidth: "120px"
+  }}
+  onClick={() =>
+    navigate(`/VisitePatient/${file.id}`, {
+      state: { childId: file.id, fullName: file.fullName, gender: file.gender }
+    })
+  }
+>
+  المواعيد
+</button>
+
                     </td>
                     <td>
-                      <button
-                        className="btn btn-sm fw-bold"
-                        style={{ backgroundColor: accentColor, color: "#fff" }}
-                        onClick={() => handleFetchReports(file.id)}
-                      >
-                        التقارير
-                      </button>
+                     <button
+  className="btn btn-lg fw-bold"
+  style={{
+    backgroundColor: accentColor,
+    color: "#fff",
+    padding: "10px 20px",
+    fontSize: "1rem",
+    minWidth: "120px"
+  }}
+  onClick={() => handleFetchReports(file.id)}
+>
+  التقارير
+</button>
+
                     </td>
                   </tr>
                 ))}

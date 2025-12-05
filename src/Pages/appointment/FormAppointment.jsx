@@ -14,6 +14,8 @@ export default function FormAppointment() {
   const [step, setStep] = useState(1);
   const navigate = useNavigate();
   const location = useLocation();
+const [sessionPlace, setSessionPlace] = useState(""); 
+const [homeAddress, setHomeAddress] = useState("");
 
   const selectedSlotFromState = location.state?.selectedSlot || { day: "", time: "" };
 const user = JSON.parse(localStorage.getItem("user"));
@@ -123,6 +125,20 @@ useEffect(() => {
 
 
 
+const handleEditLocation = (visiteId, currentLocation) => {
+  const newLocation = prompt("عدل مكان الزيارة:", currentLocation);
+  if (newLocation !== null) {
+    // هنا ممكن تعمل استدعاء API لتحديث المكان في السيرفر
+    console.log("تحديث المكان للزيارة", visiteId, "إلى:", newLocation);
+    
+    // لتحديث الواجهة فورياً بدون إعادة تحميل
+    setVisites(prev =>
+      prev.map(v =>
+        v.visiteId === visiteId ? { ...v, appointmentLocation: newLocation } : v
+      )
+    );
+  }
+};
 
   const CustomDateInput = forwardRef(({ value, onClick, placeholder }, ref) => (
     <div style={{ position: "relative" }}>
@@ -180,10 +196,16 @@ useEffect(() => {
     if (!formData.IDnumber) newErrors.IDnumber = "يجب إدخال رقم الهوية";
     if (!formData.birthDate) newErrors.birthDate = "يجب إدخال تاريخ الميلاد";
     if (!formData.phone) newErrors.phone = "يجب إدخال رقم الهاتف";
-    if (!formData.countryCode) newErrors.countryCode = "اختر رمز الدولة";
     if (!formData.category) newErrors.category = "يجب اختيار الفئة";
     if ((formData.category === "نساء" || formData.category === "أطفال") && !formData.medicalStatus)
       newErrors.medicalStatus = "اختر الحالة المرضية";
+   // ✅ الفاليديشن الصحيح للمكان
+  if (!sessionPlace.trim()) newErrors.sessionPlace = "يرجى اختيار المكان";
+
+  // ✅ الفاليديشن الصحيح للعنوان
+  if (sessionPlace === "home" && !homeAddress.trim())
+    newErrors.homeAddress = "يرجى إدخال عنوان المنزل";
+
     return newErrors;
   };
 
@@ -573,6 +595,9 @@ if (step === 3) {
   formPayload.append("VisitTypee", formData.medicalStatus === "جديدة" ? "1" : "0");
   formPayload.append("Time", selectedSlotFromState.time);
   formPayload.append("Day", selectedSlotFromState.day);
+  formPayload.append("placee", sessionPlace === "clinic" ? "0" : "1"); 
+formPayload.append("address", sessionPlace === "home" ? homeAddress : "");
+
 
   // 🟢 الحقول الطبية حسب المطلوب
   formPayload.append("Diagnose", Diagnose);
@@ -971,9 +996,9 @@ const handleFinalSubmit = (e) => {
                     <option value="+20">مصر +20</option>
                   </Form.Select>
                 </InputGroup>
-                {(errors.countryCode || errors.phone) && (
+                {( errors.phone) && (
                   <div className="text-danger text-end mt-2">
-                    {errors.countryCode || errors.phone}
+                    { errors.phone}
                   </div>
                 )}
               </Form.Group>
@@ -1041,6 +1066,68 @@ const handleFinalSubmit = (e) => {
                       <div className="text-danger text-end mt-2">{errors.medicalStatus}</div>
                     )}
                   </Form.Group>
+
+
+
+
+{/* اختيار المكان بنفس نمط اختيار الحالة المرضية */}
+<Form.Group style={{ marginBottom: "30px" }}>
+  <Form.Select
+    name="sessionPlace"
+    value={sessionPlace}
+  onChange={(e) => {
+    setSessionPlace(e.target.value);
+    setErrors((prev) => ({ ...prev, sessionPlace: "" })); // ⬅️ يشيل الخطأ أول ما المستخدم يختار
+  }}    isInvalid={!!errors.sessionPlace}
+    style={{
+      border: "2px solid #2a7371",
+      color: "#2a7371",
+      direction: "rtl",
+      textAlign: "right",
+    }}
+  >
+    <option value="">اختر مكان الجلسة...</option>
+    <option value="clinic">في العيادة</option>
+    <option value="home">في المنزل</option>
+  </Form.Select>
+
+  {errors.sessionPlace && (
+    <div className="text-danger text-end mt-2">{errors.sessionPlace}</div>
+  )}
+</Form.Group>
+
+{/* عنوان المنزل يظهر فقط إذا تم اختيار المنزل */}
+{sessionPlace === "home" && (
+  <Form.Group style={{ marginBottom: "30px" }}>
+    <Form.Control
+      as="textarea"
+      rows={2}
+      name="homeAddress"
+      value={homeAddress}
+    onChange={(e) => {
+    setHomeAddress(e.target.value);
+    setErrors((prev) => ({ ...prev, homeAddress: "" })); // ⬅️ يشيل الخطأ عند الكتابة
+  }}
+      
+      placeholder="اكتب عنوان المنزل بشكل مفصل..."
+      isInvalid={!!errors.homeAddress}
+      style={{
+        border: "2px solid #2a7371",
+        color: "#2a7371",
+        direction: "rtl",
+        textAlign: "right",
+      }}
+    />
+
+    {errors.homeAddress && (
+      <div className="text-danger text-end mt-2">{errors.homeAddress}</div>
+    )}
+  </Form.Group>
+)}
+
+
+
+
                 </>
               )}
 

@@ -1,19 +1,25 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react"; 
 import axios from "axios";
 import { Edit, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Zoom from 'react-medium-image-zoom'
 import 'react-medium-image-zoom/dist/styles.css'
 import Modal from "react-modal";
-const FeedbackList = () => {
+import { useLocation } from "react-router-dom";
+
+const FeedbackListCards = () => { 
   const [feedbacks, setFeedbacks] = useState([]);
-  const [visibleCount, setVisibleCount] = useState(5); // عدد التعليقات المعروضة
+  const [visibleCount, setVisibleCount] = useState(5);
   const [loading, setLoading] = useState(false);
   const [zoomVideo, setZoomVideo] = useState(null);
   const [initialLoading, setInitialLoading] = useState(true);
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user"));
   const API_BASE = "https://sewarwellnessclinic1.runasp.net";
+const { state } = useLocation();
+const serviceId = state?.serviceId;
+console.log("📌 Service ID:", serviceId);
+const [serviceTitle] = useState(state?.serviceTitle || "");
 
   const sortData = (data) =>
     data.sort((a, b) => {
@@ -25,40 +31,30 @@ const FeedbackList = () => {
     });
 
   const fetchFeedbacks = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await axios.get(`${API_BASE}/api/Ranking/all`);
-      const data = res.data || [];
-      setFeedbacks(sortData(data));
-    } catch (err) {
-      console.error("❌ خطأ في جلب التعليقات:", err);
-    } finally {
-      setLoading(false);
-      setInitialLoading(false);
-    }
-  }, []);
+  if (!serviceId) return; // يمنع الطلب إذا لم يوجد serviceId
+  setLoading(true);
+  try {
+    const res = await axios.get(`${API_BASE}/api/Services/service/${serviceId}/feedbacks`);
+    const data = res.data || [];
+    setFeedbacks(sortData(data));
+  } catch (err) {
+    console.error("❌ خطأ في جلب التعليقات:", err);
+  } finally {
+    setLoading(false);
+    setInitialLoading(false);
+  }
+}, [serviceId]); // ✅ أضف serviceId هنا
 
-  useEffect(() => {
-    fetchFeedbacks();
-  }, [fetchFeedbacks]);
 
-  useEffect(() => {
-    const handleScrollToFeedback = (e) => {
-      const { id } = e.detail;
-      if (!id) return;
-      setTimeout(() => {
-        const target = document.getElementById(`feedback-${id}`);
-        if (target) {
-          target.scrollIntoView({ behavior: "smooth", block: "center" });
-          target.style.boxShadow = "0 0 10px 3px #2a7371";
-          setTimeout(() => (target.style.boxShadow = "none"), 2000);
-        }
-      }, 500);
-    };
-    window.addEventListener("scrollToFeedback", handleScrollToFeedback);
-    return () =>
-      window.removeEventListener("scrollToFeedback", handleScrollToFeedback);
-  }, []);
+useEffect(() => {
+  fetchFeedbacks();
+}, [fetchFeedbacks, serviceId]);
+
+
+
+
+
+
 
   const getUsernameFromEmail = (email) =>
     email ? email.split("@")[0] : "مستخدم مجهول";
@@ -72,27 +68,51 @@ const FeedbackList = () => {
         })
       : "";
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("هل أنت متأكد من حذف هذا التعليق؟")) return;
-    try {
-      await axios.delete(`${API_BASE}/api/Ranking/${id}`, {
-        headers: { Authorization: `Bearer ${user?.token}` },
-      });
+const handleDelete = async (id) => {
+  if (!window.confirm("هل أنت متأكد من حذف هذا التعليق؟")) return;
+
+  try {
+    // الآن نحذف التعليق عبر endpoint الجديد
+    const res = await axios.delete(`${API_BASE}/api/Services/${id}`, {
+      headers: { Authorization: `Bearer ${user?.token}` },
+    });
+
+    // تحقق من رسالة النجاح من الباك
+    if (res.data?.message === "Feedback deleted successfully") {
+      // إزالة التعليق من الواجهة
       setFeedbacks((prev) => prev.filter((f) => f.id !== id));
-      setVisibleCount((prev) => Math.min(prev, feedbacks.length - 1)); // تحديث عدد التعليقات المعروضة
+      setVisibleCount((prev) => Math.min(prev, feedbacks.length - 1));
       alert("✅ تم حذف التعليق بنجاح");
-    } catch (err) {
-      console.error("❌ خطأ أثناء الحذف:", err);
-      alert("حدث خطأ أثناء حذف التعليق");
+    } else {
+      alert("❌ لم يتم حذف التعليق، حاول مرة أخرى");
     }
-  };
+  } catch (err) {
+    console.error("❌ خطأ أثناء الحذف:", err);
+    alert("حدث خطأ أثناء حذف التعليق");
+  }
+};
 
-  const handleEdit = (id) => navigate(`/writefeedback/${id}`);
 
+const handleEdit = (id) =>
+ navigate(`/writefeedbackCards/${id}`, { 
+    state: { 
+      serviceId,
+      serviceTitle   // ⬅️ إرسال الاسم
+    } 
+  });
   if (initialLoading)
     return (
       <div style={{ maxWidth: "600px", margin: "50px auto", textAlign: "center" }}>
-        <h2 style={{ color: "#2a7371", marginBottom: "20px" }}>Feedback</h2>
+<h2
+  style={{
+    textAlign: "center",
+    marginBottom: "20px",
+    color: "#2a7371",
+    textShadow: "2px 2px 5px rgba(0,0,0,0.3)",
+  }}
+>
+  آراء المرضى عن {serviceTitle} {/* ⭐ هنا بالعامية العربية */}
+</h2>
         <div>جارِ التحميل...</div>
       </div>
     );
@@ -100,21 +120,24 @@ const FeedbackList = () => {
   return (
     <div style={{ maxWidth: "600px", margin: "50px auto" }}>
       <h2
-        style={{
-          textAlign: "center",
-          marginBottom: "20px",
-          color: "#2a7371",
-          textShadow: "2px 2px 5px rgba(0,0,0,0.3)",
-        }}
-      >
-لمسة تفاعلية      </h2>
+  style={{
+    textAlign: "center",
+    marginBottom: "20px",
+    color: "#2a7371",
+    textShadow: "2px 2px 5px rgba(0,0,0,0.3)",
+  }}
+>
+  آراء المرضى عن {serviceTitle}
+</h2>
+
 
       {feedbacks.length === 0 && (
         <p style={{ textAlign: "center", color: "#666" }}>لا توجد تعليقات بعد.</p>
       )}
 
       {feedbacks.slice(0, visibleCount).map((fb) => {
-        console.log(fb);
+          console.log("📌 تعليق:", fb); // ✅ هنا كل تعليق على حدة
+
         const type = fb.role?.toLowerCase?.();
         const allMedia = [
           ...(fb.imageUrls || []),
@@ -124,7 +147,6 @@ const FeedbackList = () => {
 
         const fixedUrls = allMedia
           .map((url) => {
-            if (!url) return null;
             if (!url.startsWith("http")) {
               return `${API_BASE}/${url.replace(/^\/+/, "")}`;
             }
@@ -156,20 +178,12 @@ const FeedbackList = () => {
               <h3 style={{ margin: 0, color: "#2a7371", fontSize: "18px" }}>
                 {type === "scheduler_admin"
                   ? "Sewar-Clinic"
-                  :fb.fullname ||
-                   getUsernameFromEmail(fb.authorEmail)}
+                  : fb.fullname || getUsernameFromEmail(fb.authorEmail)}
               </h3>
               <span style={{ fontSize: "13px", color: "#777" }}>
                 {formatDate(fb.createdAt)}
               </span>
             </div>
-
-            {type === "patient" && (
-              <div style={{ color: "gold", fontSize: "20px", marginBottom: "10px" }}>
-                {"★".repeat(fb.stars || 0)}
-                {"☆".repeat(5 - (fb.stars || 0))}
-              </div>
-            )}
 
             {fb.content && (
               <p style={{ margin: "10px 0", fontSize: "15px", color: "#444" }}>
@@ -191,28 +205,25 @@ const FeedbackList = () => {
                         maxHeight: "400px",
                         objectFit: "cover",
                         marginBottom: "10px",
-                        cursor:"pointer"
+                        cursor: "pointer",
                       }}
-                      onClick={()=>setZoomVideo(url)}
+                      onClick={() => setZoomVideo(url)}
                     />
                   ) : (
-                  <Zoom> 
-                     <img
-                      key={i}
-                      src={url}
-                      alt="feedback"
-                      style={{
-                        width: "100%",
-                        borderRadius: "10px",
-                        maxHeight: "400px",
-                        objectFit: "cover",
-                        marginBottom: "10px",
-                      }}
-                      onError={(e) => {
-                        e.target.style.display = "none";
-                        console.warn("⚠ صورة غير موجودة:", url);
-                      }}
-                    /></Zoom>
+                    <Zoom>
+                      <img
+                        key={i}
+                        src={url}
+                        alt="feedback"
+                        style={{
+                          width: "100%",
+                          borderRadius: "10px",
+                          maxHeight: "400px",
+                          objectFit: "cover",
+                          marginBottom: "10px",
+                        }}
+                      />
+                    </Zoom>
                   )
                 )}
               </div>
@@ -277,51 +288,49 @@ const FeedbackList = () => {
         </div>
       )}
 
-
-
-    <Modal
-  isOpen={!!zoomVideo}
-  onRequestClose={() => setZoomVideo(null)}
-  style={{
-    content: {
-      top: "50%",
-      left: "50%",
-      right: "auto",
-      bottom: "auto",
-      transform: "translate(-50%, -50%)",
-      maxWidth: "90%",
-      maxHeight: "90%",
-      background: "transparent",
-      border: "none",
-      padding: "0"
-    },
-    overlay: {
-      backgroundColor: "rgba(0,0,0,0.8)"
-    }
-  }}
->
-  {zoomVideo && (
-    <div
-      onClick={() => setZoomVideo(null)} // ← اضغط على الفيديو لإغلاقه
-      style={{
-        width: "100%",
-        height: "100%",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center"
-      }}
-    >
-      <video
-        src={zoomVideo}
-        controls
-        autoPlay
-        style={{ width: "100%", height: "100%", objectFit: "contain" }}
-      />
-    </div>
-  )}
-</Modal>
+      <Modal
+        isOpen={!!zoomVideo}
+        onRequestClose={() => setZoomVideo(null)}
+        style={{
+          content: {
+            top: "50%",
+            left: "50%",
+            right: "auto",
+            bottom: "auto",
+            transform: "translate(-50%, -50%)",
+            maxWidth: "90%",
+            maxHeight: "90%",
+            background: "transparent",
+            border: "none",
+            padding: "0",
+          },
+          overlay: {
+            backgroundColor: "rgba(0,0,0,0.8)",
+          },
+        }}
+      >
+        {zoomVideo && (
+          <div
+            onClick={() => setZoomVideo(null)}
+            style={{
+              width: "100%",
+              height: "100%",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <video
+              src={zoomVideo}
+              controls
+              autoPlay
+              style={{ width: "100%", height: "100%", objectFit: "contain" }}
+            />
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };
 
-export default FeedbackList;
+export default FeedbackListCards;

@@ -1,8 +1,8 @@
 @import url("https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@100..900&display=swap");
 
 .longPage {
-  min-height: 200vh;
-  margin-top: 90px;
+  min-height: 400vh;
+  margin-top: 80px;
   font-family: "Noto Kufi Arabic", sans-serif;
   font-optical-sizing: auto;
   font-weight: 400;
@@ -39,16 +39,8 @@ body {
   height: 20px;
 }
 
-.carouselCaptionCustom {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-  color: #fff;
-  z-index: 10;
-  pointer-events: none;
-}
+
+
 
 .carouselCaptionCustom h1 {
   font-size: 2.5rem;
@@ -89,18 +81,25 @@ body {
   object-fit: cover;
   display: block;
 }
+.carouselItem img:hover {
+  filter: brightness(60%);
+  transition: filter 0.3s ease;
+}
+
 
 .imageWrapper {
   position: relative;
-  width: 100vw;
-  height: auto;
-  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  overflow: hidden; /* مهم */
 }
 
 .imageWrapper img {
+  display: block;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
+  object-fit: cover; /* يضمن ملء المساحة */
+  transition: transform 0.3s ease; /* لو حبيت تأثير تكبير بسيط */
 }
 
 .overlay {
@@ -109,10 +108,31 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(58, 146, 78, 0.4);
-  opacity: 0;
+  background-color: rgba(0, 0, 0, 0.4); /* سوداء شفافة */
+  opacity: 0; /* افتراضي مخفي */
   transition: opacity 0.3s ease;
+  z-index: 2; /* فوق الصورة */
+    pointer-events: none;
+
 }
+
+/* عند مرور الماوس على الصورة */
+.imageWrapper:hover .overlay {
+  opacity: 1; /* تظهر الطبقة */
+}
+
+/* النصوص فوق الصورة */
+.carouselCaptionCustom {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  z-index: 3; /* فوق overlay */
+  text-align: center;
+}
+
+
 
 .noSelect {
   user-select: none;
@@ -121,14 +141,25 @@ body {
   -ms-user-select: none;
 }
 
-.imageWrapper:hover .overlay {
-  opacity: 1;
+.carousel-item:hover .overlay {
+  opacity: 1 !important;
 }
+.carousel-item {
+  position: relative !important;
+  overflow: hidden;
+  cursor: pointer;
+}
+
 
 @media (max-width: 576px) {
   .carouselItem img {
     height: 250px;
   }
+  .carouselItem img:hover {
+  filter: brightness(60%);
+  transition: filter 0.3s ease;
+}
+
   .carouselControlPrev,
   .carouselControlNext {
     width: 35px;
@@ -163,6 +194,11 @@ body {
   .carouselItem img {
     height: 400px;
   }
+  .carouselItem img:hover {
+  filter: brightness(60%);
+  transition: filter 0.3s ease;
+}
+
   .carouselControlPrev,
   .carouselControlNext {
     width: 45px;
@@ -185,38 +221,42 @@ body {
     font-weight: 200;
     width: 550px;
   }
+   .stethoscopeBackground img{
+    width: 80%;
+  }
 }
 
+/* الشاشات الكبيرة */
+/* للشاشات الكبيرة */
 @media (min-width: 993px) {
+  .longPage {
+    margin-top: 0; /* إزالة أي مسافة فوق الكاروسيل */
+  }
+
   .carouselItem img {
-    width: 100vw;
-    height: 800px;
+    width: 100vw;    /* عرض كامل */
+    height: 650px;   /* ارتفاع أكبر لتظهر أسفل النافبار */
     object-fit: cover;
     display: block;
   }
-  .carouselControlPrev,
-  .carouselControlNext {
-    width: 55px;
-    height: 55px;
-  }
-  .carouselCaptionCustom h1 {
-    font-size: 2.5rem;
-    font-weight: bolder;
-    margin-bottom: 20px;
-    width: 100%;
-  }
-  .carouselCaptionCustom h2 {
-    font-size: 2rem;
-    font-weight: bold;
-    margin-bottom: 20px;
-    width: 100%;
-  }
-  .carouselCaptionCustom p {
-    font-size: 1.2rem;
-    font-weight: normal;
-    width: 100%;
+  .carouselItem img:hover {
+  filter: brightness(60%);
+  transition: filter 0.3s ease;
+}
+
+
+  .carouselWrapper {
+    position: relative; 
+    margin-top: 0;    
+    z-index: 0;
+    top: -80px; /* رفع الكاروسيل ليظهر تحت النافبار */
   }
 }
+
+
+
+
+
 
 .contactButton {
   margin-top: 40px;
@@ -275,6 +315,7 @@ body {
   opacity: 0.05;
   z-index: 0;
   transition: opacity 1.5s ease-out;
+  height: auto;
 }
 
 .stethoscopeBackground img {
@@ -306,10 +347,7 @@ body {
   z-index: 0;
   transition: opacity 1.5s ease-out;
 }
-.stethoscopeBackground img {
-  width: 100%;
-  height: auto;
-}
+
 
 /* --- Floating Animation Styles --- */
 /* 1. تعريف الحركة الأولى (للأعلى واليسار) */
@@ -449,8 +487,6 @@ body {
 }
 
 .stethoscopeBackground img {
-  width: 100%;
-  height: auto;
    animation: moveUpDown 3s ease-in-out infinite;
 }
 
@@ -489,6 +525,9 @@ body {
   border-radius: 15px;
   padding: 40px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  /* ↓↓ الإضافات ↓↓ */
+  max-width: 900px;     /* حجم المودال */
+  margin: 0 auto;        /* وسط الشاشة */
 }
 
 .heading {
@@ -569,4 +608,45 @@ body {
   font-size: 14px;
   line-height: 24px;
   text-align: center;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* للأزرار الخاصة بالسكرتير على الموبايل */
+@media (max-width: 576px) {
+  .schedulerButtons {
+    display: flex;
+    flex-direction: row; /* جنب بعض */
+    gap: 5px; /* مسافة صغيرة بينهم */
+    flex-wrap: wrap; /* لو ضاقت الشاشة يروحوا لسطر ثاني */
+    justify-content: center; /* يوسطوا الأزرار */
+  }
+
+  .schedulerButtons button {
+    padding: 5px 10px; /* حجم صغير */
+    font-size: 0.7rem; /* نص أصغر */
+    width: auto; /* خلي العرض يتناسب مع النص */
+  }
+}
+
+/* زر احجز الآن على الموبايل */
+@media (max-width: 576px) {
+  .actionButton {
+    padding: 6px 12px !important; /* أصغر على الموبايل */
+    font-size: 0.75rem !important;
+  }
 }

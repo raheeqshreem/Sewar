@@ -13,6 +13,7 @@ import 'react-medium-image-zoom/dist/styles.css'
 const ConsultationDoctor = () => {
   const [inquiries, setInquiries] = useState([]);
   const [loading, setLoading] = useState(true);
+const [search, setSearch] = useState("");
 
   const [editId, setEditId] = useState(null);
   const [editText, setEditText] = useState("");
@@ -87,6 +88,9 @@ console.log("reply: ",reply);
 
   return () => clearTimeout(timer);
 }, [inquiries, newReplyToScroll]);
+
+
+
   const fetchConsultations = async () => {
     try {
       setLoading(true);
@@ -103,10 +107,14 @@ console.log("reply: ",reply);
         return;
       }
 
-      const response = await axios.get(
-        "https://sewarwellnessclinic1.runasp.net/api/Consultation/doctor/all",
-        { headers: { Authorization: `Bearer ${user.token}` } }
-      );
+     const url = search
+  ? `https://sewarwellnessclinic1.runasp.net/api/Consultation/doctor/all?search=${search}`
+  : `https://sewarwellnessclinic1.runasp.net/api/Consultation/doctor/all`;
+
+const response = await axios.get(url, {
+  headers: { Authorization: `Bearer ${user.token}` },
+});
+
       setInquiries(response.data);
     } catch (error) {
       console.error(error);
@@ -114,7 +122,22 @@ console.log("reply: ",reply);
     } finally {
       setLoading(false);
     }
+
   };
+  
+
+
+useEffect(() => {
+  const delay = setTimeout(() => {
+    fetchConsultations(search);
+  }, 400);
+
+  return () => clearTimeout(delay);
+}, [search]);
+
+
+
+
 const handleDelete = async (id) => {
     if (!window.confirm("هل أنت متأكد من الحذف؟")) return;
     try {
@@ -339,6 +362,30 @@ textAlign:"right" }}>
   return (
     <div style={{ padding: "20px", maxWidth: "800px", margin: "0 auto", paddingTop: "calc(100px + 20px)" }}>
       <h2 style={{ textAlign: "center", color: "#2a7371", marginBottom: "30px" }}>استشارات المرضى</h2>
+<div style={{ maxWidth: "400px", margin: "0 auto", marginBottom: "20px" }}>
+  <input
+    type="text"
+    placeholder="ابحث باسم المريض..."
+    className="form-control"
+    style={{ 
+      direction: "rtl",
+      color: "#2a7371",       // النص داخل الإنبت تركوازي
+      borderColor: "#2a7371", // الإطار تركوازي
+      borderWidth: "2px",     // سمك الإطار
+      borderRadius: "10px",   // زوايا ناعمة
+      padding: "8px 12px"     // padding مناسب للكتابة
+    }}
+    value={search}
+    onChange={(e) => setSearch(e.target.value)}
+    onKeyDown={(e) => {
+      if (e.key === "Enter") fetchConsultations(e.target.value);
+    }}
+  />
+</div>
+
+
+
+
 
       {loading ? (
         <Loader />
@@ -364,7 +411,7 @@ style={{
 direction:"rtl",
 textAlign:"right"}}>
             <div style={{ border: "1px solid #2a7371", borderRadius: "10px", padding: "20px", backgroundColor: "#f9f9f9", textAlign: "right" }}>
-              <h5 style={{ color: "#2a7371" }}> {inq.patientName || "مستخدم"}  <strong > : المريض </strong> 👤</h5>
+              <h5 style={{ color: "#2a7371" }}>  <strong >  المريض </strong> 👤 : {inq.patientName || "مستخدم"}  </h5>
               <p style={{ color: "#2a7371", marginBottom: "20px" }}><strong>الاستشارة:</strong> {inq.questionText || "-"}</p>
 
               {inq.images?.length > 0 && (

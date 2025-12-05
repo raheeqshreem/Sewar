@@ -7,6 +7,9 @@ const Visite = () => {
   const accentColor = "#2a7371";
   const location = useLocation();
   const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  const isSchedulerAdmin = user?.userType?.toLowerCase() === "scheduler_admin";
 
   const { childId, fullName ,gender } = location.state || {};
   const [visites, setVisites] = useState([]);
@@ -120,14 +123,8 @@ useEffect(() => {
     maxWidth: "100%", // يأخذ كامل عرض الشاشة
   }}
 >
-  <div
-    className="card shadow-lg p-3 p-md-5 border-0 rounded-4"
-    style={{
-      width: "100%",       // full width على الجوال
-      maxWidth: "900px",   // يظل محدود على اللاب
-      margin: "0 auto",
-    }}
-  >
+  <div className="card shadow-lg p-4 p-md-5 border-0 rounded-4" style={{ width: "80%", margin: "0 auto" }}>
+
 <h3
   className="text-center mb-3 mb-md-4"
   style={{
@@ -166,7 +163,10 @@ useEffect(() => {
     {/* الجدول */}
     {!loading && visites.length > 0 && (
       <div className="table-responsive" style={{ overflowX: "auto" }}>
-      <table className="table table-hover table-bordered text-center align-middle" style={{ width: "100%" }}>
+<table 
+  className="table table-hover table-bordered text-center align-middle"
+  style={{ width: "100%", tableLayout: "fixed" }}
+>
   <thead style={{ 
       backgroundColor: accentColor, 
       color: "#fff", 
@@ -178,6 +178,8 @@ useEffect(() => {
       <th>التاريخ</th>
       <th>الوقت</th>
       <th>النوع</th>
+      <th>مكان الجلسة</th>
+
       <th>اسم الجلسة</th>
       <th>التكلفة</th>
     </tr>
@@ -191,9 +193,20 @@ useEffect(() => {
   }}
 >
   {visites.map((v) => (
-    <tr key={v.visiteId}>
-      <td style={{ textAlign: "center", verticalAlign: "middle" }}>
-        {new Date(v.date).toLocaleDateString("ar-EG")}
+  <tr key={v.visiteId}>
+
+    {console.log("VISIT FROM BACKEND:", v)}
+
+
+
+<td
+  style={{
+    textAlign: "center",
+    verticalAlign: "middle",
+    width: "80px",
+    whiteSpace: "nowrap",
+  }}
+>        {new Date(v.date).toLocaleDateString("ar-EG")}
       </td>
       <td style={{ textAlign: "center", verticalAlign: "middle" }}>
         {formatTime(v.time)}
@@ -236,6 +249,99 @@ useEffect(() => {
 
 
 
+
+
+
+
+
+<td
+  style={{
+    textAlign: "center",
+    verticalAlign: "middle",
+    width: "180px",
+    whiteSpace: "normal",
+    wordWrap: "break-word",
+    padding: "0", // مهم جداً ليأخذ نفس طول الأعمدة
+  }}
+>
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      gap: "5px",
+      height: "100%",        // 🔥 هذا هو اللي يخليه بنفس طول الصف
+      padding: "10px",       // يرجع حشوة الجدول
+      boxSizing: "border-box",
+    }}
+  >
+<span>{v.appointmentLocation || "غير محدد"}</span>
+  {isSchedulerAdmin && (
+
+<button
+  onClick={async () => {
+    const newAddress = prompt(
+      "أدخل عنوان الجلسة الجديد:",
+      v.appointmentLocation || ""
+    );
+
+    if (newAddress !== null) {
+      try {
+        console.log("📌 Sending update-address request...");
+        console.log(
+          "URL:",
+          `https://sewarwellnessclinic1.runasp.net/api/FilesPage/appointments/update-address/${v.appointmentId}`
+        );
+console.log("Sending PUT:", v.appointmentid, newAddress);
+const appointmentId = v.appointmentid || v.appointmentId || v.visiteId;
+
+     const res = await axios.put(
+  `https://sewarwellnessclinic1.runasp.net/api/FilesPage/appointments/update-address/${appointmentId}`,
+  { appointmentlocation: newAddress }
+);
+
+
+        console.log("✅ Server Response:", res.data);
+
+        // تحديث الواجهة مباشرة
+        setVisites((prev) =>
+          prev.map((item) =>
+            item.visiteId === v.visiteId
+              ? { ...item, appointmentLocation: newAddress }
+              : item
+          )
+        );
+      } catch (err) {
+        console.error("❌ UPDATE ADDRESS ERROR:", err.response?.data || err);
+        alert("فشل تحديث عنوان الجلسة.");
+      }
+    }
+  }}
+  style={{
+    border: "none",
+    background: "transparent",
+    cursor: "pointer",
+    color: accentColor,
+    fontSize: "1.2rem",
+  }}
+  title="تعديل العنوان"
+>
+  ✏️
+</button>
+  )}
+
+  </div>
+</td>
+
+
+
+
+
+
+
+
+
+
       <td>
         <textarea
           className="form-control text-center"
@@ -270,6 +376,12 @@ useEffect(() => {
           }}
         />
       </td>
+
+
+
+
+
+      
       <td>
         <input
           type="text"

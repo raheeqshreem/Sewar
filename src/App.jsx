@@ -35,6 +35,13 @@ import VisitePatient from "./Pages/file/VisitePatient";
 import ReportKids from "./Pages/report/ReportKids";
 import ReportWomen from "./Pages/report/ReportWomen";
 import Admin from "./Pages/home/Admin";
+import OurSpecialties from "./Components/OurSpecialties/OurSpecialties";
+import Cards from "./Components/OurSpecialties/Cards";
+import FeedbackOnOurSpecialties from "./Pages/FeedbackOnOurSpecialties/FeedbackOnOurSpecialties";
+import WriteFeedbackCards from "./Pages/writeFeedback/WriteFeedbackCards";
+import FeedbackListCards from "./Components/ratingToast/FeedbackListCards";
+import RatingToastCards from "./Components/ratingToast/RatingToastCards";
+import Content from "./Components/OurSpecialties/Content";
 
 
 function App() {
@@ -63,12 +70,18 @@ function App() {
            <Route path="/formappointment" element={<FormAppointment />} />
           <Route path="/communication" element={<Communication />} />
           <Route path="/feedback" element={<Feedback />} />
+                    <Route path="/WriteFeedbackCards" element={<WriteFeedbackCards />} />
+
           <Route path="/inquiry" element={<Inquiry />} />
           <Route path="/FilesPage" element={<FilesPage/>} />
           <Route path="/forgetPassword" element={<ForgetPassword />} />
           <Route path="/resetPassword" element={<ResetPassword />} />
           <Route path="/writefeedback/:id" element={<WriteFeedback />} />
           <Route path="/writefeedback" element={<WriteFeedback />} />
+
+
+           <Route path="/writefeedbackCards/:id" element={<WriteFeedbackCards />} />
+          <Route path="/writefeedbackCards" element={<WriteFeedbackCards />} />
           <Route path="/myinquiry" element={<MyInquiry />} />
           <Route path="/consultation-replies/:consultationId" element={<ConsultationReplies />} />
           <Route path="/consultation-doctor" element={<ConsultationDoctor/>} />
@@ -85,11 +98,18 @@ function App() {
 
           <Route path="/FilesPagePatient" element={<FilesPagePatient/>} />
           <Route path="/admin" element={<Admin/>} />
+          <Route path="/OurSpecialties" element={<OurSpecialties/>} />
+          <Route path="/Cards" element={<Cards/>} />
+          <Route path="/FeedbackOnOurSpecialties" element={<FeedbackOnOurSpecialties/>} />
+          <Route path="/ratingtoastCards/:serviceId" element={<RatingToastCards />} />
 
           <Route path="/notifications" element={<Notifications/>} />
-          <Route path="/feedback" element={<Feedback />} />
-          <Route path="/ratingtoast" element={<RatingToast />} />
-          <Route path="/feedbacklist" element={<FeedbackList />} />
+          <Route path="/feedback" element={<Feedback/>} />
+          <Route path="/ratingtoast" element={<RatingToast/>} />
+          <Route path="/feedbacklist" element={<FeedbackList/>} />
+          <Route path="/feedbacklistCards" element={<FeedbackListCards/>} />
+          <Route path="/ratingtoastCards" element={<RatingToastCards/>} />
+          <Route path="/Content" element={<Content/>} />
 
         </Routes>
 
