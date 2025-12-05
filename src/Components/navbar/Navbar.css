@@ -22,6 +22,8 @@ a {
 }
 .navbar .nav-link {
   color:beige;
+    font-size: 18px; /* هنا حجم الخط */
+
  /* النصوص بيضاء */
 }
 .navbar .nav-link:hover {

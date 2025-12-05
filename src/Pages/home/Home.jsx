@@ -8,11 +8,28 @@ import { FaCalendarCheck } from "react-icons/fa";
 import OurSpecialties from './../../Components/OurSpecialties/OurSpecialties';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'; // ← مهم جدًا
+import { useLocation } from "react-router-dom";
 
 export default function Home() {
   const [user, setUser] = useState(null);
   const [slides, setSlides] = useState([]);
   console.log(user);
+const location = useLocation();
+
+useEffect(() => {
+  if (location.state?.scrollTo === "our-specialties") {
+    // ننتظر قليلًا حتى يتم بناء DOM
+    const timeout = setTimeout(() => {
+      const el = document.getElementById("our-specialties");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" });
+        window.history.replaceState({}, document.title); // لمسح الـ state
+      }
+    }, 100); // 100ms غالبًا كافي
+
+    return () => clearTimeout(timeout);
+  }
+}, [location]);
 
   const { ref: doctorSectionRef, inView: isDoctorSectionVisible } = useInView({
     triggerOnce: true,
@@ -441,13 +458,12 @@ export default function Home() {
 {/* بعد قسم الدكتور */}
 
         </section>
-        <section className="container my-5">
-  
-
-    <div className="mt-4">
-      <OurSpecialties />
-    </div>
+      <section className="container my-5" id="our-specialties">
+  <div className="mt-4">
+    <OurSpecialties />
+  </div>
 </section>
+
 
       </div>
 

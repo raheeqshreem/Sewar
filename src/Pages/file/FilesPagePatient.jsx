@@ -264,11 +264,9 @@ const FilesPagePatient = () => {
                     <td className="fw-semibold">{file.fullName}</td>
 
 
-
-                    
-<td style={{ direction: "ltr", textAlign: "right" }}>
-  <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center" }}>
-    <span>{file.phonnumber}</span>
+<td className="phone-cell">
+  <div className="phone-wrapper">
+    <span className="phone-number">{file.phonnumber}</span>
     <button
       onClick={() => handleEditPhone(file.id)}
       style={{
@@ -278,12 +276,13 @@ const FilesPagePatient = () => {
         marginLeft: "5px",
         cursor: "pointer"
       }}
-      title="تعديل الرقم"  // 👈 هذي تظهر النص عند تمرير الماوس
+      title="تعديل الرقم"
     >
       <i className="bi bi-pencil-fill" style={{ fontSize: "14px", color: "#2a7371" }}></i>
     </button>
   </div>
 </td>
+
 
 
 

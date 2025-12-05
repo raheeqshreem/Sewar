@@ -175,3 +175,80 @@ table.table tbody tr[data-highlight="true"]:hover td {
 }
 
 
+
+.phone-wrapper {
+  display: flex;
+  justify-content: flex-start; /* الوضع الافتراضي على الشاشات الكبيرة */
+  align-items: center;
+}
+
+.phone-number {
+  direction: ltr;  /* يخلي + يظهر باليسار بشكل صحيح */
+}
+
+@media (max-width: 768px) {
+  .phone-wrapper {
+    justify-content: flex-end; /* الرقم على الجهة اليمنى للجوال */
+  }
+}
+@media (max-width: 768px) {
+  .location-cell {
+    flex-direction: column;      /* ⬅️ على الجوال الأيقونة أسفل النص */
+    align-items: flex-start;     /* يبدأ من اليمين في RTL */
+    gap: 5px;                    /* مسافة بين النص والأيقونة */
+  }
+}
+
+
+
+
+/* الوضع الطبيعي: شاشات كبيرة */
+.location-td {
+  position: relative;
+}
+
+.location-wrapper {
+  display: inline-block;
+  max-width: 100%;
+}
+
+.location-text {
+  word-break: break-word;
+  white-space: normal;
+}
+
+.edit-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-left: 6px;
+}
+
+@media (max-width: 600px) {
+  .location-wrapper {
+    display: inline-flex;
+    flex-direction: row;        /* الإيقونة بعد النص */
+    align-items: center;        /* محاذاة عمودية */
+   
+    padding-left: 0;
+    position: static;
+  }
+
+.location-text {
+  display: inline-block;
+  min-width: 250px; /* نصيب النص */
+  white-space: normal;
+  word-break: break-word;
+  margin-left: -120px;
+}
+
+
+  .edit-icon {
+    position: static;
+    margin: 0;                  /* لا margin إضافي */
+    padding: 0;
+    font-size: 18px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+}

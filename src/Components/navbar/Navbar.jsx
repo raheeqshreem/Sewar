@@ -191,65 +191,120 @@ useEffect(() => {
               {/* باقي روابط النافبار */}
               <ul className="navbar-nav ms-auto mb-2 mb-lg-0 flex-column flex-lg-row">
                 <li className="nav-item">
-                  <Link className="nav-link" to={"/"}>
+                  <Link className="nav-link" to="/"  onClick={() => {
+      setTimeout(() => {
+        window.scrollTo({
+          top: 0,
+          left: 0,
+          behavior: "smooth",
+        });
+      }, 50);}} >
                     الرئيسية
                   </Link>
                 </li>
               <li className="nav-item">
-  <Link className="nav-link" to="/appointment">
+  <Link className="nav-link" to="/appointment"  onClick={() => {
+      setTimeout(() => {
+        window.scrollTo({
+          top: 0,
+          left: 0,
+          behavior: "smooth",
+        });
+      }, 50);}} >
     حجز موعد
   </Link>
 </li>
                 <li className="nav-item">
-                  <Link className="nav-link" to={"/feedback"}>
+                  <Link className="nav-link" to="/feedback"  onClick={() => {
+      setTimeout(() => {
+        window.scrollTo({
+          top: 0,
+          left: 0,
+          behavior: "smooth",
+        });
+      }, 50);}} >
+                  
                     قيم تجربتك العلاجية
                   </Link>
                 </li>
               <li className="nav-item">
-  <button
-    className="nav-link btn"
-    style={{ background: "none", border: "none", padding: 0 }}
-    onClick={() => {
-      if (!user) {
-        // لو غير مسجل دخول → احفظ الصفحة المطلوبة
-        localStorage.setItem("redirectAfterLogin", "consultation");
-        navigate("/signin");
+<Link
+  to="#"  // مهم لتجنب تحذير React Router
+  className="nav-link btn"
+  style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
+  onClick={(e) => {
+    e.preventDefault(); // يمنع السلوك الافتراضي للـ Link
+    if (!user) {
+      localStorage.setItem("redirectAfterLogin", "consultation");
+      navigate("/signin");
+          setTimeout(() => window.scrollTo({ top: 0, left: 0, behavior: "smooth" }), 50);
+
+    } else {
+      const userType = (user.userType || "").toLowerCase();
+      if (userType === "doctor" || userType === "doctor_admin") {
+        navigate("/consultation-doctor");
+            setTimeout(() => window.scrollTo({ top: 0, left: 0, behavior: "smooth" }), 50);
+
       } else {
-        // مسجل دخول → توجيه حسب نوع المستخدم
-        const userType = (user.userType || "").toLowerCase();
-        if (userType === "doctor" || userType === "doctor_admin") {
-          navigate("/consultation-doctor");
-        } else {
-          navigate("/inquiry");
-        }
+        navigate("/inquiry");
+            setTimeout(() => window.scrollTo({ top: 0, left: 0, behavior: "smooth" }), 50);
+
       }
-    }}
-  >
-    استشارة طبية
-  </button>
+    }
+  }}
+>
+  استشارة طبية
+</Link>
+
 </li>
                <li className="nav-item">
-<button
+<Link
+  to="#"
   className="nav-link btn"
-  style={{ background: "none", border: "none", padding: 0 }}
-  onClick={() => {
+  style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
+  onClick={(e) => {
+    e.preventDefault();
     if (!user) {
       localStorage.setItem("redirectAfterLogin", "files");
       navigate("/signin");
+          setTimeout(() => window.scrollTo({ top: 0, left: 0, behavior: "smooth" }), 50);
+
     } else {
       const type = (user.userType || "").toLowerCase();
       if (type === "patient") {
         navigate("/FilesPagePatient");
+            setTimeout(() => window.scrollTo({ top: 0, left: 0, behavior: "smooth" }), 50);
+
       } else {
         navigate("/FilesPage");
+            setTimeout(() => window.scrollTo({ top: 0, left: 0, behavior: "smooth" }), 50);
+
       }
     }
   }}
 >
   الملفات
-</button>
+</Link>
+
 
 </li>
+
+
+   <li className="nav-item">
+  <Link
+  to="/"  // مهم أن نضع هنا "/" ليعرف React Router أننا ننتقل للصفحة الرئيسية
+  className="nav-link btn"
+  style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
+  state={{ scrollTo: "our-specialties" }}
+>
+  خدماتنا
+</Link>
+
+
+</li>
+
+
+
 
               </ul>
             </div>

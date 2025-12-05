@@ -207,27 +207,25 @@ const handleEditLocation = async (appointmentId, currentLocation) => {
                     <td>{formatTime(v.time)}</td>
 
 
+<td className="location-td">
+  <div className="location-wrapper">
+    <span className="location-text">
+      {v.appointmentLocation || "—"}
+    </span>
 
-<td style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "5px" }}>
-  <span>{v.appointmentLocation || "—"}</span>
-  {/* أيقونة التعديل */}
-<button
-  onClick={() =>
-    handleEditLocation(v.appointmentid, v.appointmentLocation)
-  }
-  style={{
-    background: "none",
-    border: "none",
-    cursor: "pointer",
-    color: accentColor,
-  }}
-  title="تعديل المكان"
->
-  ✏️
-</button>
-
-
+    <button
+      onClick={() => handleEditLocation(v.appointmentid, v.appointmentLocation)}
+      className="edit-icon"
+      style={{ color: accentColor }}
+      title="تعديل المكان"
+    >
+      ✏️
+    </button>
+  </div>
 </td>
+
+
+
 
 
                     <td>{v.type === 1 ? "جلسة جديدة" : "جلسة مراجعة"}</td>
