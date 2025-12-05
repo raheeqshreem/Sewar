@@ -142,9 +142,8 @@ useEffect(() => {
           </div>
         )}
 {/* زر احجز الآن للمريض أو الدكتور */}
-{user &&
-  (user.userType?.toLowerCase() === "patient" ||
-   user.userType?.toLowerCase() === "doctor") && (
+{(!user || user.userType?.toLowerCase() === "patient" || user.userType?.toLowerCase() === "doctor") && (
+
     <button
       className={styles.actionButton}
 
@@ -226,9 +225,8 @@ useEffect(() => {
   {/* زر احجز الآن للمريض أو الطبيب */}
  {/* زر احجز الآن للمريض أو الطبيب */}
   {/* زر احجز الآن للمريض أو الطبيب */}
-  {user &&
-    (user.userType?.toLowerCase() === "patient" ||
-      user.userType?.toLowerCase() === "doctor") && (
+  {(!user || user.userType?.toLowerCase() === "patient" || user.userType?.toLowerCase() === "doctor") && (
+
       <button
         className={styles.actionButton}
 

@@ -49,12 +49,12 @@ import Content from "./Components/OurSpecialties/Content";
 function App() {
   const location = useLocation();
   // هذا الكود بمسح تسجيل الدخول فقط عند فتح الرابط لأول مرة
+
 useEffect(() => {
-  const visited = sessionStorage.getItem("visited");
-  if (!visited) {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    sessionStorage.setItem("visited", "true");
+  const token = localStorage.getItem('userToken');
+  if (!token) {
+    // مسح أي بيانات قديمة
+    sessionStorage.clear();
   }
 }, []);
 
