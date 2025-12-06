@@ -137,7 +137,7 @@ const isSecretary = user?.userType === "scheduler_admin"; // تحقق إذا ا�
               {...register("Email", {
                 required: "Please Enter Email",
                 pattern: {
-                  value: /^[^\s@]+@gmail\.com$/, // نص قبل @ و @gmail.com بالآخر
+      value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, // أي بريد إلكتروني
                   message: "Email must be in the format yourname@gmail.com",
                 },
               })}

@@ -9,6 +9,7 @@ import toast from "react-hot-toast";
 import { Eye, EyeOff } from "lucide-react";
 import axios from "axios";
 import { FaRegGrinStars } from "react-icons/fa"; // أيقونة ترحيب
+import  {useRef } from "react";
 
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -22,6 +23,25 @@ function Login() {
     setValue,
     formState: { errors },
   } = useForm({ mode: "onChange" });
+
+
+const toastShown = useRef(false);
+
+useEffect(() => {
+  if (toastShown.current) return; // يمنع التكرار نهائياً
+
+  const redirect = localStorage.getItem("redirectAfterLogin");
+
+  if (redirect === "consultation") {
+    toast.error(" لتكتب استشارتك يرجى تسجيل الدخول أولاً");
+  }
+  if (redirect === "files") {
+    toast.error(" لمشاهدة ملفاتك يرجى تسجيل الدخول أولاً");
+  }
+
+  toastShown.current = true;
+}, []);
+
 
   // عند التحميل: قراءة rememberedEmail و rememberMe
   useEffect(() => {

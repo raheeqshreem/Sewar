@@ -46,6 +46,11 @@ const [email1, setEmail1] = useState();
 
 
 useEffect(() => {
+  window.scrollTo(0, 0); // يضع الصفحة دائمًا في الأعلى عند التحميل
+}, []);
+
+
+useEffect(() => {
   const id = localStorage.getItem("selectedChildId");
   if (id) setChildId(parseInt(id, 10));
 

@@ -3,10 +3,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import logoo from "./../../assets/logoo.jpeg";
+import { Offcanvas } from 'bootstrap'; // تأكد أنك مركب bootstrap js
 
 export default function Navbar() {
   const offcanvasRef = useRef(null);
   const navigate = useNavigate();
+
+
 
   const [user, setUser] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -80,6 +83,16 @@ useEffect(() => {
     navigate("/");
   };
 
+
+
+const handleLinkClick = () => {
+  if (offcanvasRef.current) {
+    const bsOffcanvas = Offcanvas.getInstance(offcanvasRef.current) || new Offcanvas(offcanvasRef.current);
+    bsOffcanvas.hide(); // هذا يغلق القائمة
+  }
+};
+
+
   return (
     <nav className="navbar navbar-expand-lg fixed-top">
       <div className="container-fluid">
@@ -147,6 +160,8 @@ useEffect(() => {
                   <Link
                     className="btn-custom"
                     to={"/user"}
+                      onClick={() => handleLinkClick()}
+
                     style={{
                       display: "flex",
                       alignItems: "center",
@@ -161,7 +176,10 @@ useEffect(() => {
                     <i className="fa-solid fa-user" style={{ fontSize: "16px" }}></i>
                     الصفحة الشخصية
                   </Link>
-                  <button className="btn-custom" onClick={handleLogout}>
+                  <button className="btn-custom" onClick={() => {
+    handleLogout();      // تنفيذ تسجيل الخروج
+    handleLinkClick();   // غلق الـ offcanvas
+  }}>
                     <i className="fa-solid fa-right-from-bracket"></i> تسجيل خروج
                   </button>
                 </>
@@ -178,11 +196,15 @@ useEffect(() => {
         window.location.pathname
       );
     }
+        handleLinkClick(); // غلق الـ offcanvas
+
   }}
 >
   تسجيل الدخول
 </Link>
-                  <Link className="btn-custom" to={"/signup"}>
+                  <Link className="btn-custom" to={"/signup"}  onClick={() => {
+    handleLinkClick(); // غلق الـ offcanvas
+  }}>
                     <i className="fa-solid fa-user-plus"></i> انشاء حساب
                   </Link>
                 </>
@@ -192,6 +214,7 @@ useEffect(() => {
               <ul className="navbar-nav ms-auto mb-2 mb-lg-0 flex-column flex-lg-row">
                 <li className="nav-item">
                   <Link className="nav-link" to="/"  onClick={() => {
+handleLinkClick();
       setTimeout(() => {
         window.scrollTo({
           top: 0,
@@ -204,6 +227,8 @@ useEffect(() => {
                 </li>
               <li className="nav-item">
   <Link className="nav-link" to="/appointment"  onClick={() => {
+handleLinkClick();
+
       setTimeout(() => {
         window.scrollTo({
           top: 0,
@@ -216,6 +241,8 @@ useEffect(() => {
 </li>
                 <li className="nav-item">
                   <Link className="nav-link" to="/feedback"  onClick={() => {
+handleLinkClick();
+
       setTimeout(() => {
         window.scrollTo({
           top: 0,
@@ -227,80 +254,102 @@ useEffect(() => {
                     قيم تجربتك العلاجية
                   </Link>
                 </li>
-              <li className="nav-item">
-<Link
-  to="#"  // مهم لتجنب تحذير React Router
-  className="nav-link btn"
-  style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
-  onClick={(e) => {
-    e.preventDefault(); // يمنع السلوك الافتراضي للـ Link
-    if (!user) {
-      localStorage.setItem("redirectAfterLogin", "consultation");
-      navigate("/signin");
-          setTimeout(() => window.scrollTo({ top: 0, left: 0, behavior: "smooth" }), 50);
 
-    } else {
-      const userType = (user.userType || "").toLowerCase();
-      if (userType === "doctor" || userType === "doctor_admin") {
-        navigate("/consultation-doctor");
-            setTimeout(() => window.scrollTo({ top: 0, left: 0, behavior: "smooth" }), 50);
+<li className="nav-item">
+  <Link
+    to="#"
+    className="nav-link btn"
+    style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
+    onClick={(e) => {
 
-      } else {
-        navigate("/inquiry");
-            setTimeout(() => window.scrollTo({ top: 0, left: 0, behavior: "smooth" }), 50);
+      e.preventDefault();
+      handleLinkClick();
 
+      if (!user) {
+        // حفظ الهدف
+        localStorage.setItem("redirectAfterLogin", "consultation");
+
+        // الرسالة
+
+        // التحويل
+        navigate("/signin");
+        setTimeout(() => window.scrollTo({ top: 0, left: 0, behavior: "smooth" }), 50);
+        return;
       }
-    }
-  }}
->
-  استشارة طبية
-</Link>
 
+      // لو مسجل دخول
+      navigate("/inquiry");
+      setTimeout(() => window.scrollTo({ top: 0, left: 0, behavior: "smooth" }), 50);
+    }}
+  >
+    الاستشارة الطبية
+  </Link>
 </li>
-               <li className="nav-item">
-<Link
-  to="#"
-  className="nav-link btn"
-  style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
-  onClick={(e) => {
-    e.preventDefault();
-    if (!user) {
-      localStorage.setItem("redirectAfterLogin", "files");
-      navigate("/signin");
-          setTimeout(() => window.scrollTo({ top: 0, left: 0, behavior: "smooth" }), 50);
 
-    } else {
+
+
+
+  <li className="nav-item">
+  <Link
+    to="#"
+    className="nav-link btn"
+    style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
+    onClick={(e) => {
+
+      e.preventDefault();
+      handleLinkClick();
+
+      if (!user) {
+        // حفظ السبب
+        localStorage.setItem("redirectAfterLogin", "files");
+
+        // رسالة تنبيه
+
+        // تحويل لتسجيل الدخول
+        navigate("/signin");
+        setTimeout(() => window.scrollTo({ top: 0, left: 0, behavior: "smooth" }), 50);
+        return;
+      }
+
+      // لو مسجّل دخول
       const type = (user.userType || "").toLowerCase();
       if (type === "patient") {
         navigate("/FilesPagePatient");
-            setTimeout(() => window.scrollTo({ top: 0, left: 0, behavior: "smooth" }), 50);
-
       } else {
         navigate("/FilesPage");
-            setTimeout(() => window.scrollTo({ top: 0, left: 0, behavior: "smooth" }), 50);
-
       }
-    }
-  }}
->
-  الملفات
-</Link>
 
-
+      setTimeout(() => window.scrollTo({ top: 0, left: 0, behavior: "smooth" }), 50);
+    }}
+  >
+    الملفات
+  </Link>
 </li>
 
 
-   <li className="nav-item">
+
+  <li className="nav-item">
   <Link
-  to="/"  // مهم أن نضع هنا "/" ليعرف React Router أننا ننتقل للصفحة الرئيسية
-  className="nav-link btn"
-  style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
-  state={{ scrollTo: "our-specialties" }}
->
-  خدماتنا
-</Link>
+    to="/"  // مهم أن نضع هنا "/" ليعرف React Router أننا ننتقل للصفحة الرئيسية
+    className="nav-link btn"
+    style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
+    state={{ scrollTo: "our-specialties" }}
+    onClick={() => {
+      // اغلق offcanvas أولاً
+      handleLinkClick();
 
-
+      // بعد إغلاق القائمة، نفّذ السلوك المطلوب
+      setTimeout(() => {
+        window.scrollTo({
+          top: 0,
+          left: 0,
+          behavior: "smooth",
+        });
+      }, 50);
+    }}
+  >
+    خدماتنا
+  </Link>
 </li>
 
 

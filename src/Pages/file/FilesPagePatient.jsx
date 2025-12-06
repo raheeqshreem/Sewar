@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useNavigate } from "react-router-dom";
+import toast, { Toaster } from "react-hot-toast";
 
 const FilesPagePatient = () => {
   const accentColor = "#2a7371";
@@ -49,9 +50,21 @@ const FilesPagePatient = () => {
     }
   };
 
-  useEffect(() => {
-    fetchFiles();
-  }, []);
+
+
+
+
+
+useEffect(() => {
+  fetchFiles();
+}, []);
+
+
+
+
+
+
+
 
   // جلب تقارير المريض وفتح المودال
   const handleFetchReports = async (childId) => {
@@ -215,11 +228,14 @@ const FilesPagePatient = () => {
   }, [modalData]);
 
   return (
-    <div className="container" dir="rtl" style={{ minHeight: "calc(100vh - 200px)", paddingTop: "120px", paddingBottom: "80px" }}>
+   
+   <div className="container" dir="rtl" style={{ minHeight: "calc(100vh - 200px)", paddingTop: "120px", paddingBottom: "80px" }}>
+
       <div className="card shadow-lg p-4 border-0 rounded-4" style={{ maxWidth: "900px", margin: "0 auto" }}>
         <h3 className="text-center mb-4 fw-bold" style={{ color: accentColor }}>
           📁 ملفات المرضى
         </h3>
+
 
         <div className="mb-4 text-center">
           <input

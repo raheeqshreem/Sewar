@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight, Check, Trash2, Edit } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -8,6 +8,7 @@ function Appointment() {
 
   const location = useLocation();
   const fromViewEdit = location.state?.fromViewEdit || false;
+const bookButtonRef = useRef(null);
 
   const asPatient = location.state?.asPatient || false; // هنا تأكدنا إذا ما وصل أي state يكون false
 const editMode = location.state?.editMode || false;
@@ -60,27 +61,36 @@ const showBookButton = isSecretary ? asPatient : true;
     fetchAppointments();
   }, []);
 
-  const fetchAppointments = async () => {
-    try {
-      const allRes = await axios.get("https://sewarwellnessclinic1.runasp.net/api/Child/booked");
-      setAllAppointments(allRes.data);
+ const fetchAppointments = async () => {
+  try {
+    // جلب كل المواعيد العامة
+    const allRes = await axios.get("https://sewarwellnessclinic1.runasp.net/api/Child/booked");
+    setAllAppointments(allRes.data);
 
-      const token = localStorage.getItem("token") || JSON.parse(localStorage.getItem("user"))?.token;
-      const userRes = await axios.get("https://sewarwellnessclinic1.runasp.net/api/Child/get-user-appointments", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+    // التحقق إذا المستخدم مسجل
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!user) return; // لو المستخدم غير مسجل، نتوقف هنا
 
-      const userSlots = [];
-      userRes.data.forEach(child => {
-        child.appointments.forEach(app => {
-          userSlots.push({ ...app, childId: child.childId });
-        });
+    // لو المستخدم مسجل، جلب مواعيده الشخصية
+    const token = localStorage.getItem("token") || user.token;
+    const userRes = await axios.get("https://sewarwellnessclinic1.runasp.net/api/Child/get-user-appointments", {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const userSlots = [];
+    userRes.data.forEach(child => {
+      child.appointments.forEach(app => {
+        userSlots.push({ ...app, childId: child.childId });
       });
-      setUserAppointments(userSlots);
-    } catch {
-      toast.error("فشل تحميل المواعيد");
-    }
-  };
+    });
+    setUserAppointments(userSlots);
+
+  } catch (err) {
+    console.log("خطأ أثناء تحميل المواعيد:", err);
+    // ❌ لم نعد نعرض toast هنا → فلا يظهر "فشل تحميل المواعيد"
+  }
+};
+
 
   const getWeekDates = () => {
     const today = new Date();
@@ -138,6 +148,11 @@ const handleSelect = (day, time) => {
   setTempSelectedSlot(slot);
   setSelectedSlot(slot);
 
+
+  // ✅ تمرير تلقائي للزر
+  setTimeout(() => {
+    bookButtonRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, 100);
   // عرض مودال التأكيد لأي حالة تعديل
   if(editMode || fromViewEdit || editTarget){
     setPendingChange(slot);
@@ -368,9 +383,13 @@ toast("⚠️ اختر الموعد الجديد من الجدول ", {
    <div className="text-center mt-4 d-flex justify-content-center gap-3">
   {/* زر عرض جميع المواعيد / احجز موعدك */}
   <button
+    ref={bookButtonRef}  // <-- هذا المرجع
+
     onClick={handleBookClick}
     className="btn px-4 py-2 fw-bold"
     style={{ backgroundColor:"#2a7371", color:"beige", border:"none" }}
+      title="لتثبيت حجزك اضغط هنا" // <-- يظهر عند تمرير الماوس
+
   >
     {showBookButton ? "احجز موعدك" : "عرض جميع المواعيد"}
   </button>
