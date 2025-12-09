@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import logoo from "./../../assets/logoo.jpeg";
@@ -47,8 +46,8 @@ function ResetPassword() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            email: email,           // الإيميل مأخوذ من الرابط
-            token: token,           // التوكن من الرابط
+            email: email,
+            token: token,
             newpassword: data.Password,
             confirmpassword: data.ConfirmPass,
           }),
@@ -57,7 +56,7 @@ function ResetPassword() {
 
       if (response.ok) {
         alert("تم تغيير كلمة المرور بنجاح ✅");
-        navigate("/signin"); // إعادة توجيه المستخدم لصفحة تسجيل الدخول
+        navigate("/signin");
       } else {
         const errorData = await response.json();
         alert(errorData.message || "حدث خطأ، حاول مرة أخرى");
@@ -75,19 +74,19 @@ function ResetPassword() {
       <img src={logoo} className={styles.loginImage} alt="Clinic Logo" />
 
       <form className={styles.formBox} onSubmit={handleSubmit(onSubmit)}>
-        <h1 className={styles.formBoxH}>Create New Password</h1>
+        <h1 className={styles.formBoxH}>إنشاء كلمة مرور جديدة</h1>
 
         {/* حقل كلمة المرور */}
         <div className="mb-4">
           <div className="form-floating position-relative">
             <input
               {...register("Password", {
-                required: "Please Enter New Password",
+                required: "الرجاء إدخال كلمة المرور الجديدة",
                 pattern: {
                   value:
                     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,15}$/,
                   message:
-                    "Password must be 8-15 characters long, contain at least one number, one uppercase letter, one lowercase letter, and one special character",
+                    "يجب أن تتكون كلمة المرور من 8-15 حرفًا، وتحتوي على الاقل رقم بالانجليزي وحرف صغير وحرف كبير ورمز خاص",
                 },
               })}
               type={showPassword ? "text" : "password"}
@@ -102,7 +101,7 @@ function ResetPassword() {
             >
               {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
             </button>
-            <label htmlFor="floatingPassword">Enter New Password</label>
+            <label htmlFor="floatingPassword">أدخل كلمة المرور الجديدة</label>
           </div>
           {errors.Password && (
             <p className={`${styles.textBeige}`}>{errors.Password.message}</p>
@@ -114,9 +113,9 @@ function ResetPassword() {
           <div className="form-floating position-relative">
             <input
               {...register("ConfirmPass", {
-                required: "Please Confirm Password",
+                required: "الرجاء تأكيد كلمة المرور",
                 validate: (value) =>
-                  value === password || "Passwords do not match",
+                  value === password || "كلمتا المرور غير متطابقتين",
               })}
               type={showConfirmPassword ? "text" : "password"}
               className={`form-control ${styles.customInput}`}
@@ -132,7 +131,7 @@ function ResetPassword() {
             >
               {showConfirmPassword ? <Eye size={20} /> : <EyeOff size={20} />}
             </button>
-            <label htmlFor="ConfirmPassword">Confirm Password</label>
+            <label htmlFor="ConfirmPassword">تأكيد كلمة المرور</label>
           </div>
           {errors.ConfirmPass && (
             <p className={`${styles.textBeige}`}>
@@ -148,7 +147,7 @@ function ResetPassword() {
             className={`${styles.myBtn} btn w-100`}
             disabled={loading}
           >
-            {loading ? "جاري الإرسال..." : "Continue"}
+            {loading ? "جاري الإرسال..." : "متابعة"}
           </button>
         </div>
 
@@ -156,13 +155,13 @@ function ResetPassword() {
           className="text-center mt-4"
           style={{ fontSize: 14, color: "beige" }}
         >
-          Don't have an account?{" "}
+          ليس لديك حساب؟{" "}
           <Link
             to="/signup"
             className="text-decoration-none"
             style={{ fontSize: 14, color: "beige" }}
           >
-            Sign up
+            إنشاء حساب
           </Link>
         </p>
       </form>
@@ -171,34 +170,3 @@ function ResetPassword() {
 }
 
 export default ResetPassword;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

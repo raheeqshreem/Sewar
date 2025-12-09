@@ -2,14 +2,13 @@ import { useForm } from "react-hook-form";
 import logoo from "./../../assets/logoo.jpeg";
 import styles from "./Login.module.css";
 import { useNavigate } from "react-router-dom";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import GoogleLoginButton from "../GoogleLoginButton";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import { Eye, EyeOff } from "lucide-react";
 import axios from "axios";
-import { FaRegGrinStars } from "react-icons/fa"; // أيقونة ترحيب
-import  {useRef } from "react";
+import { FaRegGrinStars } from "react-icons/fa";
 
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -24,67 +23,117 @@ function Login() {
     formState: { errors },
   } = useForm({ mode: "onChange" });
 
+  const toastShown = useRef(false);
 
-const toastShown = useRef(false);
+  useEffect(() => {
+    if (toastShown.current) return;
+
+    const redirect = localStorage.getItem("redirectAfterLogin");
+
+    if (redirect === "consultation") {
+      toast.error("لتكتب استشارتك يرجى تسجيل الدخول أولاً");
+    }
+    if (redirect === "files") {
+      toast.error("لمشاهدة ملفاتك يرجى تسجيل الدخول أولاً");
+    }
+
+    toastShown.current = true;
+  }, []);
 
 useEffect(() => {
-  if (toastShown.current) return; // يمنع التكرار نهائياً
+  const rememberedEmail = localStorage.getItem("rememberedEmail");
+  const rememberFlag = localStorage.getItem("rememberMe") === "1";
 
-  const redirect = localStorage.getItem("redirectAfterLogin");
+  setRemember(rememberFlag);
 
-  if (redirect === "consultation") {
-    toast.error(" لتكتب استشارتك يرجى تسجيل الدخول أولاً");
+  if (rememberedEmail && rememberFlag) {
+    setValue("Email", rememberedEmail);
   }
-  if (redirect === "files") {
-    toast.error(" لمشاهدة ملفاتك يرجى تسجيل الدخول أولاً");
-  }
-
-  toastShown.current = true;
-}, []);
+}, [setValue]);
 
 
-  // عند التحميل: قراءة rememberedEmail و rememberMe
-  useEffect(() => {
-    const rememberedEmail = localStorage.getItem("rememberedEmail");
-    const rememberFlag = localStorage.getItem("rememberMe"); // "1" أو "0" أو null
-    if (rememberedEmail) {
-      setValue("Email", rememberedEmail);
-      setRemember(true);
-    } else if (rememberFlag === "1") {
-      // المستخدم فعّل الخيار سابقًا لكن لم نخزن الإيميل بعد
-      setRemember(true);
-    }
-  }, [setValue]);
-
-  // عند تغيير الcheckbox: نحفظ العلم فوراً، وإذا ألغاه المستخدم نمسح الايميل
   const onToggleRemember = (checked) => {
     setRemember(checked);
     if (!checked) {
-      // لو ألغى: امسح الايميل المخزن فورًا (UX)
       localStorage.removeItem("rememberedEmail");
       localStorage.setItem("rememberMe", "0");
     } else {
-      // لو فعّل: سجل العلم، لكن الايميل نفسه نحفظه عند نجاح الدخول
       localStorage.setItem("rememberMe", "1");
     }
   };
 
-  // الدالة الرئيسية لتسجيل الدخول
   const registerForm = async (values) => {
     setLoading(true);
     try {
+      const check = await axios.get(
+        "https://sewarwellnessclinic1.runasp.net/api/validation/CheckEmail",
+        { params: { email: values.Email } }
+      );
+
+      if (!check.data.exists) {
+        toast.custom(
+          (t) => (
+            <div
+              style={{
+                background: "#FAF1F4",
+                padding: "16px 20px",
+                borderRadius: "12px",
+                color: "white",
+                direction: "rtl",
+                display: "flex",
+                flexDirection: "column",
+                gap: "6px",
+                boxShadow: "0 4px 14px rgba(0,0,0,0.2)",
+                width: "280px",
+                textAlign: "center",
+                border: "2px solid #E4A6A6",
+              }}
+            >
+              <strong style={{ fontSize: "16px", color: "#D28C8C" }}>
+                البريد غير مسجّل
+              </strong>
+
+              <span style={{ fontSize: "14px", lineHeight: "1.5", color: "#D28C8C" }}>
+                لا يوجد حساب مرتبط بهذا البريد الإلكتروني.
+              </span>
+
+              <span
+                onClick={() => {
+                  toast.dismiss(t.id);
+                  navigate("/signup");
+                }}
+                style={{
+                  marginTop: "4px",
+                  color: "#FFF",
+                  background: "#E4A6A6",
+                  padding: "8px 12px",
+                  borderRadius: "8px",
+                  fontWeight: "bold",
+                  cursor: "pointer",
+                  fontSize: "14px",
+                }}
+              >
+                إنشاء حساب جديد
+              </span>
+            </div>
+          ),
+          { duration: 4000 }
+        );
+
+        setLoading(false);
+        return;
+      }
+
       const payload = {
         Email: values.Email,
         password: values.Password,
-        rememberMe: remember, // ✅ صح كده
+        rememberMe: remember,
       };
 
       const response = await axios.post(
         "https://sewarwellnessclinic1.runasp.net/api/LoginPatient/login",
         payload
       );
-
-      console.log("Response:", response.data);
 
       const sessionData = {
         token: response.data.token,
@@ -97,6 +146,7 @@ useEffect(() => {
       };
 
       localStorage.setItem("user", JSON.stringify(sessionData));
+      localStorage.setItem("parentId", response.data.userId);
 
       if (remember) {
         localStorage.setItem("rememberedEmail", values.Email);
@@ -133,72 +183,46 @@ useEffect(() => {
                 color: "#2a7371",
               }}
             >
-              <FaRegGrinStars color="#FFD700" size={24} /> {/* أيقونة ترحيب */}
+              <FaRegGrinStars color="#FFD700" size={24} />
               أهلاً بك في مركز سوار
             </div>
-            <div
-              style={{ marginTop: "8px", fontSize: "14px", color: "#2a7371" }}
-            >
+            <div style={{ marginTop: "8px", fontSize: "14px", color: "#2a7371" }}>
               نتمنى لك تجربة علاجية مميزة معنا
             </div>
           </div>
         ),
-        { duration: 10000 } // يظهر لمدة دقيقة
+        { duration: 2000 }
       );
-      // ✅ بعد نجاح تسجيل الدخول
-     // ✅ بعد نجاح تسجيل الدخول
-// بعد تسجيل الدخول بنجاح
-// قراءة الصفحة المطلوبة قبل تسجيل الدخول
-let redirectAfterLogin = localStorage.getItem("redirectAfterLogin");
-const userType = (sessionData.userType || "").toLowerCase();
 
-// --- معالجة حالات التحويل --- //
+      let redirectAfterLogin = localStorage.getItem("redirectAfterLogin");
+      const userType = (sessionData.userType || "").toLowerCase();
 
-// 1️⃣ حالة الملفات
-if (redirectAfterLogin === "files") {
-  // توجيه حسب نوع المستخدم
-  if (userType === "patient") {
-    redirectAfterLogin = "/FilesPagePatient";
-  } else {
-    redirectAfterLogin = "/FilesPage";
-  }
-}
+      if (redirectAfterLogin === "files") {
+        redirectAfterLogin =
+          userType === "patient" ? "/FilesPagePatient" : "/FilesPage";
+      } else if (redirectAfterLogin === "consultation") {
+        redirectAfterLogin =
+          userType === "doctor" || userType === "doctor_admin"
+            ? "/consultation-doctor"
+            : "/inquiry";
+      } else if (
+        !redirectAfterLogin ||
+        redirectAfterLogin === "/signin" ||
+        redirectAfterLogin === "/signup"
+      ) {
+        redirectAfterLogin =
+          userType === "doctor" || userType === "doctor_admin"
+            ? "/FilesPage"
+            : "/";
+      }
 
-// 2️⃣ حالة الاستشارة
-else if (redirectAfterLogin === "consultation") {
-  redirectAfterLogin =
-    userType === "doctor" || userType === "doctor_admin"
-      ? "/consultation-doctor"
-      : "/inquiry";
-}
-
-// 3️⃣ لو ما في redirect محفوظ (دخول عادي)
-else if (
-  !redirectAfterLogin ||
-  redirectAfterLogin === "/signin" ||
-  redirectAfterLogin === "/signup"
-) {
-  if (userType === "doctor" || userType === "doctor_admin") {
-    redirectAfterLogin = "/FilesPage";
-  } else if (userType === "patient") {
-    redirectAfterLogin = "/";
-  } else {
-    redirectAfterLogin = "/";
-  }
-}
-
-// 4️⃣ احذف المفتاح بعد الاستخدام
-localStorage.removeItem("redirectAfterLogin");
-
-// 5️⃣ التوجيه النهائي
-navigate(redirectAfterLogin);
-
+      localStorage.removeItem("redirectAfterLogin");
+      navigate(redirectAfterLogin);
     } catch (error) {
-      console.error("Login error full:", error.response?.data || error.message);
       toast.error(
         error.response?.data?.message ||
           JSON.stringify(error.response?.data) ||
-          "خطأ في تسجيل الدخول"
+          "حدث خطأ أثناء تسجيل الدخول"
       );
     } finally {
       setLoading(false);
@@ -212,20 +236,28 @@ navigate(redirectAfterLogin);
       <form className={styles.formBox} onSubmit={handleSubmit(registerForm)}>
         {/* Email */}
         <div className="form-floating mb-4 position-relative">
-          <input
-            {...register("Email", {
-              required: "Please Enter Email",
-              pattern: {
-                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                message: "Email must be valid",
-              },
-            })}
-            type="email"
-            className={`form-control ${styles.customInput}`}
-            id="floatingEmail"
-            placeholder="name@gmail.com"
-          />
-          <label htmlFor="floatingEmail">Email address</label>
+        <input
+  {...register("Email", {
+    required: "يرجى إدخال البريد الإلكتروني",
+    pattern: {
+      value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+      message: "صيغة البريد الإلكتروني غير صحيحة",
+    },
+  })}
+  type="email"
+  className={`form-control ${styles.customInput}`}
+  id="floatingEmail"
+  placeholder="name@gmail.com"
+  onChange={(e) => {
+    setValue("Email", e.target.value);
+
+    if (remember) {
+      localStorage.setItem("rememberedEmail", e.target.value);
+    }
+  }}
+/>
+
+          <label htmlFor="floatingEmail">البريد الإلكتروني</label>
           {errors.Email && (
             <p className={`${styles.textBeige} position-absolute small`}>
               {errors.Email.message}
@@ -238,12 +270,12 @@ navigate(redirectAfterLogin);
           <div className="form-floating position-relative">
             <input
               {...register("Password", {
-                required: "Please Enter Password",
+                required: "يرجى إدخال كلمة المرور",
                 pattern: {
                   value:
                     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,15}$/,
                   message:
-                    "Password must be 8-15 characters, contain a number, uppercase, lowercase and special char",
+                    "يجب أن تكون كلمة المرور 8-15 حرفًا وتشمل حرف كبير وصغير ورقم ورمز",
                 },
               })}
               type={showPassword ? "text" : "password"}
@@ -255,13 +287,11 @@ navigate(redirectAfterLogin);
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               className={styles.showPasswordButton}
-              aria-label={
-                showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"
-              }
+              aria-label={showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
             >
               {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
             </button>
-            <label htmlFor="floatingPassword">Password</label>
+            <label htmlFor="floatingPassword">كلمة المرور</label>
           </div>
           {errors.Password && (
             <p className={`${styles.textBeige}`}>{errors.Password.message}</p>
@@ -269,14 +299,13 @@ navigate(redirectAfterLogin);
         </div>
 
         {/* Forgot */}
-
         <div className="mb-3">
           <Link
             to="/forgetPassword"
             className="text-decoration-none"
             style={{ fontSize: 14, color: "beige" }}
           >
-            Forgot password?
+            نسيت كلمة المرور؟
           </Link>
         </div>
 
@@ -290,7 +319,7 @@ navigate(redirectAfterLogin);
             htmlFor="rememberSwitch"
             style={{ fontSize: 14, color: "beige", padding: "0px" }}
           >
-            Remember sign in details
+            تذكّر بيانات تسجيل الدخول
           </label>
           <input
             style={{ marginLeft: "0" }}
@@ -309,7 +338,7 @@ navigate(redirectAfterLogin);
             className={`${styles.myBtn} btn w-100`}
             disabled={loading}
           >
-            {loading ? "جاري تسجيل الدخول..." : "Log in"}
+            {loading ? "جاري تسجيل الدخول..." : "تسجيل الدخول"}
           </button>
         </div>
 
@@ -332,7 +361,7 @@ navigate(redirectAfterLogin);
               marginRight: 10,
             }}
           />
-          <span>OR</span>
+          <span>أو</span>
           <hr
             style={{
               flex: 1,
@@ -346,18 +375,18 @@ navigate(redirectAfterLogin);
         {/* Google */}
         <GoogleLoginButton setLoading={setLoading} />
 
-        {/* Sign up link */}
+        {/* Sign up */}
         <p
           className="text-center mt-4"
           style={{ fontSize: 14, color: "beige" }}
         >
-          Don't have an account?{" "}
+          ليس لديك حساب؟{" "}
           <Link
             to="/signup"
             className="text-decoration-none"
             style={{ fontSize: 14, color: "beige" }}
           >
-            Sign up
+            إنشاء حساب
           </Link>
         </p>
       </form>

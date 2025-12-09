@@ -8,7 +8,7 @@ function ForgetPassword() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [isError, setIsError] = useState(false);
-  const [showToast, setShowToast] = useState(false); // للتحكم بظهور الاشعار
+  const [showToast, setShowToast] = useState(false);
 
   useEffect(() => {
     document.body.classList.add(styles.loginBody);
@@ -42,20 +42,19 @@ function ForgetPassword() {
       );
 
       const result = await response.json();
-      console.log("📩 استجابة السيرفر:", result); // 🔹 يطبع الرد في الكونسول
+      console.log("📩 استجابة السيرفر:", result);
 
       if (response.ok) {
-        setMessage("✅ Reset password link sent to your email.");
+        setMessage("✅ تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني.");
         setIsError(false);
-        setShowToast(true);  // عرض الاشعار
+        setShowToast(true);
         reset();
       } else {
         setMessage("⚠️ هذا البريد غير مسجل لدينا");
         setIsError(true);
-        setShowToast(true);  // عرض الاشعار
+        setShowToast(true);
       }
 
-      // اخفاء الاشعار بعد 3 ثواني
       setTimeout(() => setShowToast(false), 120000);
 
     } catch (error) {
@@ -73,7 +72,6 @@ function ForgetPassword() {
     <div className={styles.container}>
       <img src={logoo} className={styles.loginImage} alt="Clinic Logo" />
 
-      {/* اشعار فوق الصفحة */}
       {showToast && (
         <div
           className={`alert ${isError ? "alert-danger" : "alert-success"} text-center`}
@@ -93,7 +91,7 @@ function ForgetPassword() {
       )}
 
       <form className={styles.formBox} onSubmit={handleSubmit(onSubmit)}>
-        <h1 className={styles.formBox}>Forgot Password</h1>
+        <h1 className={styles.formBox}>نسيت كلمة المرور</h1>
 
         <div className="mb-4">
           <div className="form-floating">
@@ -110,7 +108,7 @@ function ForgetPassword() {
               id="floatingEmail"
               placeholder="name@gmail.com"
             />
-            <label htmlFor="floatingEmail">Enter Your Email Address</label>
+            <label htmlFor="floatingEmail">أدخل بريدك الإلكتروني</label>
           </div>
           {errors.Email && (
             <p className={`${styles.textBeige}`}>{errors.Email.message}</p>
@@ -123,7 +121,7 @@ function ForgetPassword() {
             className={`${styles.myBtn} btn w-100`}
             disabled={loading}
           >
-            {loading ? "جاري الإرسال..." : "Continue"}
+            {loading ? "جاري الإرسال..." : "متابعة"}
           </button>
         </div>
 
@@ -131,13 +129,13 @@ function ForgetPassword() {
           className="text-center mt-4"
           style={{ fontSize: 14, color: "beige" }}
         >
-          Don't have an account ?{" "}
+          ليس لديك حساب؟{" "}
           <Link
             to="/signup"
             className="text-decoration-none"
             style={{ fontSize: 14, color: "beige" }}
           >
-            Sign up
+            إنشاء حساب
           </Link>
         </p>
       </form>

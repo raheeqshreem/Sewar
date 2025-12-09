@@ -1,3 +1,4 @@
+                                                      
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useState, forwardRef } from "react";
 import { Form, InputGroup } from "react-bootstrap";
@@ -16,6 +17,7 @@ export default function FormAppointment() {
   const location = useLocation();
 const [sessionPlace, setSessionPlace] = useState(""); 
 const [homeAddress, setHomeAddress] = useState("");
+const [checkingId, setCheckingId] = useState(false);
 
   const selectedSlotFromState = location.state?.selectedSlot || { day: "", time: "" };
 const user = JSON.parse(localStorage.getItem("user"));
@@ -24,6 +26,17 @@ const email = user?.email;
 console.log("email : " , email);
 const isSecretary = user?.userType === "scheduler_admin"; // تحقق إذا المستخدم سكرتير
   const [uploadedImages, setUploadedImages] = useState([]);
+
+  useEffect(() => {
+  if (uploadedImages.length > 0) {
+    localStorage.setItem("uploadedImages", JSON.stringify(uploadedImages.map(file => ({
+      name: file.name,
+      size: file.size,
+      type: file.type
+    }))));
+  }
+}, [uploadedImages]);
+
   const [formData, setFormData] = useState({
     name: "",
     birthDate: null,
@@ -43,6 +56,37 @@ const isSecretary = user?.userType === "scheduler_admin"; // تحقق إذا ا�
 
 const [childId, setChildId] = useState();
 const [email1, setEmail1] = useState();
+const [hasPreviousAppointments, setHasPreviousAppointments] = useState(false);
+
+const parentIdFromStorage = localStorage.getItem("parentId");
+
+const parentId = location.state?.parentId || parentIdFromStorage || null;
+
+console.log("📌 ParentID:", parentId);
+
+
+
+
+// استرجاع formData و answers و sessionPlace و homeAddress و الصور من localStorage
+useEffect(() => {
+  const storedFormData = localStorage.getItem("formData");
+  if (storedFormData) setFormData(JSON.parse(storedFormData));
+
+  const storedAnswers = localStorage.getItem("answers");
+  if (storedAnswers) setAnswers(JSON.parse(storedAnswers));
+
+  const storedSessionPlace = localStorage.getItem("sessionPlace");
+  if (storedSessionPlace) setSessionPlace(storedSessionPlace);
+
+  const storedHomeAddress = localStorage.getItem("homeAddress");
+  if (storedHomeAddress) setHomeAddress(storedHomeAddress);
+
+  const storedUploadedImages = localStorage.getItem("uploadedImages");
+  if (storedUploadedImages) {
+    // الصور لازم نعمل تحويل من JSON لأبجكت File
+    setUploadedImages(JSON.parse(storedUploadedImages));
+  }
+}, []);
 
 
 useEffect(() => {
@@ -130,6 +174,30 @@ useEffect(() => {
 
 
 
+useEffect(() => {
+  if (!formData.IDnumber) return; // ما في رقم هوية → لا تستدعي API
+
+  const token = getTokenFromStorage();
+  if (!token) return;
+
+  axios.get(
+    `https://sewarwellnessclinic1.runasp.net/api/validation/ChildHasAppointments`,
+    {
+      params: { idnumber: formData.IDnumber },
+      headers: { Authorization: `Bearer ${token}` }
+    }
+  )
+  .then((res) => {
+    console.log("✅ الرد من API ChildHasAppointments:", res.data);
+    setHasPreviousAppointments(res.data.hasAppointments);
+  })
+  .catch((err) => {
+    console.error("❌ خطأ عند جلب ChildHasAppointments:", err);
+    setHasPreviousAppointments(false);
+  });
+}, [formData.IDnumber]);
+
+
 const handleEditLocation = (visiteId, currentLocation) => {
   const newLocation = prompt("عدل مكان الزيارة:", currentLocation);
   if (newLocation !== null) {
@@ -186,6 +254,12 @@ const handleEditLocation = (visiteId, currentLocation) => {
 
   if (step === 1) {
     setFormData({ ...formData, [name]: value });
+    // بعد كل setFormData
+localStorage.setItem("formData", JSON.stringify({
+  ...formData,
+  [name]: value
+}));
+
 
     let errorMsg = "";
 
@@ -194,27 +268,85 @@ const handleEditLocation = (visiteId, currentLocation) => {
       errorMsg = "يجب أن يحتوي الاسم على حروف فقط";
     }
 
-    // 🔹 تحقق من رقم الهوية
-    if (name === "IDnumber") {
-      if (arabicNumberRegex.test(value)) {
-        errorMsg = "يرجى إدخال رقم الهوية بالأرقام الإنجليزية فقط (0-9)";
-      } else if (value && !/^\d+$/.test(value)) {
-        errorMsg = "يرجى إدخال رقم";
+   // 🔹 تحقق من رقم الهوية
+// 🔹 تحقق من رقم الهوية
+if (name === "IDnumber") {
+  let errorMsg = "";
+
+  // التحقق من الأرقام العربية
+  if (arabicNumberRegex.test(value)) {
+    errorMsg = "يرجى إدخال رقم الهوية بالأرقام الإنجليزية فقط (0-9)";
+  } 
+  // التحقق من أن كل الأحرف أرقام
+  else if (value && !/^\d+$/.test(value)) {
+    errorMsg = "يرجى إدخال أرقام فقط";
+  } 
+  // التحقق من طول رقم الهوية
+  else if (value.length !== 9) {
+    errorMsg = "رقم الهوية يجب أن يكون 9 أرقام";
+  }
+
+  // تحديث الأخطاء
+  setErrors((prev) => ({ ...prev, IDnumber: errorMsg }));
+
+  // إذا في خطأ → لا تفحص API
+  if (errorMsg) return;
+
+  // فحص API فقط إذا الرقم صحيح 9 digits
+  if (value.length === 9) {
+    const token = getTokenFromStorage();
+    if (!token) return;
+
+    setCheckingId(true);
+
+    axios.get(
+      `https://sewarwellnessclinic1.runasp.net/api/validation/CheckChildIdNumber`,
+      {
+        params: {
+          idnumber: value,
+          currentPatientId: parentId || "00000000-0000-0000-0000-000000000000",
+        },
+        headers: { Authorization: `Bearer ${token}` },
       }
-    }
+    )
+    .then((res) => {
+      if (res.data.existsForOtherPatient && !isSecretary) {
+        setErrors((prev) => ({
+          ...prev,
+          IDnumber: `رقم الهوية مستخدم مسبقاً في حساب المستخدم: ${res.data.parentName}`,
+        }));
+      } else {
+        setErrors((prev) => ({ ...prev, IDnumber: "" }));
+      }
+    })
+    .catch(() => {})
+    .finally(() => setCheckingId(false));
+  }
+
+  return; // ⛔ مهم جداً حتى لا ينزل للأسفل ويلخبط errors
+}
+
+
+
 
     // 🔹 تحقق من رقم الهاتف
-    if (name === "phone") {
-      if (arabicNumberRegex.test(value)) {
-        errorMsg = "يرجى إدخال رقم الهاتف بالأرقام الإنجليزية فقط (0-9)";
-      } else if (value && !/^\d+$/.test(value)) {
-        errorMsg = "يرجى إدخال رقم";
-      }
-    }
+   // 🔹 تحقق من رقم الهاتف
+if (name === "phone") {
+  if (arabicNumberRegex.test(value)) {
+    errorMsg = "يرجى إدخال رقم الهاتف بالأرقام الإنجليزية فقط (0-9)";
+  } else if (value && !/^\d+$/.test(value)) {
+    errorMsg = "يرجى إدخال أرقام فقط";
+  } else if (value.length < 7 || value.length > 10) {
+    errorMsg = "رقم الهاتف يجب أن يكون بين 7 و 10 أرقام";
+  }
+}
+
 
     setErrors((prev) => ({ ...prev, [name]: errorMsg }));
   } else {
     setAnswers({ ...answers, [name]: value });
+localStorage.setItem("answers", JSON.stringify({ ...answers, [name]: value }));
+
   }
 };
 
@@ -223,6 +355,8 @@ const handleEditLocation = (visiteId, currentLocation) => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = "يجب إدخال الاسم";
     if (!formData.IDnumber) newErrors.IDnumber = "يجب إدخال رقم الهوية";
+
+
     if (!formData.birthDate) newErrors.birthDate = "يجب إدخال تاريخ الميلاد";
     if (!formData.phone) newErrors.phone = "يجب إدخال رقم الهاتف";
     if (!formData.category) newErrors.category = "يجب اختيار الفئة";
@@ -234,6 +368,13 @@ const handleEditLocation = (visiteId, currentLocation) => {
   // ✅ الفاليديشن الصحيح للعنوان
   if (sessionPlace === "home" && !homeAddress.trim())
     newErrors.homeAddress = "يرجى إدخال عنوان المنزل";
+     
+
+// ✅ فقط للمريض: منع المتابعة إذا رقم الهوية مستخدم مسبقاً
+  if (!isSecretary && errors.IDnumber?.includes("مستخدم مسبقاً")) {
+    newErrors.IDnumber = errors.IDnumber;
+  }
+
 
     return newErrors;
   };
@@ -343,6 +484,12 @@ console.log("payload:", {
       toast.dismiss();
       console.log("✅ استجابة الباك:", res.data);
       toast.success("تم تثبيت موعد المراجعة بنجاح ✅", { duration: 3000 });
+// ⬅️ هنا نضيف مسح البيانات من localStorage
+  localStorage.removeItem("formData");
+  localStorage.removeItem("answers");
+  localStorage.removeItem("sessionPlace");
+  localStorage.removeItem("homeAddress");
+  localStorage.removeItem("uploadedImages");
 
       setFormData({
         name: "",
@@ -457,6 +604,12 @@ console.log("payload:", {
       toast.dismiss();
       console.log("✅ استجابة الباك:", res.data);
       toast.success("تم تثبيت موعد المراجعة بنجاح ✅", { duration: 3000 });
+// ⬅️ هنا نضيف مسح البيانات من localStorage
+  localStorage.removeItem("formData");
+  localStorage.removeItem("answers");
+  localStorage.removeItem("sessionPlace");
+  localStorage.removeItem("homeAddress");
+  localStorage.removeItem("uploadedImages");
 
       setFormData({
         name: "",
@@ -545,6 +698,12 @@ console.log("payload:", {
       toast.dismiss();
       console.log("✅ استجابة الباك:", res.data);
       toast.success("تم تثبيت موعد المراجعة بنجاح ✅", { duration: 3000 });
+// ⬅️ هنا نضيف مسح البيانات من localStorage
+  localStorage.removeItem("formData");
+  localStorage.removeItem("answers");
+  localStorage.removeItem("sessionPlace");
+  localStorage.removeItem("homeAddress");
+  localStorage.removeItem("uploadedImages");
 
       setFormData({
         name: "",
@@ -675,6 +834,12 @@ navigate("/ReportPreviewKids", {
 
     toast.dismiss();
     toast.success("تم تثبيت موعدك بنجاح ✅", { duration: 3000 });
+// ⬅️ هنا نضيف مسح البيانات من localStorage
+  localStorage.removeItem("formData");
+  localStorage.removeItem("answers");
+  localStorage.removeItem("sessionPlace");
+  localStorage.removeItem("homeAddress");
+  localStorage.removeItem("uploadedImages");
 
     setAnswers({});
     setUploadedImages([]);
@@ -973,7 +1138,7 @@ const handleFinalSubmit = (e) => {
                 )}
               </Form.Group>
 
-              <Form.Group style={{ marginBottom: "30px" }} controlId="formID">
+             <Form.Group style={{ marginBottom: "30px" }} controlId="formID">
                 <Form.Control
                   type="text"
                   placeholder="أدخل رقم هوية المريض"
@@ -993,6 +1158,12 @@ const handleFinalSubmit = (e) => {
                 )}
               </Form.Group>
 
+
+              {checkingId && (
+  <p style={{ color: "blue", marginTop: "5px" }}>
+    جاري التحقق...
+  </p>
+)}
               <Form.Group style={{ marginBottom: "30px" }} controlId="formPhone">
                 <InputGroup>
                   <Form.Control
@@ -1097,7 +1268,7 @@ const handleFinalSubmit = (e) => {
                     >
                       <option value="">اختر الحالة المرضية...</option>
                       <option value="جديدة">حالة مرضية جديدة</option>
-                      <option value="مراجعة">مراجعة</option>
+  {hasPreviousAppointments && <option value="مراجعة">مراجعة</option>}
                     </Form.Select>
                     {errors.medicalStatus && (
                       <div className="text-danger text-end mt-2">{errors.medicalStatus}</div>
@@ -1114,6 +1285,8 @@ const handleFinalSubmit = (e) => {
     value={sessionPlace}
   onChange={(e) => {
     setSessionPlace(e.target.value);
+    localStorage.setItem("sessionPlace", e.target.value);
+
     setErrors((prev) => ({ ...prev, sessionPlace: "" })); // ⬅️ يشيل الخطأ أول ما المستخدم يختار
   }}    isInvalid={!!errors.sessionPlace}
     style={{
@@ -1143,6 +1316,8 @@ const handleFinalSubmit = (e) => {
       value={homeAddress}
     onChange={(e) => {
     setHomeAddress(e.target.value);
+      localStorage.setItem("homeAddress", e.target.value);
+
     setErrors((prev) => ({ ...prev, homeAddress: "" })); // ⬅️ يشيل الخطأ عند الكتابة
   }}
       

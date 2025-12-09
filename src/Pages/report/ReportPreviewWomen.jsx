@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -75,7 +75,13 @@ useEffect(() => {
 
 
 
+useEffect(() => {
+  const savedDraft = localStorage.getItem("reportDraft_" + reportId);
 
+  if (savedDraft) {
+    setFormData(JSON.parse(savedDraft));
+  }
+}, [reportId]);
 
 useEffect(() => {
   const fetchReport = async () => {
@@ -83,17 +89,14 @@ useEffect(() => {
       const response = await axios.get(
         `https://sewarwellnessclinic1.runasp.net/api/FilesPage/report-details/${reportId}`
       );
+
       const data = response.data;
 
-      console.log("Data from API:", data); // 🔹 هذا السطر يطبع كل البيانات بالكونسول
-
-      setFormData({
+      const apiData = {
         patientName: data.childInfo?.fullname || "",
-  gender: data.name === 0 ? "Kid" : data.name === 1 ? "Women" : "",
+        gender: data.name === 0 ? "Kid" : data.name === 1 ? "Women" : "",
         occupation: data.childInfo?.occupation || "",
-        dateOfBirth: data.childInfo?.birthDate
-          ? data.childInfo.birthDate.split("T")[0]
-          : "",
+        dateOfBirth: data.childInfo?.birthDate ? data.childInfo.birthDate.split("T")[0] : "",
         diagnosis: data.caseReport?.dignosis || "",
         presentHistory: data.caseReport?.present_History || "",
         chronicDiseases: data.caseReport?.chronic_Disease || "",
@@ -112,44 +115,53 @@ useEffect(() => {
         mmtFindings: data.objectivesAndFindings?.mmt_findings || "",
         reflexFindings: data.objectivesAndFindings?.reflexes || "",
         specialTestFindings: data.objectivesAndFindings?.special_tests || "",
-    date: data.date ? data.date.split("T")[0] : "",
+        date: data.date ? data.date.split("T")[0] : "",
 
         listOfProblem: data.assesment?.problemlist || "",
         shortGoals: data.assesment?.shortTermText || "",
         longGoals: data.assesment?.longTermText || "",
         planOfCare: data.assesment?.planOfcareText || "",
-homeProgram: data.assesment?.homeprogrem || "",
+        homeProgram: data.assesment?.homeprogrem || "",
 
         medicalDiagnosis: data.caseReport?.dignosis || "",
-physioDiagnosis: data.caseReport?.phDignosis || ""
+        physioDiagnosis: data.caseReport?.phDignosis || ""
+      };
+
+      const draft = localStorage.getItem("reportDraft_" + reportId);
+      const draftData = draft ? JSON.parse(draft) : {};
+
+      setFormData({
+        ...apiData,
+        ...draftData
       });
 
-setOtherImages(data.caseReport?.cimages || []);
-setPlanImages(data.assesment?.aimages || []);
-setHomeImages(data.objectivesAndFindings?.oimages || []);
-console.log("Other images from backend:", data.caseReport?.cimages);
-// للـ plan images
-console.log("Other images from plan:", data.assesment?.aimages);
-
-// للـ home images
-console.log("Other images home:", data.objectivesAndFindings?.oimages);
+      setOtherImages(data.caseReport?.cimages || []);
+      setPlanImages(data.assesment?.aimages || []);
+      setHomeImages(data.objectivesAndFindings?.oimages || []);
     } catch (err) {
       console.error(err);
       alert("فشل جلب بيانات التقرير من السيرفر.");
     }
   };
 
-  if (reportId) fetchReport();
+  fetchReport();
 }, [reportId]);
 
 
 
-
   // 🔹 دالة التغيير لأي حقل
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+const handleChange = (e) => {
+  const { name, value } = e.target;
+
+  setFormData((prev) => {
+    const updated = { ...prev, [name]: value };
+
+    // ✨ احفظ التغييرات في localStorage
+    localStorage.setItem("reportDraft_" + reportId, JSON.stringify(updated));
+
+    return updated;
+  });
+};
 
   // 🔹 دالة الإرسال (زر الحفظ)
 const handleSubmit = async (e) => {
@@ -234,7 +246,8 @@ homeImages.forEach(file => {
     );
 
     console.log("Response:", response.data);
-    alert("✅ تم رفع التقرير والصور بنجاح!");
+alert("تم حفظ التقرير بنجاح!");
+localStorage.removeItem("reportDraft_" + reportId);
   } catch (err) {
     console.error(err);
     alert("❌ حدث خطأ أثناء رفع التقرير.");

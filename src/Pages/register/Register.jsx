@@ -12,12 +12,11 @@ function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [showComfirmPassword, setShowComfirmPassword] = useState(false);
   const user = JSON.parse(localStorage.getItem("user"));
-console.log(JSON.parse(localStorage.getItem("user")));
-const isSecretary = user?.userType === "scheduler_admin"; // تحقق إذا المستخدم سكرتير
+  console.log(JSON.parse(localStorage.getItem("user")));
+  const isSecretary = user?.userType === "scheduler_admin";
+
   useEffect(() => {
-    // هذا الكود يضيف خلفية خاصة للصفحة عند الدخول إليها
     document.body.classList.add(styles.loginBody);
-    // ويزيلها عند الخروج
     return () => {
       document.body.classList.remove(styles.loginBody);
     };
@@ -31,6 +30,26 @@ const isSecretary = user?.userType === "scheduler_admin"; // تحقق إذا ا�
     formState: { errors },
   } = useForm({ mode: "onChange" });
 
+
+// استعادة البيانات بعد فتح الصفحة
+useEffect(() => {
+  const saved = localStorage.getItem("registerForm");
+  if (saved) {
+    reset(JSON.parse(saved));
+  }
+}, [reset]);
+
+// حفظ القيم أثناء الكتابة
+useEffect(() => {
+  const subscription = watch((value) => {
+    localStorage.setItem("registerForm", JSON.stringify(value));
+  });
+
+  return () => subscription.unsubscribe();
+}, [watch]);
+
+
+
   const navigate = useNavigate();
   const password = watch("Password");
 
@@ -38,13 +57,10 @@ const isSecretary = user?.userType === "scheduler_admin"; // تحقق إذا ا�
     const payload = {
       Email: values.Email,
       Password: values.Password,
-      // في الفورم اسم\ الحقل ConfirmPass -> في الباك Confirmpassword
       Confirmpassword: values.ConfirmPass,
       FirstName: values.FirstName,
       LastName: values.LastName,
-      // لو عندك UserName في الفورم استخدمه، ولو مش موجود خلي الايميل كـ username
       UserName: values.UserName || values.Email,
-      // لو عايز تبعت UserType عشان الباك يختار role ممكن تبعته كحقل اضافي
     };
 
     try {
@@ -56,15 +72,14 @@ const isSecretary = user?.userType === "scheduler_admin"; // تحقق إذا ا�
         }
       );
 
-      toast.success(res.data || "تم انشاء حسابك بنجاح.");
+      toast.success(res.data || "تم إنشاء حسابك بنجاح.");
       reset();
+localStorage.removeItem("registerForm");
 
-
-      if(isSecretary){
-      navigate("/users");}
-      else{
-      navigate("/signin");
-
+      if (isSecretary) {
+        navigate("/users");
+      } else {
+        navigate("/signin");
       }
     } catch (err) {
       const msg =
@@ -73,33 +88,29 @@ const isSecretary = user?.userType === "scheduler_admin"; // تحقق إذا ا�
     }
   };
 
-
-
-
   return (
-    // العنصر الحاوي الرئيسي الذي يتحكم في التجاوب
     <div className={styles.container}>
-      {/* العنصر الأول: الصورة */}
-      <img src={logoo} className={styles.loginImage} alt="Clinic Logo" />
+      {/* الصورة */}
+      <img src={logoo} className={styles.loginImage} alt="شعار العيادة" />
 
-      {/* العنصر الثاني: الفورم */}
+      {/* الفورم */}
       <form className={styles.formBox} onSubmit={handleSubmit(registerForm)}>
         <div className="form-floating mb-4 position-relative">
           <div className="form-floating mb-4 position-relative">
             <input
               {...register("FirstName", {
-                required: "Please Enter First Name",
+                required: "يرجى إدخال الاسم الأول",
                 pattern: {
-                  value: /^[^\d]+$/, // يقبل أي حرف أو رمز، ويمنع الأرقام
-                  message: "First Name cannot contain numbers",
+                  value: /^[^\d]+$/,
+                  message: "لا يمكن أن يحتوي الاسم الأول على أرقام",
                 },
               })}
               type="text"
               className={`form-control ${styles.customInput}`}
               id="firstName"
-              placeholder="First Name"
+              placeholder="الاسم الأول"
             />
-            <label htmlFor="firstName">First Name</label>
+            <label htmlFor="firstName">الاسم الأول</label>
             {errors.FirstName && (
               <p className={`${styles.textBeige} position-absolute small`}>
                 {errors.FirstName.message}
@@ -112,18 +123,18 @@ const isSecretary = user?.userType === "scheduler_admin"; // تحقق إذا ا�
           <div className="form-floating mb-4 position-relative">
             <input
               {...register("LastName", {
-                required: "Please Enter Last Name",
+                required: "يرجى إدخال اسم العائلة",
                 pattern: {
-                  value: /^[^\d]+$/, // يقبل أي حرف أو رمز، ويمنع الأرقام
-                  message: "Last Name cannot contain numbers",
+                  value: /^[^\d]+$/,
+                  message: "لا يمكن أن يحتوي اسم العائلة على أرقام",
                 },
               })}
               type="text"
               className={`form-control ${styles.customInput}`}
               id="lastName"
-              placeholder="Last Name"
+              placeholder="اسم العائلة"
             />
-            <label htmlFor="lastName">Last Name</label>
+            <label htmlFor="lastName">اسم العائلة</label>
             {errors.LastName && (
               <p className={`${styles.textBeige} position-absolute small`}>
                 {errors.LastName.message}
@@ -131,14 +142,15 @@ const isSecretary = user?.userType === "scheduler_admin"; // تحقق إذا ا�
             )}
           </div>
         </div>
+
         <div className="mb-4">
           <div className="form-floating mb-4 position-relative">
             <input
               {...register("Email", {
-                required: "Please Enter Email",
+                required: "يرجى إدخال البريد الإلكتروني",
                 pattern: {
-      value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, // أي بريد إلكتروني
-                  message: "Email must be in the format yourname@gmail.com",
+                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                  message: "صيغة البريد الإلكتروني غير صحيحة",
                 },
               })}
               type="email"
@@ -147,74 +159,72 @@ const isSecretary = user?.userType === "scheduler_admin"; // تحقق إذا ا�
               placeholder="name@gmail.com"
             />
 
-            <label htmlFor="floatingEmail">Email address</label>
+            <label htmlFor="floatingEmail">البريد الإلكتروني</label>
+            {errors.Email && (
+              <p className={`${styles.textBeige} position-absolute small`}>
+                {errors.Email.message}
+              </p>
+            )}
           </div>
-          {errors.Email && (
-            <p className={`${styles.textBeige} position-absolute small`}>
-              {errors.Email.message}
-            </p>
-          )}{" "}
         </div>
+
         <div className="mb-4">
           <div className="form-floating  position-relative">
             <input
               {...register("Password", {
-                required: "Please Enter Password",
+                required: "يرجى إدخال كلمة المرور",
                 pattern: {
                   value:
                     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,15}$/,
                   message:
-                    "Password must be 8-15 characters long, contain at least one number, one uppercase letter, one lowercase letter, and one special character",
+                    "يجب أن تكون كلمة المرور من 8-15 حرفًا وتحتوي على حرف كبير وصغير ورقم بالانجليزي ورمز",
                 },
               })}
               type={showPassword ? "text" : "password"}
               className={`form-control ${styles.customInput}`}
               id="floatingPassword"
-              placeholder="Password"
+              placeholder="كلمة المرور"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               className={styles.showPasswordButton}
-              aria-label={
-                showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"
-              }
+              aria-label={showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
             >
               {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
             </button>
-            <label htmlFor="floatingPassword">Password</label>
+            <label htmlFor="floatingPassword">كلمة المرور</label>
           </div>
           {errors.Password && (
             <p className={`${styles.textBeige}`}>{errors.Password.message}</p>
           )}
         </div>
+
         <div className="mb-4">
-          <div className="form-floating  position-relative">
+          <div className="form-floating position-relative">
             <input
               {...register("ConfirmPass", {
-                required: "Please Confirm Password",
+                required: "يرجى تأكيد كلمة المرور",
                 validate: (value) =>
-                  value === password || "Passwords do not match",
+                  value === password || "كلمتا المرور غير متطابقتين",
               })}
               type={showComfirmPassword ? "text" : "password"}
               className={`form-control ${styles.customInput}`}
               id="ConfirmPassword"
-              placeholder="ConfirmPassword"
+              placeholder="تأكيد كلمة المرور"
             />
             <button
               type="button"
               onClick={() => setShowComfirmPassword(!showComfirmPassword)}
               className={styles.showPasswordButton}
-              aria-label={
-                showComfirmPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"
-              }
+              aria-label={showComfirmPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
             >
               {showComfirmPassword ? <Eye size={20} /> : <EyeOff size={20} />}
             </button>
-            <label htmlFor="ConfirmPassword">Confirm Password</label>
+            <label htmlFor="ConfirmPassword">تأكيد كلمة المرور</label>
           </div>
           {errors.ConfirmPass && (
-            <p className={`${styles.textBeige} `}>
+            <p className={`${styles.textBeige}`}>
               {errors.ConfirmPass.message}
             </p>
           )}
@@ -222,16 +232,16 @@ const isSecretary = user?.userType === "scheduler_admin"; // تحقق إذا ا�
 
         <div>
           <button type="submit" className={`${styles.myBtn} btn w-100`}>
-            Sign Up
+            إنشاء حساب
           </button>
         </div>
+
         <div
           style={{
             display: "flex",
             alignItems: "center",
             color: "beige",
             fontSize: 14,
-          
           }}
         >
           <hr
@@ -242,7 +252,7 @@ const isSecretary = user?.userType === "scheduler_admin"; // تحقق إذا ا�
               marginRight: 10,
             }}
           />
-          <span>OR</span>
+          <span>أو</span>
           <hr
             style={{
               flex: 1,
@@ -253,19 +263,19 @@ const isSecretary = user?.userType === "scheduler_admin"; // تحقق إذا ا�
           />
         </div>
 
-        {/* Google */}
-      <GoogleLoginButton/>
-         <p
+        <GoogleLoginButton />
+
+        <p
           className="text-center mt-2"
           style={{ fontSize: 14, color: "beige" }}
         >
-          Do have an account ?{" "}
+          لديك حساب بالفعل؟{" "}
           <Link
             to="/signin"
             className="text-decoration-none"
             style={{ fontSize: 14, color: "beige" }}
           >
-            Sign in
+            تسجيل الدخول
           </Link>
         </p>
       </form>
