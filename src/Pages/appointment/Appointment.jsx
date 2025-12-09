@@ -149,10 +149,16 @@ const handleSelect = (day, time) => {
   setSelectedSlot(slot);
 
 
-  // ✅ تمرير تلقائي للزر
-  setTimeout(() => {
-    bookButtonRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-  }, 100);
+  // ✅ تمرير تلقائي للزر بعد التأكد أنه موجود
+setTimeout(() => {
+  if (bookButtonRef.current) {
+    bookButtonRef.current.scrollIntoView({ 
+      behavior: "smooth", 
+      block: "center" 
+    });
+  }
+}, 300); // زيادة الوقت عشان الصفحة تجهز على الجوال
+
   // عرض مودال التأكيد لأي حالة تعديل
   if(editMode || fromViewEdit || editTarget){
     setPendingChange(slot);
@@ -266,7 +272,7 @@ if (isSecretary) {
   const now = new Date();
 
   return (
-    <div dir="rtl" className="container py-4" style={{ paddingTop: "150px", minHeight:"100vh", fontFamily:"Tahoma", backgroundColor:"#e6f9f8" }}>
+    <div dir="rtl" className="container py-4" style={{ margin:"150px auto", minHeight:"100%", fontFamily:"Tahoma", backgroundColor:"#e6f9f8" }}>
       <div className="d-flex justify-content-between align-items-center mb-3">
         <button onClick={prevWeek} className="btn btn-outline-info rounded-circle" disabled={weekOffset===0} style={{ borderColor:"#00b7b3", color:"#00b7b3", opacity: weekOffset===0?0.4:1 }}><ChevronRight/></button>
         <h5 className="fw-bold" style={{ color:"#2a7371" }}>مواعيد الأسبوع</h5>
