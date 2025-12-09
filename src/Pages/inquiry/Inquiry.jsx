@@ -180,34 +180,36 @@ padding: "0 20px",
       </div>
 
       {showModal && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            backgroundColor: "rgba(0,0,0,0.5)",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "flex-start",
-            zIndex: 1000,
-            paddingTop: "100px",
-            overflowY: "auto",
-          }}
-        >
-          <div
-            style={{
-              backgroundColor: "#fff",
-              borderRadius: "10px",
-              width: "90%",
-              maxWidth: "500px",
-              padding: "20px",
-              position: "relative",
-              textAlign: "right",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-            }}
-          >
+       <div
+    style={{
+      position: "fixed",
+      top: 0,
+      left: 0,
+      width: "100%",
+      height: "100%", // بدل 100vh
+      backgroundColor: "rgba(0,0,0,0.5)",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      zIndex: 1000,
+      padding: "0 10px",
+    }}
+  >
+    <div
+      style={{
+        backgroundColor: "#fff",
+        borderRadius: "10px",
+        width: "100%",
+        maxWidth: "500px",
+        maxHeight: "90%", // خلي المحتوى الداخلي scrollable
+        overflowY: "auto",
+        WebkitOverflowScrolling: "touch", // smooth scroll على iOS
+        padding: "20px",
+        position: "relative",
+        textAlign: "right",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+      }}
+    >
             <span
               style={{
                 position: "absolute",

@@ -25,7 +25,7 @@ useEffect(() => {
         el.scrollIntoView({ behavior: "smooth" });
         window.history.replaceState({}, document.title); // لمسح الـ state
       }
-    }, 100); // 100ms غالبًا كافي
+    }, 300); // 100ms غالبًا كافي
 
     return () => clearTimeout(timeout);
   }

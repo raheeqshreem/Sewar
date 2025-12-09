@@ -32,7 +32,26 @@ const [services, setServices] = useState([]);
 
 const [startIndex, setStartIndex] = useState(0);
 
-  const itemsPerPage = 3;
+// ✅ أولاً: itemsPerPage وحسابه حسب حجم الشاشة
+const [itemsPerPage, setItemsPerPage] = useState(3);
+
+useEffect(() => {
+  const updateItemsPerPage = () => {
+    if (window.innerWidth <= 480) {
+      setItemsPerPage(2); // شاشة الجوال
+    } else {
+      setItemsPerPage(3); // شاشة أكبر
+    }
+  };
+
+  updateItemsPerPage(); // تحديد القيمة عند التحميل
+  window.addEventListener("resize", updateItemsPerPage);
+  return () => window.removeEventListener("resize", updateItemsPerPage);
+}, []);
+
+// ثانياً: حساب العناصر المرئية
+const visibleServices = services.slice(startIndex, startIndex + itemsPerPage);
+
 
   const handleNext = () => {
     if (startIndex + itemsPerPage < services.length) {
@@ -46,8 +65,8 @@ const [startIndex, setStartIndex] = useState(0);
     }
   };
 
-  const visibleServices = services.slice(startIndex, startIndex + itemsPerPage);
   
+
 
 
 
@@ -403,10 +422,12 @@ useEffect(() => {
 <div
   style={{
     position: "relative",
-    maxWidth: "600px",
-    margin: "0 auto",
+    width: "100%", // يأخذ كل عرض الشاشة
+    paddingLeft: "50px", // مساحة للسهم الأيسر
+    paddingRight: "50px", // مساحة للسهم الأيمن
+    margin: " auto",
     marginTop: "150px",
-    marginBottom: "150px",
+    marginBottom: "200px",
     overflow: "visible",
         overflowX: "hidden",   // ← هذا يلغي السكروول الأفقي
 
@@ -421,102 +442,99 @@ useEffect(() => {
       textShadow: "2px 2px 6px rgba(0,0,0,0.3)",
       color: "#2a7371",
       marginBottom: "60px",
+      marginTop:"60px",
     }}
   >
     اختر الخدمة لعرض تقييمها
   </h2>
 
+
+<div
+  style={{
+    position: "relative",
+maxWidth: "100%", // أو حذفه إذا تريد بالتمام
+    margin: "0 auto",
+    overflow: "visible",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: window.innerWidth <= 480 ? "5px" : "10px", // أقل مسافة على الجوال
+    zIndex: 50,
+  }}
+>
+  {/* السهم الأيسر */}
   <div
+    onClick={handlePrev}
     style={{
-      position: "relative",
-      maxWidth: "600px",
-      margin: "0 auto",
-      overflow: "visible",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      gap: "10px",
-      zIndex: 50,
+      position: "absolute",
+      left: window.innerWidth <= 480 ? "-35px" : "-45px", // أقرب للشاشة على الجوال
+      top: "50%",
+      transform: "translateY(-50%)",
+      cursor: startIndex === 0 ? "not-allowed" : "pointer",
+      zIndex: 100,
     }}
   >
-    {/* السهم الأيسر */}
-    <div
-      onClick={handlePrev}
-      style={{
-        position: "absolute",
-        left: "-10px",
-        top: "50%",
-        transform: "translateY(-50%)",
-        cursor: startIndex === 0 ? "not-allowed" : "pointer",
-        zIndex: 100,
-      }}
-    >
-      <ChevronLeft size={40} color="#2a7371" />
-    </div>
+    <ChevronLeft size={window.innerWidth <= 480 ? 30 : 40} color="#2a7371" />
+  </div>
 
-    {/* المستطيلات */}
-   <div style={{ display: "flex", gap: "15px" }}>
-  {visibleServices.map((srv) => (
-    <div
-      key={srv.id}
-      onClick={() =>
-navigate("/ratingtoastCards", { 
-  state: { 
-    serviceId: srv.id, 
-    serviceTitle: srv.title // ⭐ أرسل اسم الخدمة أيضًا
-  } 
-})
-      }
-      style={{
-        minWidth: "140px",
-        height: "80px",
-        borderRadius: "25px", // حواف منحنية
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        background: "linear-gradient(135deg, #2a7371, #4db6ac)", // تدرج جذاب
-        color: "#fff",
-        fontWeight: "bold",
-        fontSize: "18px",
-        boxShadow: "0 6px 15px rgba(0,0,0,0.25)",
-        cursor: "pointer",
-        transition: "transform 0.3s, box-shadow 0.3s",
-        padding: "0 20px", // ⭐ إضافة padding أفقي لتوسيع المسافة
-        textAlign: "center",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = "translateY(-5px)";
-        e.currentTarget.style.boxShadow = "0 10px 20px rgba(0,0,0,0.3)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = "translateY(0)";
-        e.currentTarget.style.boxShadow = "0 6px 15px rgba(0,0,0,0.25)";
-      }}
-    >
-      {srv.title}
-    </div>
-  ))}
+  {/* المستطيلات */}
+  <div style={{ display: "flex", gap: window.innerWidth <= 480 ? "20px" : "15px" }}>
+    {visibleServices.map((srv) => (
+      <div
+        key={srv.id}
+        onClick={() =>
+          navigate("/ratingtoastCards", {
+            state: { serviceId: srv.id, serviceTitle: srv.title },
+          })
+        }
+        style={{
+          minWidth: window.innerWidth <= 480 ? "100px" : "140px", // أصغر على الجوال
+          height: window.innerWidth <= 480 ? "60px" : "80px",
+          borderRadius: "25px",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          background: "linear-gradient(135deg, #2a7371, #4db6ac)",
+          color: "#fff",
+          fontWeight: "bold",
+          fontSize: window.innerWidth <= 480 ? "14px" : "18px",
+          boxShadow: "0 6px 15px rgba(0,0,0,0.25)",
+          cursor: "pointer",
+          transition: "transform 0.3s, box-shadow 0.3s",
+          padding: "0 10px",
+          textAlign: "center",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "translateY(-5px)";
+          e.currentTarget.style.boxShadow = "0 10px 20px rgba(0,0,0,0.3)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "translateY(0)";
+          e.currentTarget.style.boxShadow = "0 6px 15px rgba(0,0,0,0.25)";
+        }}
+      >
+        {srv.title}
+      </div>
+    ))}
+  </div>
+
+  {/* السهم الأيمن */}
+  <div
+    onClick={handleNext}
+    style={{
+      position: "absolute",
+      right: window.innerWidth <= 480 ? "-35px" : "-45px",
+      top: "50%",
+      transform: "translateY(-50%)",
+      cursor:
+        startIndex + itemsPerPage >= services.length ? "not-allowed" : "pointer",
+      zIndex: 100,
+    }}
+  >
+    <ChevronRight size={window.innerWidth <= 480 ? 30 : 40} color="#2a7371" />
+  </div>
 </div>
 
-
-    {/* السهم الأيمن */}
-    <div
-      onClick={handleNext}
-      style={{
-        position: "absolute",
-        right: "-10px",
-        top: "50%",
-        transform: "translateY(-50%)",
-        cursor:
-          startIndex + itemsPerPage >= services.length
-            ? "not-allowed"
-            : "pointer",
-        zIndex: 100,
-      }}
-    >
-      <ChevronRight size={40} color="#2a7371" />
-    </div>
-  </div>
 </div>
 
 
