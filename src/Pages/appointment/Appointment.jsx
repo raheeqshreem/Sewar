@@ -15,6 +15,7 @@ const editMode = location.state?.editMode || false;
 
   console.log(asPatient); // true إذا ضغط السكرتير على "إضافة موعد"
 
+ // 🟢 هذا الجزء الجديد: Scroll لفوق عند الدخول
 
 useEffect(() => {
   if (editMode && fromViewEdit) {
@@ -270,6 +271,11 @@ if (isSecretary) {
 };
 
   const now = new Date();
+
+
+
+
+
 
   return (
     <div dir="rtl" className="container py-4" style={{ margin:"150px auto", minHeight:"100%", fontFamily:"Tahoma", backgroundColor:"#e6f9f8" }}>

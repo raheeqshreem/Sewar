@@ -789,14 +789,27 @@ formPayload.append("address", sessionPlace === "home" ? homeAddress : "");
 
   // 🟢 الحقول الطبية حسب المطلوب
   formPayload.append("Diagnose", Diagnose);
-  formPayload.append("PresentHistory", PresentHistory);
+formPayload.append(
+  "PresentHistory",
+  ` ماذا حدث معك : ${answers["q2-0"] || ""}\n` +
+  ` متى بدأت المشكلة : ${answers["q2-1"] || ""}\n` +
+  ` كيف بدأت  : ${answers["q2-2"] || ""}\n` +
+  ` هل أخدت علاج أو عملت فحوصات : ${answers["q2-3"] || ""}`
+);
   formPayload.append("ChronicDisease", ChronicDisease);
   formPayload.append("Medication", Medication);
   formPayload.append("PreviousSurgeries", PreviousSurgeries);
   formPayload.append("SocialHistory", SocialHistory);
   formPayload.append("OtherInvestigationsText", OtherInvestigationsText);
-  formPayload.append("PainAssessment", PainAssessment);
-
+formPayload.append(
+  "PainAssessment",
+  `كيف تصف طبيعة الألم : ${answers["q3-0"] || ""}\n` +
+  `ما هو مدى شدة الألم من 0 إلى 10 : ${answers["q3-1"] || ""}\n` +
+  `هل الألم مستمر أم متقطع : ${answers["q3-2"] || ""}\n` +
+  `ما هي العوامل التي تزيد الألم أو تخففه : ${answers["q3-3"] || ""}\n` +
+  `هل هناك أي أعراض مصاحبة مثل التنميل أو ضعف الحركة أو تورم : ${answers["q3-4"] || ""}\n` +
+  `هل الألم أو الإحساس بينتقل لمكان آخر : ${answers["q3-5"] || ""}`
+);
   // 🖼️ الملفات
   uploadedImages.forEach((file) => formPayload.append("OtherInvestigationsFiles", file));
 
@@ -883,7 +896,7 @@ const handleFinalSubmit = (e) => {
     const section1 = [
       "ماذا حدث معك؟",
       "متى بدأت المشكلة؟",
-      "كيف بدأت؟ فجأة أم تدريجياً؟",
+      "كيف بدأت ؟",
       "هل أخدت علاج أو عملت فحوصات؟",
             "تشخيص الطبيب أن وجد",
       "هل تعاني من أمراض مزمنة ؟",
@@ -895,10 +908,10 @@ const handleFinalSubmit = (e) => {
 
     const section2 = [
       "كيف تصف طبيعة الألم؟ (حارق، نابض، حاد، إلخ)",
-      "ما هو مدى شدة الألم من 0 إلى 10؟",
-      "هل الألم مستمر أم متقطع؟",
-      "ما هي العوامل التي تزيد الألم أو تخففه؟",
-      "هل هناك أي أعراض مصاحبة مثل التنميل أو ضعف الحركة أو تورم .. ",
+      "ما هو مدى شدة الألم من 0 إلى 10 ؟",
+      "هل الألم مستمر أم متقطع ؟",
+      "ما هي العوامل التي تزيد الألم أو تخففه ؟",
+      " هل هناك أي أعراض مصاحبة مثل التنميل أو ضعف الحركة أو تورم ؟.. ",
       "هل الألم أو الإحساس بينتقل لمكان اخر ؟",
     ];
 
@@ -1120,19 +1133,23 @@ const handleFinalSubmit = (e) => {
               </Form.Group>
 
               <Form.Group style={{ marginBottom: "30px" }}>
-                <DatePicker
-                  selected={formData.birthDate ? new Date(formData.birthDate) : null}
-                  onChange={(date) => {
-                    setFormData({
-                      ...formData,
-                      birthDate: date ? date.toISOString().split("T")[0] : "",
-                    });
-                    if (date) setErrors((prev) => ({ ...prev, birthDate: "" }));
-                  }}
-                  dateFormat="yyyy-MM-dd"
-                  placeholderText="أدخل تاريخ ميلاد المريض"
-                  customInput={<CustomDateInput />}
-                />
+             <DatePicker
+  selected={formData.birthDate ? new Date(formData.birthDate) : null}
+  onChange={(date) => {
+    setFormData({
+      ...formData,
+      birthDate: date ? date.toISOString().split("T")[0] : "",
+    });
+    if (date) setErrors((prev) => ({ ...prev, birthDate: "" }));
+  }}
+  dateFormat="yyyy-MM-dd"
+  showMonthDropdown
+  showYearDropdown
+  dropdownMode="select"     // يجعل المستخدم يختار من القوائم بدل الأسهم
+  placeholderText="اختر تاريخ الميلاد"
+  customInput={<CustomDateInput />}
+/>
+
                 {errors.birthDate && (
                   <div className="text-danger text-end mt-2">{errors.birthDate}</div>
                 )}
