@@ -3,14 +3,25 @@
 a {
   text-decoration: none;
 }
+.custom-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0);
+  transition: background 0.2s ease;
+  z-index: 998;
+}
+
+.custom-backdrop.visible {
+  background: rgba(0, 0, 0, 0.5);
+}
 
 .navbar {
   background-color: #2a7371; /* اللون التركوازي */
   font-family: "Cairo", sans-serif;
-   padding-top: 15px;   /* زيد الرقم حسب ما بدك */
+  padding-top: 15px; /* زيد الرقم حسب ما بدك */
   padding-bottom: 15px;
   font-weight: 500;
- text-shadow: 0.5px 0.5px 1px #0e0e0e;
+  text-shadow: 0.5px 0.5px 1px #0e0e0e;
 }
 .navbar-nav {
   display: flex !important;
@@ -21,10 +32,10 @@ a {
   padding: 0;
 }
 .navbar .nav-link {
-  color:beige;
-    font-size: 18px; /* هنا حجم الخط */
+  color: beige;
+  font-size: 18px; /* هنا حجم الخط */
 
- /* النصوص بيضاء */
+  /* النصوص بيضاء */
 }
 .navbar .nav-link:hover {
   color: #e0f7f7; /* درجة أفتح */
@@ -41,36 +52,25 @@ a {
   direction: rtl;
 }
 
-
-
-
-
-
-
-
-
 .btn-custom {
-  background-color: #2a7371; /* الخلفية */
-  color: beige; /* لون النص */
-  border: 2px solid beige ;/* الحد */
-  border-radius: 5px; /* الحواف الدائرية */
-  padding: 10px 20px; /* المساحة الداخلية */
-  cursor: pointer; /* مؤشر الماوس */
-  display: inline-flex; /* لتنسيق الأيقونة مع النص */
-  align-items: center; /* محاذاة الأيقونة مع النص */
-  gap: 5px; /* مسافة بين النص والأيقونة */
-  transition: 0.3s; /* تأثير سلس عند Hover */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 150px;
+  display: inline-flex; /* flex أفقي */
+  flex-direction: row; /* العناصر أفقية */
+  align-items: center; /* محاذاة عمودية للنص والأيقونة */
+  justify-content: center; /* وسط النص والأيقونة */
+  gap: 5px; /* مسافة بين الأيقونة والنص */
+  white-space: nowrap; /* يمنع التفاف النص لسطر جديد */
+  width: auto; /* السماح للزر بالتوسع حسب النص */
+  min-width: 150px; /* عرض أدنى للحفاظ على التنسيق */
   height: 50px;
-  padding: 10px;
+  padding: 10px 20px;
   box-sizing: border-box;
   border: 2px solid beige;
-  gap: 8px; /* لتباعد الأيقونة عن النص */
-
+  border-radius: 5px;
+  background-color: #2a7371;
+  color: beige;
+  cursor: pointer;
 }
+
 
 /* Hover */
 .btn-custom:hover {
@@ -85,7 +85,7 @@ a {
 }
 
 .navbar-toggler {
-  background-color:beige; /* لون النص */
+  background-color: beige; /* لون النص */
   direction: rtl;
 }
 .login {
@@ -93,7 +93,7 @@ a {
 }
 .btn-primary {
   visibility: hidden;
-  background-color:beige !important; /* الخلفية */
+  background-color: beige !important; /* الخلفية */
   outline: none !important;
   box-shadow: none !important;
 }
@@ -137,26 +137,21 @@ a {
     width: max-content;
     direction: rtl; /* لكن نصوص الروابط تبقى RTL داخليًا */
   }
-   .login {
+  .login {
     display: flex;
     flex-direction: column !important;
     gap: 10px !important;
-    height: 50% ;
-    width: 50% ;
+    height: 50%;
+    width: 50%;
     border: 2px beige;
     box-sizing: border-box;
   }
 
- 
-
-.navbar-logo-notification {
-  display: flex !important;
-  flex-direction: row !important;
-  gap: 16px;
-}
-
-
-
+  .navbar-logo-notification {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 16px;
+  }
 
   .navbar-nav {
     flex-direction: column !important;
@@ -175,17 +170,16 @@ a {
     order: 1;
     width: max-content;
     padding-left: 40px;
-  
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 150px;
-  height: 40px;
-  padding: 10px;
-  box-sizing: border-box;
-  border: 2px solid beige;
-  gap: 8px; /* لتباعد الأيقونة عن النص */
 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 150px;
+    height: 40px;
+    padding: 10px;
+    box-sizing: border-box;
+    border: 2px solid beige;
+    gap: 8px; /* لتباعد الأيقونة عن النص */
   }
 
   .offcanvas-backdrop {
@@ -197,31 +191,13 @@ a {
     /* يمكنك تعديل قيمة 0.4 لجعلها أغمق أو أفتح */
     background-color: rgba(0, 0, 0, 0.4) !important;
   }
-
-  
 }
-
-
-
-
-
-
-
-
 
 .main-logo {
-  height: 44px;   /* ثابت → ما بكبّر ارتفاع النافبار */
+  height: 44px; /* ثابت → ما بكبّر ارتفاع النافبار */
   width: auto;
-  transform: scale(1.5);   /* التكبير الحقيقي */
+  transform: scale(1.5); /* التكبير الحقيقي */
   transform-origin: center; /* ليكبر من النص */
 }
-
-
-
-
-
-
-
-
-
+/* Navbar.css */
 

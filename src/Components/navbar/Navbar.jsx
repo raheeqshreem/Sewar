@@ -3,13 +3,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import logoo from "./../../assets/logoo.jpeg";
-import { Offcanvas } from 'bootstrap'; // تأكد أنك مركب bootstrap js
+import { Offcanvas } from "bootstrap";
 
 export default function Navbar() {
+    const offcanvasInstanceRef = useRef(null);
   const offcanvasRef = useRef(null);
   const navigate = useNavigate();
-
-
 
   const [user, setUser] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -17,64 +16,181 @@ export default function Navbar() {
   // جلب حالة المستخدم من localStorage
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    if (storedUser) setUser(JSON.parse(storedUser));
   }, []);
 
-  // جلب الإشعارات وعدد غير المقروءة
+  // جلب الإشعارات
   useEffect(() => {
-    const fetchNotifications = async () => {
-      if (!user) return;
-      try {
-        const res = await axios.get(
-          "https://sewarwellnessclinic1.runasp.net/api/Notifications/my",
-          {
-            headers: { Authorization: `Bearer ${user.token}` },
-          }
-        );
-        const unread = res.data.filter((n) => !n.isRead).length;
-        setUnreadCount(unread);
-      } catch (err) {
+  if (!user || !user.token) return; // منع الطلب لو مفيش توكن
+
+  const source = axios.CancelToken.source();
+
+  const fetchNotifications = async () => {
+    try {
+      const res = await axios.get(
+        "https://sewarwellnessclinic1.runasp.net/api/Notifications/my",
+        {
+          headers: { Authorization: `Bearer ${user.token}` },
+          cancelToken: source.token,
+        }
+      );
+      const unread = res.data.filter((n) => !n.isRead).length;
+      setUnreadCount(unread);
+    } catch (err) {
+      if (axios.isAxiosError(err) && err.response?.status === 401) {
+        // توكن منتهي/غير صالح → نخرج المستخدم ونوجهه لتسجيل الدخول
+        localStorage.removeItem("user");
+        setUser(null);
+        // optional: navigate('/signin');
+      } else {
         console.error("حدث خطأ أثناء جلب الإشعارات:", err);
       }
-    };
-
-    fetchNotifications();
-    const interval = setInterval(fetchNotifications, 30000); // تحديث كل 30 ثانية
-    return () => clearInterval(interval);
-  }, [user]);
-
-  // تنظيف الـ backdrop عند إغلاق offcanvas
-  useEffect(() => {
-    const offcanvasElement = offcanvasRef.current;
-    const handleOffcanvasClose = () => {
-      const backdrop = document.querySelector(".offcanvas-backdrop");
-      if (backdrop) backdrop.remove();
-    };
-
-    offcanvasElement.addEventListener("hidden.bs.offcanvas", handleOffcanvasClose);
-    return () => offcanvasElement.removeEventListener("hidden.bs.offcanvas", handleOffcanvasClose);
-  }, []);
-
-
-
-
-// تحديث فوري لعدد الإشعارات عند تغيّر localStorage
-useEffect(() => {
-  const handleStorageChange = () => {
-    const savedUnread = localStorage.getItem("unreadCount");
-    if (savedUnread !== null) {
-      setUnreadCount(parseInt(savedUnread));
     }
   };
 
-  window.addEventListener("storage", handleStorageChange);
-  return () => window.removeEventListener("storage", handleStorageChange);
-}, []);
+  fetchNotifications();
+  const interval = setInterval(fetchNotifications, 30000);
+  return () => {
+    source.cancel("component unmounted");
+    clearInterval(interval);
+  };
+}, [user]);
+
+
+  // 📌 ***الحل النهائي لمشكلة الـ overlay — دمج كامل***
+ useEffect(() => {
+    const el = offcanvasRef.current;
+    if (!el) return;
+
+    // احصل على instance واحد فقط أو اصنعه إذا لازم
+    offcanvasInstanceRef.current = Offcanvas.getOrCreateInstance(el);
+
+    // دالة تنظيف: تترك backdrop واحد فقط (safety)
+    const cleanBackdrops = () => {
+      const backs = Array.from(
+        document.querySelectorAll(".offcanvas-backdrop, .modal-backdrop")
+      );
+      if (backs.length <= 1) return;
+      // اترك أول واحد وامسح الباقي
+      backs.slice(1).forEach((b) => b.remove());
+    };
+
+    // لو الـ offcanvas اختفى، تأكد إن ما فيش backdrops وارجع الـ overflow
+    const onHidden = () => {
+      document
+        .querySelectorAll(".offcanvas-backdrop, .modal-backdrop")
+        .forEach((b) => b.remove());
+      document.body.classList.remove("modal-open", "offcanvas-open");
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+
+    // عند الظهور، نضمن وجود backdrop واحد فقط
+    const onShown = () => {
+      cleanBackdrops();
+    };
+
+    el.addEventListener("shown.bs.offcanvas", onShown);
+    el.addEventListener("hidden.bs.offcanvas", onHidden);
+
+    // كمان إضافة مستمع للنقر على أي مكان في الـ document:
+    // لو النقر على الـ backdrop و الـ offcanvas مفتوح، نغلقه بأمان.
+    const onDocClick = (e) => {
+      const target = e.target;
+      const isBackdrop =
+        target.classList && (target.classList.contains("offcanvas-backdrop") || target.classList.contains("modal-backdrop"));
+      const isOpen = el.classList && el.classList.contains("show");
+      if (isBackdrop && isOpen && offcanvasInstanceRef.current) {
+        try {
+          offcanvasInstanceRef.current.hide();
+        } catch {
+          // fallback: لو hide فشل - ننضّف ونزيل الكلاسات
+          document
+            .querySelectorAll(".offcanvas-backdrop, .modal-backdrop")
+            .forEach((b) => b.remove());
+          el.classList.remove("show");
+          document.body.classList.remove("modal-open", "offcanvas-open");
+          document.body.style.overflow = "";
+        }
+      }
+    };
+
+    document.addEventListener("click", onDocClick);
 
 
 
+
+    
+
+    return () => {
+      el.removeEventListener("shown.bs.offcanvas", onShown);
+      el.removeEventListener("hidden.bs.offcanvas", onHidden);
+      document.removeEventListener("click", onDocClick);
+      // نضمن إن نعمل destroy للـ instance (لو Bootstrap يدعمه)
+      try {
+        const inst = Offcanvas.getInstance(el);
+        if (inst && typeof inst.dispose === "function") inst.dispose();
+      } catch (err) {
+        // ignore
+        console.error(err);
+      }
+    };
+  }, []);
+
+  // ======= handleLinkClick مبسّط لا ينشئ instance جديد ولا يلمس DOM يدوياً =======
+  const handleLinkClick = () => {
+    const inst = offcanvasInstanceRef.current || Offcanvas.getOrCreateInstance(offcanvasRef.current);
+    if (inst) {
+      inst.hide();
+    } else {
+      // كحل احتياطي - نزيل أي backdrop ونعيد overflow
+      document
+        .querySelectorAll(".modal-backdrop, .offcanvas-backdrop")
+        .forEach((el) => el.remove());
+      document.body.classList.remove("modal-open", "offcanvas-open");
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+  };
+
+
+const goToTopAndNavigate = (path) => {
+  handleLinkClick(); // يسكر offcanvas
+
+  if (window.location.pathname === path) {
+    // نفس الصفحة → بس scroll
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  } else {
+    // صفحة ثانية → navigate + scroll
+    navigate(path);
+    setTimeout(() => {
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    }, 50);
+  }
+};
+
+
+
+
+
+  // تحديث فوري لعدد الإشعارات
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const savedUnread = localStorage.getItem("unreadCount");
+      if (savedUnread !== null) {
+        setUnreadCount(parseInt(savedUnread));
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
 
   // تسجيل الخروج
   const handleLogout = () => {
@@ -83,14 +199,6 @@ useEffect(() => {
     navigate("/");
   };
 
-
-
-const handleLinkClick = () => {
-  if (offcanvasRef.current) {
-    const bsOffcanvas = Offcanvas.getInstance(offcanvasRef.current) || new Offcanvas(offcanvasRef.current);
-    bsOffcanvas.hide(); // هذا يغلق القائمة
-  }
-};
 
 
   return (
@@ -107,18 +215,25 @@ const handleLinkClick = () => {
           <span className="navbar-toggler-icon" />
         </button>
 
-        {/* اللوجو + أيقونة الإشعارات */}
-        <div className="d-flex align-items-center" style={{direction:"ltr", flexDirection: "row", gap: "16px" }}>
+        {/* اللوجو + الإشعارات */}
+        <div
+          className="d-flex align-items-center"
+          style={{ direction: "ltr", flexDirection: "row", gap: "16px" }}
+        >
           <a href="/">
-            <img src={logoo} alt="Logo"   className="main-logo"
-  />
+            <img src={logoo} alt="Logo" className="main-logo" />
           </a>
 
           {user && (
             <button
               className="btn position-relative"
               onClick={() => navigate("/notifications")}
-              style={{ background: "none", border: "none", fontSize: "22px", color: "#f5deb3" }}
+              style={{
+                background: "none",
+                border: "none",
+                fontSize: "22px",
+                color: "#f5deb3",
+              }}
             >
               <i className="fa-solid fa-bell"></i>
               {unreadCount > 0 && (
@@ -154,207 +269,181 @@ const handleLinkClick = () => {
             <div className="login d-flex gap-2 flex-column flex-lg-row">
               <div className="toggleLogo"></div>
 
-              {/* أزرار تسجيل الدخول / بروفايل */}
+              {/* تسجيل الدخول / بروفايل */}
               {user ? (
                 <>
                   <Link
-                    className="btn-custom"
-                    to={"/user"}
-                      onClick={() => handleLinkClick()}
+  className="btn-custom"
+  to="/user"
+  onClick={(e) => {
+    e.preventDefault();
+    handleLinkClick();
 
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                      whiteSpace: "nowrap",
-                      fontSize: "14px",
-                      textDecoration: "none",
-                      padding: "8px 16px",
-                      borderRadius: "6px",
+    if (window.location.pathname === "/user") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      navigate("/user");
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }, 50);
+    }
+  }}
+>
+  <i className="fa-solid fa-user"></i> الصفحة الشخصية
+</Link>
+
+                  <button
+                    className="btn-custom"
+                    onClick={() => {
+                      handleLogout();
+                      handleLinkClick();
                     }}
                   >
-                    <i className="fa-solid fa-user" style={{ fontSize: "16px" }}></i>
-                    الصفحة الشخصية
-                  </Link>
-                  <button className="btn-custom" onClick={() => {
-    handleLogout();      // تنفيذ تسجيل الخروج
-    handleLinkClick();   // غلق الـ offcanvas
-  }}>
                     <i className="fa-solid fa-right-from-bracket"></i> تسجيل خروج
                   </button>
                 </>
               ) : (
                 <>
                   <Link
-  className="btn-custom"
-  to="/signin"
-  onClick={() => {
-    if (!user) {
-      // حفظ الصفحة الحالية قبل الذهاب لتسجيل الدخول
-      localStorage.setItem(
-        "redirectAfterLogin",
-        window.location.pathname
-      );
-    }
-        handleLinkClick(); // غلق الـ offcanvas
-
-  }}
->
-  تسجيل الدخول
-</Link>
-                  <Link className="btn-custom" to={"/signup"}  onClick={() => {
-    handleLinkClick(); // غلق الـ offcanvas
-  }}>
+                    className="btn-custom"
+                    to="/signin"
+                    onClick={() => {
+                      if (!user) {
+                        localStorage.setItem(
+                          "redirectAfterLogin",
+                          window.location.pathname
+                        );
+                      }
+                      handleLinkClick();
+                    }}
+                  >
+                    تسجيل الدخول
+                  </Link>
+                  <Link
+                    className="btn-custom"
+                    to={"/signup"}
+                    onClick={handleLinkClick}
+                  >
                     <i className="fa-solid fa-user-plus"></i> انشاء حساب
                   </Link>
                 </>
               )}
 
-              {/* باقي روابط النافبار */}
+              {/* باقي الروابط */}
               <ul className="navbar-nav ms-auto mb-2 mb-lg-0 flex-column flex-lg-row">
                 <li className="nav-item">
-                  <Link className="nav-link" to="/"  onClick={() => {
-handleLinkClick();
-      setTimeout(() => {
-        window.scrollTo({
-          top: 0,
-          left: 0,
-          behavior: "smooth",
-        });
-      }, 50);}} >
+                  <Link
+                    className="nav-link"
+                    to="/"
+                 onClick={() => {
+    handleLinkClick();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }}
+                  >
                     الرئيسية
                   </Link>
                 </li>
-              <li className="nav-item">
-  <Link className="nav-link" to="/appointment"  onClick={() => {
-handleLinkClick();
 
-      setTimeout(() => {
-        window.scrollTo({
-          top: 0,
-          left: 0,
-          behavior: "smooth",
-        });
-      }, 50);}} >
-    حجز موعد
-  </Link>
-</li>
                 <li className="nav-item">
-                  <Link className="nav-link" to="/feedback"  onClick={() => {
-handleLinkClick();
+                  <Link
+                    className="nav-link"
+                    to="/appointment"
+                   onClick={(e) => {
+    e.preventDefault();
+    goToTopAndNavigate("/appointment");
+  }}
+                  >
+                    حجز موعد
+                  </Link>
+                </li>
 
-      setTimeout(() => {
-        window.scrollTo({
-          top: 0,
-          left: 0,
-          behavior: "smooth",
-        });
-      }, 50);}} >
-                  
+                <li className="nav-item">
+                  <Link
+                    className="nav-link"
+                    to="/feedback"
+                    onClick={(e) => {
+    e.preventDefault();
+    goToTopAndNavigate("/feedback");
+  }}
+                  >
                     قيم تجربتك العلاجية
                   </Link>
                 </li>
 
-<li className="nav-item">
-  <Link
-    to="#"
-    className="nav-link btn"
-    style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
-    onClick={(e) => {
+                <li className="nav-item">
+                  <Link
+                    to="#"
+                    className="nav-link btn"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleLinkClick();
 
-      e.preventDefault();
-      handleLinkClick();
+                      if (!user) {
+                        localStorage.setItem(
+                          "redirectAfterLogin",
+                          "consultation"
+                        );
+                        navigate("/signin");
+                        return;
+                      }
 
-      if (!user) {
-        // حفظ الهدف
-        localStorage.setItem("redirectAfterLogin", "consultation");
+goToTopAndNavigate("/inquiry");
+                    }}
+                  >
+                    الاستشارة الطبية
+                  </Link>
+                </li>
 
-        // الرسالة
+                <li className="nav-item">
+                <Link
+  to="/"
+  className="nav-link btn"
+  onClick={(e) => {
+    e.preventDefault();
+    handleLinkClick();
 
-        // التحويل
-        navigate("/signin");
-        setTimeout(() => window.scrollTo({ top: 0, left: 0, behavior: "smooth" }), 50);
-        return;
-      }
+    if (!user) {
+      localStorage.setItem("redirectAfterLogin", "files");
+      navigate("/signin");
+      return;
+    }
 
-      // لو مسجل دخول
-      navigate("/inquiry");
-      setTimeout(() => window.scrollTo({ top: 0, left: 0, behavior: "smooth" }), 50);
-    }}
-  >
-    الاستشارة الطبية
-  </Link>
-</li>
+    const type = (user.userType || "").toLowerCase();
+    const path =
+      type === "patient" ? "/FilesPagePatient" : "/FilesPage";
 
-
-
-
-  <li className="nav-item">
-  <Link
-    to="#"
-    className="nav-link btn"
-    style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
-    onClick={(e) => {
-
-      e.preventDefault();
-      handleLinkClick();
-
-      if (!user) {
-        // حفظ السبب
-        localStorage.setItem("redirectAfterLogin", "files");
-
-        // رسالة تنبيه
-
-        // تحويل لتسجيل الدخول
-        navigate("/signin");
-        setTimeout(() => window.scrollTo({ top: 0, left: 0, behavior: "smooth" }), 50);
-        return;
-      }
-
-      // لو مسجّل دخول
-      const type = (user.userType || "").toLowerCase();
-      if (type === "patient") {
-        navigate("/FilesPagePatient");
-      } else {
-        navigate("/FilesPage");
-      }
-
-      setTimeout(() => window.scrollTo({ top: 0, left: 0, behavior: "smooth" }), 50);
-    }}
-  >
-    الملفات
-  </Link>
-</li>
-
-
-
-  <li className="nav-item">
-  <Link
-    to="/"  // مهم أن نضع هنا "/" ليعرف React Router أننا ننتقل للصفحة الرئيسية
-    className="nav-link btn"
-    style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
-    state={{ scrollTo: "our-specialties" }}
-    onClick={() => {
-      // اغلق offcanvas أولاً
-      handleLinkClick();
-
-      // بعد إغلاق القائمة، نفّذ السلوك المطلوب
+    if (window.location.pathname === path) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      navigate(path);
       setTimeout(() => {
-        window.scrollTo({
-          top: 0,
-          left: 0,
-          behavior: "smooth",
-        });
+        window.scrollTo({ top: 0, behavior: "smooth" });
       }, 50);
-    }}
-  >
-    خدماتنا
-  </Link>
-</li>
+    }
+  }}
+>
+  الملفات
+</Link>
 
+                </li>
 
-
-
+                <li className="nav-item">
+                  <Link
+                    to="/"
+                    className="nav-link btn"
+                    state={{ scrollTo: "our-specialties" }}
+                    onClick={() => {
+                      handleLinkClick();
+                      setTimeout(
+                        () =>
+                          window.scrollTo({ top: 0, behavior: "smooth" }),
+                        50
+                      );
+                    }}
+                  >
+                    خدماتنا
+                  </Link>
+                </li>
               </ul>
             </div>
           </div>

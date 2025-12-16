@@ -11,29 +11,37 @@ const Inquiry = () => {
   const [ishasConsultation, setHasConsultation] = useState(false); // حالة ظهور الزر
   const whatsappNumber = "970592245331";
   const navigate = useNavigate();
+const user = JSON.parse(localStorage.getItem("user"));
+const userType = user?.userType?.toLowerCase(); // doctor / patient / doctor_admin
+const isDoctor = userType === "doctor" || userType === "doctor_admin";
 
-  useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (!user || !user.token) return;
+useEffect(() => {
+  if (!user || !user.token) return;
 
-    // جلب نتيجة وجود استشارات سابقة
-    axios.get("https://sewarwellnessclinic1.runasp.net/api/Consultation/has-consultation", {
-      headers: { Authorization: `Bearer ${user.token}` }
-    })
-    .then(res => {
-      setHasConsultation(res.data.hasConsultation); // API يرجع true أو false
-    })
-    .catch(err => {
-      console.error(err);
-      toast.error("حدث خطأ أثناء التحقق من وجود استشارات سابقة");
-    });
+  // ✅ فقط للمريض
+  if (!isDoctor) {
+    axios
+      .get(
+        "https://sewarwellnessclinic1.runasp.net/api/Consultation/has-consultation",
+        {
+          headers: { Authorization: `Bearer ${user.token}` },
+        }
+      )
+      .then((res) => {
+        setHasConsultation(res.data.hasConsultation);
+      })
+      .catch(() => {
+        toast.error("حدث خطأ أثناء التحقق من وجود استشارات سابقة");
+      });
+  }
 
-    const redirectPath = localStorage.getItem("redirectAfterLogin");
-    if (redirectPath && redirectPath === window.location.pathname) {
-      setShowModal(true);
-      localStorage.removeItem("redirectAfterLogin");
-    }
-  }, []);
+  const redirectPath = localStorage.getItem("redirectAfterLogin");
+  if (redirectPath && redirectPath === window.location.pathname) {
+    setShowModal(true);
+    localStorage.removeItem("redirectAfterLogin");
+  }
+}, []);
+
 
   const handleWriteInquiry = () => {
     const user = JSON.parse(localStorage.getItem("user"));
@@ -147,7 +155,40 @@ padding: "0 20px",
       </h4>
 
       {/* أزرار تواصل واستشارات */}
-      <div style={{ display: "flex", gap: "15px" }}>
+     <div style={{ display: "flex", gap: "15px" }}>
+  {isDoctor ? (
+    // 👨‍⚕️ دكتور
+    <button
+      className="btn"
+      style={{
+        border: "1px solid #2a7371",
+        color: "#2a7371",
+        backgroundColor: "transparent",
+        padding: "10px 25px",
+        fontWeight: "bold",
+      }}
+      onClick={() => navigate("/consultation-doctor")}
+    >
+      عرض الاستشارات
+    </button>
+  ) : (
+    // 👤 مريض
+    <>
+      <button
+        className="btn"
+        style={{
+          border: "1px solid #2a7371",
+          color: "#2a7371",
+          backgroundColor: "transparent",
+          padding: "10px 25px",
+          fontWeight: "bold",
+        }}
+        onClick={handleWriteInquiry}
+      >
+        تواصل معنا الآن
+      </button>
+
+      {ishasConsultation && (
         <button
           className="btn"
           style={{
@@ -157,27 +198,15 @@ padding: "0 20px",
             padding: "10px 25px",
             fontWeight: "bold",
           }}
-          onClick={handleWriteInquiry}
+          onClick={() => navigate("/myinquiry")}
         >
-          تواصل معنا الآن
+          استشاراتي السابقة
         </button>
+      )}
+    </>
+  )}
+</div>
 
-        {ishasConsultation && (
-          <button
-            className="btn"
-            style={{
-              border: "1px solid #2a7371",
-              color: "#2a7371",
-              backgroundColor: "transparent",
-              padding: "10px 25px",
-              fontWeight: "bold",
-            }}
-            onClick={() => navigate("/myinquiry")}
-          >
-            استشاراتي السابقة
-          </button>
-        )}
-      </div>
 
       {showModal && (
        <div

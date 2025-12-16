@@ -92,13 +92,13 @@ const initialSmallMilestones = [
 
 export default function ReportPreviewKids() {
   const navigate = useNavigate();
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  const location = useLocation();
+  const _location = useLocation();
 
   const { reportId } = useParams();
 
   const turquoiseBorder = { border: "1px solid #2a7371", padding: "8px" };
-
   const headerStyle = {
     textAlign: "center",
     fontWeight: 600,
@@ -174,7 +174,17 @@ export default function ReportPreviewKids() {
     planOfCare: "",
 
     homeProgram: "",
+    
   });
+
+  // ✅ Auto-save form data to localStorage
+  useEffect(() => {
+     if (!isInitialized || !reportId) return;
+
+    localStorage.setItem("kids-report-form", JSON.stringify(formData));
+
+    console.log("💾 Auto-saved to localStorage");
+  }, [formData, reportId, isInitialized]);
 
   // Muscle Tone & Milestones & Images
 
@@ -186,160 +196,87 @@ export default function ReportPreviewKids() {
     initialSmallMilestones
   );
 
-
   const [muscleToneIds, setMuscleToneIds] = useState([]);
 
   const [milestoneIds, setMilestoneIds] = useState([]);
 
-// 🔹 متابعة أي تحديث للـ homeImages
-useEffect(() => {
-  console.log("HomeImages updated:", homeImages);
-}, [homeImages]);
-
-
-useEffect(() => {
-  console.log("PlanImages updated:", planImages);
-}, [planImages]);
+  // 🔹 متابعة أي تحديث للـ homeImages
   useEffect(() => {
-    const fetchReport = async () => {
-      try {
-        const response = await axios.get(
-          `https://sewarwellnessclinic1.runasp.net/api/FilesPage/report-details/${reportId}`
-        );
+    console.log("HomeImages updated:", homeImages);
+  }, [homeImages]);
 
-        const data = response.data;
-    console.log("بيانات التقرير من الباك:", data);
-console.log("✅ Milestones from backend:", response.data.milestones);
+  useEffect(() => {
+    console.log("PlanImages updated:", planImages);
+  }, [planImages]);
+ useEffect(() => {
+  const savedData = localStorage.getItem("kids-report-form");
 
-        // تحديث formData
+  if (savedData) {
+    console.log("📦 Loaded from localStorage");
+    setFormData(JSON.parse(savedData));
+    setIsInitialized(true);
+    return;
+  }
 
-        setFormData({
-          patientName: data.childInfo?.fullname || "",
+  const fetchReport = async () => {
+    try {
+      const response = await axios.get(
+        `https://sewarwellnessclinic1.runasp.net/api/FilesPage/report-details/${reportId}`
+      );
 
-  gender: data.name === 0 ? "Kid" : data.name === 1 ? "Women" : "",
+      const data = response.data;
 
-          occupation: data.childInfo?.occupation || "",
-
-          dateOfBirth: data.childInfo?.birthDate
-            ? data.childInfo.birthDate.split("T")[0]
-            : "",
-
-          developmentalAge: data.caseReport?.developmentalage || "",
-
-          diagnosis: data.caseReport?.dignosis || "",
-
-          presentHistory: data.caseReport?.present_History || "",
-
-          chronicDiseases: data.caseReport?.chronic_Disease || "",
-
-          medications: data.caseReport?.medication || "",
-
-          surgeries: data.caseReport?.previous_Surgeries || "",
-
-          familyHistory: data.caseReport?.family_History || "",
-
-          socialHistory: data.caseReport?.social_History || "",
-
-          otherFindings: data.caseReport?.other_Investigations || "",
-
-          date: data.date ? data.date.split("T")[0] : "",
-
-          observationFindings: data.objectivesAndFindings?.observation || "",
-
-          palpationFindings: data.objectivesAndFindings?.palpation || "",
-
-          painFindings: data.objectivesAndFindings?.pain_assesment || "",
-
-          sensationFindings: data.objectivesAndFindings?.sensation || "",
-
-          jointsFindings:
-            data.objectivesAndFindings?.join_muscle_circufernec || "",
-
-          romFindings: data.objectivesAndFindings?.rom_findings || "",
-
-          mmtFindings: data.objectivesAndFindings?.mmt_findings || "",
-
-          reflexFindings: data.objectivesAndFindings?.reflexes || "",
-
-          specialTestFindings: data.objectivesAndFindings?.special_tests || "",
-
-          listOfProblem: data.assesment?.problemlist || "",
-
-          shortGoals: data.assesment?.shortTermText || "",
-
-          longGoals: data.assesment?.longTermText || "",
-
-          planOfCare: data.assesment?.planOfcareText || "",
-
-          homeProgram: data.assesment?.homeprogrem || "",
-
-          medicalDiagnosis: data.caseReport?.dignosis || "",
-
-          physioDiagnosis: data.caseReport?.phDignosis || "",
-        });
-
-setOtherImages(data.caseReport?.cimages || []);
-setPlanImages(data.assesment?.aimages || []);
-setHomeImages(data.objectivesAndFindings?.oimages || []);
-console.log("Other images from backend:", data.caseReport?.cimages);
-// للـ plan images
-console.log("Other images from plan:", data.assesment?.aimages);
-
-// للـ home images
-console.log("Other images home:", data.objectivesAndFindings?.oimages);
-        // تحديث Muscle Tone مع البيانات من الباك
-
-        setMuscleTone(
-          data.muscleTones.map((mt) => ({
-            joint: mt.joint,
-
-            right: mt.rightStatus || "",
-
-            left: mt.leftStatus || "",
-          }))
-        );
-
-        setMuscleToneIds(data.muscleTones.map((mt) => mt.id));
-
-        // تحديث Milestones
-
-   // نفصل البيانات الكبيرة والصغيرة حسب ما ترجع من الـ API
-      const bigMs = data.milestones.slice(0, 14);
-      const smallMs = data.milestones.slice(14, 19);
-
-      // ✅ نرتب الكبير حسب initialMilestones
-      const sortedBig = initialMilestones.map((item) => {
-        const match = bigMs.find((ms) => ms.age === item.age);
-        return {
-          age: item.age,
-          milestone: item.milestone,
-          status: match ? mapStatus(match.status) : "",
-        };
+      setFormData({
+        patientName: data.childInfo?.fullname || "",
+        gender: data.name === 0 ? "Kid" : data.name === 1 ? "Women" : "",
+        occupation: data.childInfo?.occupation || "",
+        dateOfBirth: data.childInfo?.birthDate
+          ? data.childInfo.birthDate.split("T")[0]
+          : "",
+        developmentalAge: data.caseReport?.developmentalage || "",
+        medicalDiagnosis: data.caseReport?.dignosis || "",
+        physioDiagnosis: data.caseReport?.phDignosis || "",
+        presentHistory: data.caseReport?.present_History || "",
+        chronicDiseases: data.caseReport?.chronic_Disease || "",
+        medications: data.caseReport?.medication || "",
+        surgeries: data.caseReport?.previous_Surgeries || "",
+        familyHistory: data.caseReport?.family_History || "",
+        socialHistory: data.caseReport?.social_History || "",
+        otherFindings: data.caseReport?.other_Investigations || "",
+        observationFindings:
+          data.objectivesAndFindings?.observation || "",
+        palpationFindings:
+          data.objectivesAndFindings?.palpation || "",
+        painFindings:
+          data.objectivesAndFindings?.pain_assesment || "",
+        sensationFindings:
+          data.objectivesAndFindings?.sensation || "",
+        jointsFindings:
+          data.objectivesAndFindings?.join_muscle_circufernec || "",
+        romFindings:
+          data.objectivesAndFindings?.rom_findings || "",
+        mmtFindings:
+          data.objectivesAndFindings?.mmt_findings || "",
+        reflexFindings:
+          data.objectivesAndFindings?.reflexes || "",
+        specialTestFindings:
+          data.objectivesAndFindings?.special_tests || "",
+        listOfProblem: data.assesment?.problemlist || "",
+        shortGoals: data.assesment?.shortTermText || "",
+        longGoals: data.assesment?.longTermText || "",
+        planOfCare: data.assesment?.planOfcareText || "",
+        homeProgram: data.assesment?.homeprogrem || "",
       });
 
-      // ✅ نرتب الصغير حسب initialSmallMilestones
-      const sortedSmall = initialSmallMilestones.map((item) => {
-        const match = smallMs.find((ms) => ms.age === item.age);
-        return {
-          age: item.age,
-          milestone: item.milestone,
-          status: match ? mapStatus(match.status) : "",
-        };
-      });
+      setIsInitialized(true);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
-      setMilestones(sortedBig);
-      setSmallMilestones(sortedSmall);
+  if (reportId) fetchReport();
+}, [reportId]);
 
-        setMilestoneIds(data.milestones.map((ms) => ms.id));
-      } catch (err) {
-        console.error(err);
-
-        alert("فشل جلب بيانات التقرير من السيرفر.");
-      }
-    };
-
-    if (reportId) fetchReport();
-  }, [reportId]);
 
   // دالة مساعدة لتحويل الرقم من الباك إلى "good/fair/poor/notAchieved"
 
@@ -361,8 +298,6 @@ console.log("Other images home:", data.objectivesAndFindings?.oimages);
         return "";
     }
   }
-
-
 
   // دوال Muscle Tone & Milestones
 
@@ -399,210 +334,213 @@ console.log("Other images home:", data.objectivesAndFindings?.oimages);
   };
   // 🔹 دالة الإرسال (زر الحفظ)
 
-
   const handleGoBack = () => navigate("/FilesPage");
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  try {
-    const formDataToSend = new FormData();
+    try {
+      const formDataToSend = new FormData();
 
-    // الحقول الأساسية
-    formDataToSend.append("ReportId", parseInt(reportId));
-    formDataToSend.append("ChildInfo.Fullname", formData.patientName);
-    formDataToSend.append("ChildInfo.Occupation", formData.occupation);
-    formDataToSend.append(
-      "ChildInfo.BirthDate",
-      formData.dateOfBirth ? `${formData.dateOfBirth}T00:00:00` : ""
-    );
-    formDataToSend.append("ChildInfo.Gender", formData.gender);
-    formDataToSend.append(
-      "CaseReport.Developmentalage",
-      formData.developmentalAge
-    );
+      // الحقول الأساسية
+      formDataToSend.append("ReportId", parseInt(reportId));
+      formDataToSend.append("ChildInfo.Fullname", formData.patientName);
+      formDataToSend.append("ChildInfo.Occupation", formData.occupation);
+      formDataToSend.append(
+        "ChildInfo.BirthDate",
+        formData.dateOfBirth ? `${formData.dateOfBirth}T00:00:00` : ""
+      );
+      formDataToSend.append("ChildInfo.Gender", formData.gender);
+      formDataToSend.append(
+        "CaseReport.Developmentalage",
+        formData.developmentalAge
+      );
 
-    formDataToSend.append(
-      "date",
-      formData.date ? `${formData.date}T00:00:00` : ""
-    );
+      formDataToSend.append(
+        "date",
+        formData.date ? `${formData.date}T00:00:00` : ""
+      );
 
-    formDataToSend.append(
-      "CaseReport.Chronic_Disease",
-      formData.chronicDiseases
-    );
-    formDataToSend.append("CaseReport.Medication", formData.medications);
-    formDataToSend.append("CaseReport.phDignosis", formData.physioDiagnosis);
-    formDataToSend.append("CaseReport.Family_History", formData.familyHistory);
-    formDataToSend.append(
-      "CaseReport.Previous_Surgeries",
-      formData.surgeries
-    );
-    formDataToSend.append(
-      "CaseReport.Present_History",
-      formData.presentHistory
-    );
-    formDataToSend.append("CaseReport.Social_History", formData.socialHistory);
-    formDataToSend.append("CaseReport.Dignosis", formData.medicalDiagnosis);
-    formDataToSend.append(
-      "CaseReport.Other_Investigations",
-      formData.otherFindings
-    );
+      formDataToSend.append(
+        "CaseReport.Chronic_Disease",
+        formData.chronicDiseases
+      );
+      formDataToSend.append("CaseReport.Medication", formData.medications);
+      formDataToSend.append("CaseReport.phDignosis", formData.physioDiagnosis);
+      formDataToSend.append(
+        "CaseReport.Family_History",
+        formData.familyHistory
+      );
+      formDataToSend.append(
+        "CaseReport.Previous_Surgeries",
+        formData.surgeries
+      );
+      formDataToSend.append(
+        "CaseReport.Present_History",
+        formData.presentHistory
+      );
+      formDataToSend.append(
+        "CaseReport.Social_History",
+        formData.socialHistory
+      );
+      formDataToSend.append("CaseReport.Dignosis", formData.medicalDiagnosis);
+      formDataToSend.append(
+        "CaseReport.Other_Investigations",
+        formData.otherFindings
+      );
 
-    formDataToSend.append("Assesment.ShortTermText", formData.shortGoals);
-    formDataToSend.append("Assesment.Problemlist", formData.listOfProblem);
-    formDataToSend.append("Assesment.PlanOfcareText", formData.planOfCare);
-    formDataToSend.append("Assesment.LongTermText", formData.longGoals);
+      formDataToSend.append("Assesment.ShortTermText", formData.shortGoals);
+      formDataToSend.append("Assesment.Problemlist", formData.listOfProblem);
+      formDataToSend.append("Assesment.PlanOfcareText", formData.planOfCare);
+      formDataToSend.append("Assesment.LongTermText", formData.longGoals);
 
-    formDataToSend.append(
-      "ObjectivesAndFindings.Observation",
-      formData.observationFindings
-    );
-    formDataToSend.append(
-      "ObjectivesAndFindings.palpation",
-      formData.palpationFindings
-    );
-    formDataToSend.append(
-      "ObjectivesAndFindings.pain_assesment",
-      formData.painFindings
-    );
-    formDataToSend.append(
-      "ObjectivesAndFindings.sensation",
-      formData.sensationFindings
-    );
-    formDataToSend.append(
-      "ObjectivesAndFindings.rom_findings",
-      formData.romFindings
-    );
-    formDataToSend.append(
-      "ObjectivesAndFindings.mmt_findings",
-      formData.mmtFindings
-    );
-    formDataToSend.append(
-      "ObjectivesAndFindings.reflexes",
-      formData.reflexFindings
-    );
-    formDataToSend.append(
-      "ObjectivesAndFindings.join_muscle_circufernec",
-      formData.jointsFindings
-    );
-    formDataToSend.append("Assesment.homeprogrem", formData.homeProgram);
-    formDataToSend.append(
-      "ObjectivesAndFindings.special_tests",
-      formData.specialTestFindings
-    );
+      formDataToSend.append(
+        "ObjectivesAndFindings.Observation",
+        formData.observationFindings
+      );
+      formDataToSend.append(
+        "ObjectivesAndFindings.palpation",
+        formData.palpationFindings
+      );
+      formDataToSend.append(
+        "ObjectivesAndFindings.pain_assesment",
+        formData.painFindings
+      );
+      formDataToSend.append(
+        "ObjectivesAndFindings.sensation",
+        formData.sensationFindings
+      );
+      formDataToSend.append(
+        "ObjectivesAndFindings.rom_findings",
+        formData.romFindings
+      );
+      formDataToSend.append(
+        "ObjectivesAndFindings.mmt_findings",
+        formData.mmtFindings
+      );
+      formDataToSend.append(
+        "ObjectivesAndFindings.reflexes",
+        formData.reflexFindings
+      );
+      formDataToSend.append(
+        "ObjectivesAndFindings.join_muscle_circufernec",
+        formData.jointsFindings
+      );
+      formDataToSend.append("Assesment.homeprogrem", formData.homeProgram);
+      formDataToSend.append(
+        "ObjectivesAndFindings.special_tests",
+        formData.specialTestFindings
+      );
 
-    // 🔹 الصور
-    otherImages.forEach((file) => {
-      if (file instanceof File) {
-        formDataToSend.append("CaseReport.OtherInvestigationsFiles", file);
-      } else {
-        formDataToSend.append("CaseReport.ExistingImageUrls", file.id);
-      }
-    });
+      // 🔹 الصور
+      otherImages.forEach((file) => {
+        if (file instanceof File) {
+          formDataToSend.append("CaseReport.OtherInvestigationsFiles", file);
+        } else {
+          formDataToSend.append("CaseReport.ExistingImageUrls", file.id);
+        }
+      });
 
-    planImages.forEach((file) => {
-      if (file instanceof File) {
-        formDataToSend.append("Assesment.AssesmentFiles", file);
-      } else {
-        formDataToSend.append("Assesment.ExistingImageUrls", file.id);
-      }
-    });
+      planImages.forEach((file) => {
+        if (file instanceof File) {
+          formDataToSend.append("Assesment.AssesmentFiles", file);
+        } else {
+          formDataToSend.append("Assesment.ExistingImageUrls", file.id);
+        }
+      });
 
-    homeImages.forEach((file) => {
-      if (file instanceof File) {
-        formDataToSend.append(
-          "ObjectivesAndFindings.ObjectivesAndFindingsFiles",
-          file
-        );
-      } else {
-        formDataToSend.append("ObjectivesAndFindings.ExistingImageUrls", file.id);
-      }
-    });
+      homeImages.forEach((file) => {
+        if (file instanceof File) {
+          formDataToSend.append(
+            "ObjectivesAndFindings.ObjectivesAndFindingsFiles",
+            file
+          );
+        } else {
+          formDataToSend.append(
+            "ObjectivesAndFindings.ExistingImageUrls",
+            file.id
+          );
+        }
+      });
 
-    // إرسال التقرير الرئيسي
-    const response = await axios.post(
-      "https://sewarwellnessclinic1.runasp.net/api/kidReport/update-report",
-      formDataToSend,
-      { headers: { "Content-Type": "multipart/form-data" } }
-    );
+      // إرسال التقرير الرئيسي
+      const response = await axios.post(
+        "https://sewarwellnessclinic1.runasp.net/api/kidReport/update-report",
+        formDataToSend,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
 
-    console.log("✅ Report updated:", response.data);
+      console.log("✅ Report updated:", response.data);
 
-    // 🔹 بعد ما نرفع التقرير، نرفع الـ Muscle و Milestones
-    await handleUpdateMuscleAndMilestones();
-console.log("📥 كامل الرد من الباك:", response.data);
+      // 🔹 بعد ما نرفع التقرير، نرفع الـ Muscle و Milestones
+      await handleUpdateMuscleAndMilestones();
+      console.log("📥 كامل الرد من الباك:", response.data);
+      localStorage.removeItem("kids-report-form");
 
-    alert("✅ تم رفع التقرير والصور بنجاح!");
-  } catch (err) {
-    console.error(err);
-    alert("❌ حدث خطأ أثناء رفع التقرير.");
-  }
-};
+      alert("✅ تم رفع التقرير والصور بنجاح!");
+    } catch (err) {
+      console.error(err);
+      alert("❌ حدث خطأ أثناء رفع التقرير.");
+    }
+  };
 
-// ⬇️ الدالة المخصصة لتحديث الـ Muscle و Milestones
-const handleUpdateMuscleAndMilestones = async () => {
-  try {
-    const muscleTonesToSend = muscleToneIds.map((id, index) => ({
-      id,
-      rightStatus: muscleTone[index]?.right || "",
-      leftStatus: muscleTone[index]?.left || "",
-    }));
+  // ⬇️ الدالة المخصصة لتحديث الـ Muscle و Milestones
+  const handleUpdateMuscleAndMilestones = async () => {
+    try {
+      const muscleTonesToSend = muscleToneIds.map((id, index) => ({
+        id,
+        rightStatus: muscleTone[index]?.right || "",
+        leftStatus: muscleTone[index]?.left || "",
+      }));
 
-    // ✅ ندمج كل الـ milestones بعد التأكد إنهم جاهزين
-   const allMilestones = [...milestones, ...smallMilestones];
+      // ✅ ندمج كل الـ milestones بعد التأكد إنهم جاهزين
+      const allMilestones = [...milestones, ...smallMilestones];
 
-const milestonesToSend = allMilestones.map((ms, index) => ({
-  id: milestoneIds[index] || 0, // ✅ هنا نجيب id من milestoneIds
-  status: ms.status || "notAchieved",
-}));
+      const milestonesToSend = allMilestones.map((ms, index) => ({
+        id: milestoneIds[index] || 0, // ✅ هنا نجيب id من milestoneIds
+        status: ms.status || "notAchieved",
+      }));
 
+      // 🧩 طباعة كاملة للديباغ
+      console.log("🧩 --- DEBUG INFO ---");
+      console.log("Report ID:", reportId);
+      console.log("Milestone IDs:", milestoneIds);
+      console.log("Total milestones:", allMilestones.length);
 
+      console.table(
+        milestonesToSend.map((m, i) => ({
+          index: i + 1,
+          id: m.id,
+          status: m.status,
+          label:
+            i < milestones.length
+              ? milestones[i].milestone
+              : smallMilestones[i - milestones.length].milestone,
+        }))
+      );
 
+      console.log("--------------------");
 
-    // 🧩 طباعة كاملة للديباغ
-    console.log("🧩 --- DEBUG INFO ---");
-    console.log("Report ID:", reportId);
-    console.log("Milestone IDs:", milestoneIds);
-    console.log("Total milestones:", allMilestones.length);
+      // 🔹 إرسال للباك
+      const payload = {
+        reportId: parseInt(reportId),
+        muscleTones: muscleTonesToSend,
+        milestones: milestonesToSend,
+      };
 
-    console.table(
-      milestonesToSend.map((m, i) => ({
-        index: i + 1,
-        id: m.id,
-        status: m.status,
-        label:
-          i < milestones.length
-            ? milestones[i].milestone
-            : smallMilestones[i - milestones.length].milestone,
-      }))
-    );
+      const response = await axios.post(
+        "https://sewarwellnessclinic1.runasp.net/api/kidReport/update-muscle-and-milestones",
+        payload
+      );
+      console.log("📥 كامل الرد من الباك:", response);
+      console.log("📥 response.data:", response.data);
 
-    console.log("--------------------");
-
-    // 🔹 إرسال للباك
-    const payload = {
-      reportId: parseInt(reportId),
-      muscleTones: muscleTonesToSend,
-      milestones: milestonesToSend,
-    };
-
-    const response = await axios.post(
-      "https://sewarwellnessclinic1.runasp.net/api/kidReport/update-muscle-and-milestones",
-      payload
-    );
-console.log("📥 كامل الرد من الباك:", response);
-console.log("📥 response.data:", response.data);
-
-console.log("📤 Payload to backend :", JSON.stringify(payload, null, 2));
-    alert("✅ تم حفظ كل Milestones بنجاح!");
-  } catch (err) {
-    console.error("❌ Error while updating Muscle & Milestones:", err);
-    alert("❌ حدث خطأ أثناء تحديث Muscle Tone و Milestones");
-  }
-};
-
-
-
+      console.log("📤 Payload to backend :", JSON.stringify(payload, null, 2));
+      alert("✅ تم حفظ كل Milestones بنجاح!");
+    } catch (err) {
+      console.error("❌ Error while updating Muscle & Milestones:", err);
+      alert("❌ حدث خطأ أثناء تحديث Muscle Tone و Milestones");
+    }
+  };
 
   return (
     <div
@@ -900,95 +838,111 @@ console.log("📤 Payload to backend :", JSON.stringify(payload, null, 2));
               />
             </div>
 
-              {/* Other investigations images */}
-<div className="mt-3" style={{ border: "1px solid #2a7371", padding: "12px", borderRadius: "8px" }}>
-  <label>Other investigations findings (lab, X-ray, other imaging)</label>
-  <textarea
-    name="otherFindings"
-    rows={2}
-    value={formData.otherFindings}
-    onChange={handleChange}
-    className="form-control mb-2"
-    style={{ borderColor: "#2a7371" }}
-  />
-
-  {/* Image Upload Section */}
-  <div>
-    <input
-      type="file"
-      accept="image/*"
-      multiple
-      onChange={(e) => {
-        const files = Array.from(e.target.files);
-        // نخزّن الملفات نفسها (File objects)
-        setOtherImages((prev) => [...prev, ...files]);
-      }}
-      style={{ display: "none" }}
-      id="otherUpload"
-    />
-    <label
-      htmlFor="otherUpload"
-      className="btn btn-sm"
-      style={{
-        backgroundColor: "#2a7371",
-        color: "white",
-        fontWeight: 600,
-        marginBottom: "10px",
-      }}
-    >
-      + Add Images
-    </label>
-
-    <div className="d-flex flex-wrap gap-2">
-      {otherImages.map((file, i) => {
-        // إذا الملف File نعمل URL مؤقت، وإذا كان مسار من السيرفر نلصق الـ base URL
-        const src = file instanceof File ? URL.createObjectURL(file) : `https://sewarwellnessclinic1.runasp.net${file.imgUrl}`;
-        return (
-          <div
-            key={i}
-            style={{
-              position: "relative",
-              display: "inline-block",
-              marginRight: "10px",
-            }}
-          >
-            <img
-              src={src}
-              alt="Other Investigation"
+            {/* Other investigations images */}
+            <div
+              className="mt-3"
               style={{
-                width: "120px",
-                height: "120px",
-                objectFit: "cover",
-                border: "2px solid #2a7371",
+                border: "1px solid #2a7371",
+                padding: "12px",
                 borderRadius: "8px",
-                cursor: "pointer",
-              }}
-              onClick={() => setZoomImage(src)}
-            />
-            <button
-              type="button"
-              onClick={() => setOtherImages((prev) => prev.filter((_, idx) => idx !== i))}
-              style={{
-                position: "absolute",
-                top: "-8px",
-                right: "-8px",
-                backgroundColor: "#2a7371",
-                color: "white",
-                border: "none",
-                borderRadius: "50%",
-                width: "24px",
-                height: "24px",
-                cursor: "pointer",
               }}
             >
-              ×
-            </button>
-          </div>
-        );
-      })}
-    </div>
-  </div>
-</div>
+              <label>
+                Other investigations findings (lab, X-ray, other imaging)
+              </label>
+              <textarea
+                name="otherFindings"
+                rows={2}
+                value={formData.otherFindings}
+                onChange={handleChange}
+                className="form-control mb-2"
+                style={{ borderColor: "#2a7371" }}
+              />
+
+              {/* Image Upload Section */}
+              <div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files);
+                    // نخزّن الملفات نفسها (File objects)
+                    setOtherImages((prev) => [...prev, ...files]);
+                  }}
+                  style={{ display: "none" }}
+                  id="otherUpload"
+                />
+                <label
+                  htmlFor="otherUpload"
+                  className="btn btn-sm"
+                  style={{
+                    backgroundColor: "#2a7371",
+                    color: "white",
+                    fontWeight: 600,
+                    marginBottom: "10px",
+                  }}
+                >
+                  + Add Images
+                </label>
+
+                <div className="d-flex flex-wrap gap-2">
+                  {otherImages.map((file, i) => {
+                    // إذا الملف File نعمل URL مؤقت، وإذا كان مسار من السيرفر نلصق الـ base URL
+                    const src =
+                      file instanceof File
+                        ? URL.createObjectURL(file)
+                        : `https://sewarwellnessclinic1.runasp.net${file.imgUrl}`;
+                    return (
+                      <div
+                        key={i}
+                        style={{
+                          position: "relative",
+                          display: "inline-block",
+                          marginRight: "10px",
+                        }}
+                      >
+                        <img
+                          src={src}
+                          alt="Other Investigation"
+                          style={{
+                            width: "120px",
+                            height: "120px",
+                            objectFit: "cover",
+                            border: "2px solid #2a7371",
+                            borderRadius: "8px",
+                            cursor: "pointer",
+                          }}
+                          onClick={() => setZoomImage(src)}
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setOtherImages((prev) =>
+                              prev.filter((_, idx) => idx !== i)
+                            )
+                          }
+                          style={{
+                            position: "absolute",
+                            top: "-8px",
+                            right: "-8px",
+                            backgroundColor: "#2a7371",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "50%",
+                            width: "24px",
+                            height: "24px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1345,7 +1299,7 @@ console.log("📤 Payload to backend :", JSON.stringify(payload, null, 2));
 
                 <tbody>
                   {milestones.map((row, i) => (
-                    <tr key={row.id}>
+                    <tr key={i}>
                       <td
                         style={{ textAlign: "center", verticalAlign: "middle" }}
                       >
@@ -1359,7 +1313,7 @@ console.log("📤 Payload to backend :", JSON.stringify(payload, null, 2));
                           verticalAlign: "middle",
                         }}
                       >
-{row.milestoneText}
+                        {row.milestone}
                       </td>
 
                       {["good", "fair", "poor"].map((level) => (
@@ -1573,183 +1527,217 @@ console.log("📤 Payload to backend :", JSON.stringify(payload, null, 2));
           </div>
         </div>
 
-     <div className="row mb-4">
-  <div className="col-12" style={{ border: "1px solid #2a7371", padding: 12 }}>
-    <h6 style={{ color: "#2a7371" }}>Plan of care:</h6>
+        <div className="row mb-4">
+          <div
+            className="col-12"
+            style={{ border: "1px solid #2a7371", padding: 12 }}
+          >
+            <h6 style={{ color: "#2a7371" }}>Plan of care:</h6>
 
-    {/* Text Area */}
-    <textarea
-      name="planOfCare"
-      rows={4}
-      value={formData.planOfCare}
-      onChange={handleChange}
-      className="form-control mb-3"
-      style={{ borderColor: "#2a7371", color: "#2a7371", fontWeight: 600 }}
-    />
+            {/* Text Area */}
+            <textarea
+              name="planOfCare"
+              rows={4}
+              value={formData.planOfCare}
+              onChange={handleChange}
+              className="form-control mb-3"
+              style={{
+                borderColor: "#2a7371",
+                color: "#2a7371",
+                fontWeight: 600,
+              }}
+            />
 
-    {/* Image Upload Section */}
-    <div>
-      <input
-        type="file"
-        accept="image/*"
-        multiple
-       onChange={(e) => {
-  const files = Array.from(e.target.files);
-  setPlanImages((prev) => [...prev, ...files]);
-}}
-
-        style={{ display: "none" }}
-        id="planUpload"
-      />
-      <label
-        htmlFor="planUpload"
-        className="btn btn-sm"
-        style={{
-          backgroundColor: "#2a7371",
-          color: "white",
-          fontWeight: 600,
-          marginBottom: "10px",
-        }}
-      >
-        + Add Images
-      </label>
-
-      <div className="d-flex flex-wrap gap-2">
-      {planImages.map((file, i) => {
-  const src = file instanceof File
-    ? URL.createObjectURL(file)
-    : `https://sewarwellnessclinic1.runasp.net${file.imgUrl}`;
-  return (
-    <div key={i} style={{ position: "relative", display: "inline-block", marginRight: "10px" }}>
-      <img
-        src={src}
-        alt="Plan Image"
-        style={{
-          width: "120px",
-          height: "120px",
-          objectFit: "cover",
-          border: "2px solid #2a7371",
-          borderRadius: "8px",
-          cursor: "pointer",
-        }}
-        onClick={() => setZoomImage(src)}
-      />
-      <button
-        type="button"
-        onClick={() => setPlanImages((prev) => prev.filter((_, idx) => idx !== i))}
-        style={{
-          position: "absolute",
-          top: "-8px",
-          right: "-8px",
-          backgroundColor: "#2a7371",
-          color: "white",
-          border: "none",
-          borderRadius: "50%",
-          width: "24px",
-          height: "24px",
-          cursor: "pointer",
-        }}
-      >
-        ×
-      </button>
-    </div>
-  );
-})}
-
-      </div>
-    </div>
-  </div>
-</div>
-
-{/* Home Program */}
-{/* Home Program */}
-<div className="row mb-4">
-  <div className="col-12" style={{ border: "1px solid #2a7371", padding: 12 }}>
-    <h6 style={{ color: "#2a7371" }}>Home Program:</h6>
-
-    {/* Text Area */}
-    <textarea
-      name="homeProgram"
-      rows={4}
-      value={formData.homeProgram}
-      onChange={handleChange}
-      className="form-control mb-3"
-      style={{ borderColor: "#2a7371", color: "#2a7371", fontWeight: 600 }}
-    />
-
-    {/* Image Upload Section */}
-    <div>
-      <input
-        type="file"
-        accept="image/*"
-        multiple
-        onChange={(e) => {
-          const files = Array.from(e.target.files);
-          setHomeImages(prev => [...prev, ...files]); // نفس طريقة البلين
-        }}
-        style={{ display: "none" }}
-        id="homeUpload"
-      />
-      <label
-        htmlFor="homeUpload"
-        className="btn btn-sm"
-        style={{
-          backgroundColor: "#2a7371",
-          color: "white",
-          fontWeight: 600,
-          marginBottom: "10px",
-        }}
-      >
-        + Add Images
-      </label>
-
-      <div className="d-flex flex-wrap gap-2">
-       {homeImages.map((file, i) => {
-  const src = file instanceof File 
-    ? URL.createObjectURL(file) 
-    : `https://sewarwellnessclinic1.runasp.net${file.imgUrl}`;
-          return (
-            <div key={i} style={{ position: "relative", display: "inline-block", marginRight: "10px" }}>
-              <img
-              
-                src={src}
-                alt="Home Program"
-                style={{
-                  width: "120px",
-                  height: "120px",
-                  objectFit: "cover",
-                  border: "2px solid #2a7371",
-                  borderRadius: "8px",
-                  cursor: "pointer",
+            {/* Image Upload Section */}
+            <div>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => {
+                  const files = Array.from(e.target.files);
+                  setPlanImages((prev) => [...prev, ...files]);
                 }}
-                onClick={() => setZoomImage(src)}
+                style={{ display: "none" }}
+                id="planUpload"
               />
-              <button
-                type="button"
-                onClick={() => setHomeImages(prev => prev.filter((_, idx) => idx !== i))}
+              <label
+                htmlFor="planUpload"
+                className="btn btn-sm"
                 style={{
-                  position: "absolute",
-                  top: "-8px",
-                  right: "-8px",
                   backgroundColor: "#2a7371",
                   color: "white",
-                  border: "none",
-                  borderRadius: "50%",
-                  width: "24px",
-                  height: "24px",
-                  cursor: "pointer",
+                  fontWeight: 600,
+                  marginBottom: "10px",
                 }}
               >
-                ×
-              </button>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  </div>
-</div>
+                + Add Images
+              </label>
 
+              <div className="d-flex flex-wrap gap-2">
+                {planImages.map((file, i) => {
+                  const src =
+                    file instanceof File
+                      ? URL.createObjectURL(file)
+                      : `https://sewarwellnessclinic1.runasp.net${file.imgUrl}`;
+                  return (
+                    <div
+                      key={i}
+                      style={{
+                        position: "relative",
+                        display: "inline-block",
+                        marginRight: "10px",
+                      }}
+                    >
+                      <img
+                        src={src}
+                        alt="Plan Image"
+                        style={{
+                          width: "120px",
+                          height: "120px",
+                          objectFit: "cover",
+                          border: "2px solid #2a7371",
+                          borderRadius: "8px",
+                          cursor: "pointer",
+                        }}
+                        onClick={() => setZoomImage(src)}
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setPlanImages((prev) =>
+                            prev.filter((_, idx) => idx !== i)
+                          )
+                        }
+                        style={{
+                          position: "absolute",
+                          top: "-8px",
+                          right: "-8px",
+                          backgroundColor: "#2a7371",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "50%",
+                          width: "24px",
+                          height: "24px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Home Program */}
+        {/* Home Program */}
+        <div className="row mb-4">
+          <div
+            className="col-12"
+            style={{ border: "1px solid #2a7371", padding: 12 }}
+          >
+            <h6 style={{ color: "#2a7371" }}>Home Program:</h6>
+
+            {/* Text Area */}
+            <textarea
+              name="homeProgram"
+              rows={4}
+              value={formData.homeProgram}
+              onChange={handleChange}
+              className="form-control mb-3"
+              style={{
+                borderColor: "#2a7371",
+                color: "#2a7371",
+                fontWeight: 600,
+              }}
+            />
+
+            {/* Image Upload Section */}
+            <div>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => {
+                  const files = Array.from(e.target.files);
+                  setHomeImages((prev) => [...prev, ...files]); // نفس طريقة البلين
+                }}
+                style={{ display: "none" }}
+                id="homeUpload"
+              />
+              <label
+                htmlFor="homeUpload"
+                className="btn btn-sm"
+                style={{
+                  backgroundColor: "#2a7371",
+                  color: "white",
+                  fontWeight: 600,
+                  marginBottom: "10px",
+                }}
+              >
+                + Add Images
+              </label>
+
+              <div className="d-flex flex-wrap gap-2">
+                {homeImages.map((file, i) => {
+                  const src =
+                    file instanceof File
+                      ? URL.createObjectURL(file)
+                      : `https://sewarwellnessclinic1.runasp.net${file.imgUrl}`;
+                  return (
+                    <div
+                      key={i}
+                      style={{
+                        position: "relative",
+                        display: "inline-block",
+                        marginRight: "10px",
+                      }}
+                    >
+                      <img
+                        src={src}
+                        alt="Home Program"
+                        style={{
+                          width: "120px",
+                          height: "120px",
+                          objectFit: "cover",
+                          border: "2px solid #2a7371",
+                          borderRadius: "8px",
+                          cursor: "pointer",
+                        }}
+                        onClick={() => setZoomImage(src)}
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setHomeImages((prev) =>
+                            prev.filter((_, idx) => idx !== i)
+                          )
+                        }
+                        style={{
+                          position: "absolute",
+                          top: "-8px",
+                          right: "-8px",
+                          backgroundColor: "#2a7371",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "50%",
+                          width: "24px",
+                          height: "24px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Footer */}
 

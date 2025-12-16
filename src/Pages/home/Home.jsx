@@ -2,34 +2,32 @@ import React, { useEffect, useState } from "react";
 import styles from "./Home.module.css";
 import { Link } from "react-router-dom";
 import { useInView } from "react-intersection-observer";
-import Sewar from "./../../assets/Sewar.jpeg";
+import SewarShreem2 from "./../../assets/SewarShreem2.jpeg";
 import axios from "axios";
 import { FaCalendarCheck } from "react-icons/fa";
-import OurSpecialties from './../../Components/OurSpecialties/OurSpecialties';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import 'bootstrap/dist/js/bootstrap.bundle.min.js'; // ← مهم جدًا
+import OurSpecialties from "./../../Components/OurSpecialties/OurSpecialties";
 import { useLocation } from "react-router-dom";
 
 export default function Home() {
   const [user, setUser] = useState(null);
   const [slides, setSlides] = useState([]);
   console.log(user);
-const location = useLocation();
+  const location = useLocation();
 
-useEffect(() => {
-  if (location.state?.scrollTo === "our-specialties") {
-    // ننتظر قليلًا حتى يتم بناء DOM
-    const timeout = setTimeout(() => {
-      const el = document.getElementById("our-specialties");
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth" });
-        window.history.replaceState({}, document.title); // لمسح الـ state
-      }
-    }, 300); // 100ms غالبًا كافي
+  useEffect(() => {
+    if (location.state?.scrollTo === "our-specialties") {
+      // ننتظر قليلًا حتى يتم بناء DOM
+      const timeout = setTimeout(() => {
+        const el = document.getElementById("our-specialties");
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth" });
+          window.history.replaceState({}, document.title); // لمسح الـ state
+        }
+      }, 300); // 100ms غالبًا كافي
 
-    return () => clearTimeout(timeout);
-  }
-}, [location]);
+      return () => clearTimeout(timeout);
+    }
+  }, [location]);
 
   const { ref: doctorSectionRef, inView: isDoctorSectionVisible } = useInView({
     triggerOnce: true,
@@ -86,261 +84,277 @@ useEffect(() => {
 
   return (
     <>
-<div className={styles.longPage} >
+      <div className={styles.longPage}>
         {/* Carousel Section (No changes here) */}
         <div
           id="carouselExampleInterval"
-  className={`carousel slide position-relative ${styles.carouselWrapper}`}
+          className={`carousel slide position-relative ${styles.carouselWrapper}`}
           data-bs-ride="carousel"
         >
           {/* Carousel inner */}
-        <div className="carousel-inner">
-  {/* لو ما رجعت صور من الباك → سلايد واحدة فاضية */}
-  {slides.length === 0 && (
-    <div className="carousel-item active">
-      <div
-        style={{
-          width: "100%",
-          height: "200px",
-          background: "#e7f3f3",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexDirection: "column",
-          position: "relative",
-        }}
-      >
-        <p style={{ color: "#2a7371", fontSize: "22px", fontWeight: "bold" }}>
-          لا يوجد صور بعد — يمكنك إضافة صورة جديدة
-        </p>
+          <div className="carousel-inner">
+            {/* لو ما رجعت صور من الباك → سلايد واحدة فاضية */}
+            {slides.length === 0 && (
+              <div className="carousel-item active">
+                <div
+                  style={{
+                    width: "100%",
+                    height: "200px",
+                    background: "#e7f3f3",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexDirection: "column",
+                    position: "relative",
+                  }}
+                >
+                  <p
+                    style={{
+                      color: "#2a7371",
+                      fontSize: "22px",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    لا يوجد صور بعد — يمكنك إضافة صورة جديدة
+                  </p>
 
-        {/* أزرار السكرتير */}
-        {user?.userType?.toLowerCase() === "scheduler_admin" && (
-          <div style={{ display: "flex", marginTop: "15px" }}>
-            <button
-              className={styles.actionButton}
+                  {/* أزرار السكرتير */}
+                  {user?.userType?.toLowerCase() === "scheduler_admin" && (
+                    <div style={{ display: "flex", marginTop: "15px" }}>
+                      <button
+                        className={styles.actionButton}
+                        style={{
+                          backgroundColor: "#fff",
+                          borderRadius: "5px",
+                          padding: "10px 20px",
+                          border: "2px solid #2a7371",
+                          color: "#2a7371",
+                          fontWeight: "bold",
+                          textAlign: "center",
+                          cursor: "pointer",
+                          marginRight: "10px",
+                          transition: "0.3s",
+                        }}
+                      >
+                        <Link
+                          to="/admin"
+                          style={{ color: "inherit", textDecoration: "none" }}
+                        >
+                          إضافة +
+                        </Link>
+                      </button>
+                    </div>
+                  )}
+                  {/* زر احجز الآن للمريض أو الدكتور */}
+                  {(!user ||
+                    user.userType?.toLowerCase() === "patient" ||
+                    user.userType?.toLowerCase() === "doctor") && (
+                    <button
+                      className={styles.actionButton}
+                      style={{
+                        backgroundColor: "#fff",
+                        borderRadius: "5px",
+                        padding: "10px 20px",
+                        border: "2px solid #2a7371",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                        transition: "0.3s",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#2a7371";
+                        e.currentTarget.querySelector("a").style.color = "#fff";
+                        e.currentTarget.querySelector("svg").style.color =
+                          "#fff";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "#fff";
+                        e.currentTarget.querySelector("a").style.color =
+                          "#2a7371";
+                        e.currentTarget.querySelector("svg").style.color =
+                          "#2a7371";
+                      }}
+                    >
+                      <FaCalendarCheck
+                        style={{ color: "#2a7371", fontSize: "18px" }}
+                      />
+                      <Link
+                        to="/appointment"
+                        style={{
+                          color: "#2a7371",
+                          textDecoration: "none",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        احجز الآن
+                      </Link>
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
 
-              style={{
-                backgroundColor: "#fff",
-                borderRadius: "5px",
-                padding: "10px 20px",
-                border: "2px solid #2a7371",
-                color: "#2a7371",
-                fontWeight: "bold",
-                textAlign: "center",
-                cursor: "pointer",
-                marginRight: "10px",
-                transition: "0.3s",
-              }}
-            >
-              <Link to="/admin" style={{ color: "inherit", textDecoration: "none" }}>
-          إضافة +
-              </Link>
-            </button>
+            {/* السلايد العادية */}
+            {slides.length > 0 &&
+              slides.map((item, index) => (
+                <div
+                  key={item.id}
+                  className={`carousel-item ${index === 0 ? "active" : ""} `}
+                >
+                  <div className={styles.imageWrapper}>
+                    <img
+                      src={`https://sewarwellnessclinic1.runasp.net${item.imageUrl}`}
+                      className="d-block w-100"
+                      alt={`slide-${index + 1}`}
+                    />
 
-           
+                    <div className={styles.overlay}></div>
+                    <div
+                      className={styles.carouselCaptionCustom}
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        height: "100%", // ليأخذ كامل مساحة الـ div
+                        textAlign: "center",
+                      }}
+                    >
+                      {item.text1 && <h2>{item.text1}</h2>}
+                      {item.text2 && <h1>{item.text2}</h1>}
+                      {item.text3 && <p>{item.text3}</p>}
+
+                      {/* زر احجز الآن للمريض أو الطبيب */}
+                      {/* زر احجز الآن للمريض أو الطبيب */}
+                      {/* زر احجز الآن للمريض أو الطبيب */}
+                      {(!user ||
+                        user.userType?.toLowerCase() === "patient" ||
+                        user.userType?.toLowerCase() === "doctor") && (
+                        <button
+                          className={styles.actionButton}
+                          style={{
+                            marginTop: "20px",
+                            backgroundColor: "#fff", // افتراضي أبيض
+                            borderRadius: "5px",
+                            padding: "12px 25px",
+                            border: "2px solid #2a7371",
+                            color: "#2a7371", // نص افتراضي
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "10px",
+                            fontWeight: "bold",
+                            cursor: "pointer",
+                            transition: "0.3s",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = "#2a7371";
+                            e.currentTarget.style.color = "#fff";
+                            e.currentTarget.querySelector("a").style.color =
+                              "#fff";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = "#fff";
+                            e.currentTarget.style.color = "#2a7371";
+                            e.currentTarget.querySelector("a").style.color =
+                              "#2a7371";
+                          }}
+                        >
+                          <FaCalendarCheck style={{ fontSize: "18px" }} />
+                          <Link
+                            to="/appointment"
+                            style={{ color: "inherit", textDecoration: "none" }}
+                          >
+                            احجز الآن
+                          </Link>
+                        </button>
+                      )}
+
+                      {/* أزرار السكرتير */}
+                      {user?.userType?.toLowerCase() === "scheduler_admin" && (
+                        <div
+                          className={styles.schedulerButtons}
+                          style={{
+                            display: "flex",
+                            gap: "10px",
+                            marginTop: "20px",
+                          }}
+                        >
+                          <button
+                            className={styles.actionButton}
+                            style={{
+                              backgroundColor: "#fff",
+                              borderRadius: "5px",
+                              padding: "10px 20px",
+                              border: "2px solid #2a7371",
+                              color: "#2a7371",
+                              fontWeight: "bold",
+                              cursor: "pointer",
+                              transition: "0.3s",
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = "#2a7371";
+                              e.currentTarget.querySelector("a").style.color =
+                                "#fff";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = "#fff";
+                              e.currentTarget.querySelector("a").style.color =
+                                "#2a7371";
+                            }}
+                          >
+                            <Link
+                              to="/admin"
+                              style={{
+                                color: "inherit",
+                                textDecoration: "none",
+                              }}
+                            >
+                              إضافة +
+                            </Link>
+                          </button>
+
+                          <button
+                            style={{
+                              backgroundColor: "#fff",
+                              borderRadius: "5px",
+                              padding: "10px 20px",
+                              border: "2px solid #2a7371",
+                              color: "#2a7371",
+                              fontWeight: "bold",
+                              cursor: "pointer",
+                              transition: "0.3s",
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = "#2a7371";
+                              e.currentTarget.querySelector("a").style.color =
+                                "#fff";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = "#fff";
+                              e.currentTarget.querySelector("a").style.color =
+                                "#2a7371";
+                            }}
+                          >
+                            <Link
+                              to="/admin"
+                              state={{ slide: item }}
+                              style={{
+                                color: "inherit",
+                                textDecoration: "none",
+                              }}
+                            >
+                              تعديل أو حذف
+                            </Link>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
           </div>
-        )}
-{/* زر احجز الآن للمريض أو الدكتور */}
-{(!user || user.userType?.toLowerCase() === "patient" || user.userType?.toLowerCase() === "doctor") && (
-
-    <button
-      className={styles.actionButton}
-
-      style={{
-        backgroundColor: "#fff",
-        borderRadius: "5px",
-        padding: "10px 20px",
-        border: "2px solid #2a7371",
-        display: "flex",
-        alignItems: "center",
-        gap: "10px",
-        justifyContent: "center",
-        cursor: "pointer",
-        transition: "0.3s",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.backgroundColor = "#2a7371";
-        e.currentTarget.querySelector("a").style.color = "#fff";
-        e.currentTarget.querySelector("svg").style.color = "#fff";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.backgroundColor = "#fff";
-        e.currentTarget.querySelector("a").style.color = "#2a7371";
-        e.currentTarget.querySelector("svg").style.color = "#2a7371";
-      }}
-    >
-      <FaCalendarCheck style={{ color: "#2a7371", fontSize: "18px" }} />
-      <Link
-        to="/appointment"
-        style={{
-          color: "#2a7371",
-          textDecoration: "none",
-          fontWeight: "bold",
-        }}
-      >
-        احجز الآن
-      </Link>
-    </button>
-)}
-
-        
-      </div>
-      
-    </div>
-  )}
-
-  {/* السلايد العادية */}
-  {slides.length > 0 &&
-    slides.map((item, index) => (
-      <div
-        key={item.id}
-        className={`carousel-item ${index === 0 ? "active" : ""} ` }
-      >
-                <div className={styles.imageWrapper}>
-
-
-        <img
-          src={`https://sewarwellnessclinic1.runasp.net${item.imageUrl}`}
-          className="d-block w-100"
-          alt={`slide-${index + 1}`}
-        />
-
-        <div className={styles.overlay}></div>
-      <div
-  className={styles.carouselCaptionCustom}
-  style={{
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    height: "100%", // ليأخذ كامل مساحة الـ div
-    textAlign: "center",
-  }}
->
-  {item.text1 && <h2>{item.text1}</h2>}
-  {item.text2 && <h1>{item.text2}</h1>}
-  {item.text3 && <p>{item.text3}</p>}
-
-  {/* زر احجز الآن للمريض أو الطبيب */}
- {/* زر احجز الآن للمريض أو الطبيب */}
-  {/* زر احجز الآن للمريض أو الطبيب */}
-  {(!user || user.userType?.toLowerCase() === "patient" || user.userType?.toLowerCase() === "doctor") && (
-
-      <button
-        className={styles.actionButton}
-
-        style={{
-          marginTop: "20px",
-          backgroundColor: "#fff", // افتراضي أبيض
-          borderRadius: "5px",
-          padding: "12px 25px",
-          border: "2px solid #2a7371",
-          color: "#2a7371", // نص افتراضي
-          display: "inline-flex",
-          alignItems: "center",
-          gap: "10px",
-          fontWeight: "bold",
-          cursor: "pointer",
-          transition: "0.3s",
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = "#2a7371";
-          e.currentTarget.style.color = "#fff";
-          e.currentTarget.querySelector("a").style.color = "#fff";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = "#fff";
-          e.currentTarget.style.color = "#2a7371";
-          e.currentTarget.querySelector("a").style.color = "#2a7371";
-        }}
-      >
-        <FaCalendarCheck style={{ fontSize: "18px" }} />
-        <Link
-          to="/appointment"
-          style={{ color: "inherit", textDecoration: "none" }}
-        >
-          احجز الآن
-        </Link>
-      </button>
-    )}
-
-
-  {/* أزرار السكرتير */}
-  {user?.userType?.toLowerCase() === "scheduler_admin" && (
- <div
- className={styles.schedulerButtons}
-  style={{
-    display: "flex",
-    gap: "10px",
-    marginTop: "20px",
-  }}
->
-  <button
-    className={styles.actionButton}
-
-    style={{
-      backgroundColor: "#fff",
-      borderRadius: "5px",
-      padding: "10px 20px",
-      border: "2px solid #2a7371",
-      color: "#2a7371",
-      fontWeight: "bold",
-      cursor: "pointer",
-      transition: "0.3s",
-    }}
-    onMouseEnter={(e) => {
-      e.currentTarget.style.backgroundColor = "#2a7371";
-      e.currentTarget.querySelector("a").style.color = "#fff";
-    }}
-    onMouseLeave={(e) => {
-      e.currentTarget.style.backgroundColor = "#fff";
-      e.currentTarget.querySelector("a").style.color = "#2a7371";
-    }}
-  >
-    <Link
-      to="/admin"
-      style={{ color: "inherit", textDecoration: "none" }}
-    >
-      إضافة +
-    </Link>
-  </button>
-
-  <button
-    style={{
-      backgroundColor: "#fff",
-      borderRadius: "5px",
-      padding: "10px 20px",
-      border: "2px solid #2a7371",
-      color: "#2a7371",
-      fontWeight: "bold",
-      cursor: "pointer",
-      transition: "0.3s",
-    }}
-    onMouseEnter={(e) => {
-      e.currentTarget.style.backgroundColor = "#2a7371";
-      e.currentTarget.querySelector("a").style.color = "#fff";
-    }}
-    onMouseLeave={(e) => {
-      e.currentTarget.style.backgroundColor = "#fff";
-      e.currentTarget.querySelector("a").style.color = "#2a7371";
-    }}
-  >
-    <Link
-      to="/admin"
-      state={{ slide: item }}
-      style={{ color: "inherit", textDecoration: "none" }}
-    >
-      تعديل أو حذف
-    </Link>
-  </button>
-</div>
-
-  )}
-</div></div>
-      </div>
-    ))}
-</div>
 
           {/* Carousel controls */}
           <button
@@ -385,7 +399,7 @@ useEffect(() => {
                 <div className={styles.backgroundTwo}></div>
                 <div className={styles.mainBackground}>
                   <img
-                    src={Sewar}
+                    src={SewarShreem2}
                     alt="Dr. Sewar Shreem"
                     className={styles.doctorImage}
                   />
@@ -453,19 +467,14 @@ useEffect(() => {
               </ul>
             </div>
           </div>
-{/* بعد قسم الدكتور */}
-
+          {/* بعد قسم الدكتور */}
         </section>
-      <section className="container my-5" id="our-specialties">
-  <div className="mt-4">
-    <OurSpecialties />
-  </div>
-</section>
-
-
+        <section className="container my-5" id="our-specialties">
+          <div className="mt-4">
+            <OurSpecialties />
+          </div>
+        </section>
       </div>
-
     </>
-
   );
 }

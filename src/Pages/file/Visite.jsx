@@ -188,161 +188,72 @@ useEffect(() => {
   style={{
     fontSize: "0.95rem",
     fontWeight: "600",
-    textAlign: "center",       // يجعل النصوص بالوسط أفقيًا
-    verticalAlign: "middle",   // يجعلها بالوسط عموديًا
+    textAlign: "center",
+    verticalAlign: "middle",
   }}
 >
   {visites.map((v) => (
-  <tr key={v.visiteId}>
+    <tr key={v.visiteId}>
+      <td data-label="التاريخ">{new Date(v.date).toLocaleDateString("ar-EG")}</td>
+      <td data-label="الوقت">{formatTime(v.time)}</td>
+      <td data-label="النوع">
+        <select
+          value={v.type}
+          onChange={async (e) => {
+            const newType = Number(e.target.value);
+            setVisites((prev) =>
+              prev.map((item) =>
+                item.visiteId === v.visiteId ? { ...item, type: newType } : item
+              )
+            );
 
-    {console.log("VISIT FROM BACKEND:", v)}
-
-
-
-<td
-  style={{
-    textAlign: "center",
-    verticalAlign: "middle",
-    width: "80px",
-    whiteSpace: "nowrap",
-  }}
->        {new Date(v.date).toLocaleDateString("ar-EG")}
+            try {
+              await axios.post(
+                "https://sewarwellnessclinic1.runasp.net/api/FilesPage/change-visit-type",
+                { visitId: v.visiteId, newType: newType }
+              );
+            } catch (err) {
+              alert("فشل تحديث نوع الزيارة");
+            }
+          }}
+          style={{
+            fontSize: "0.95rem",
+            fontWeight: "600",
+            width: "100%",
+            textAlign: "center",
+            backgroundColor: "white",
+            color: "#333",
+          }}
+        >
+          <option value={1} style={{ backgroundColor: "#d1f2eb" }}>جلسة جديدة</option>
+          <option value={0} style={{ backgroundColor: "#ffe5d9" }}>جلسة مراجعة</option>
+        </select>
       </td>
-      <td style={{ textAlign: "center", verticalAlign: "middle" }}>
-        {formatTime(v.time)}
+      <td data-label="مكان الجلسة">
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            gap: "5px",
+            height: "100%",
+            padding: "10px",
+            boxSizing: "border-box",
+          }}
+        >
+          <span>{v.appointmentLocation || "غير محدد"}</span>
+          {isSchedulerAdmin && (
+            <button
+              onClick={async () => { /* ...زر التعديل... */ }}
+              style={{ border: "none", background: "transparent", cursor: "pointer", color: accentColor, fontSize: "1.2rem" }}
+              title="تعديل العنوان"
+            >
+              ✏️
+            </button>
+          )}
+        </div>
       </td>
-<td style={{ textAlign: "center", verticalAlign: "middle" }}>
-<select
-  value={v.type}
-  onChange={async (e) => {
-    const newType = Number(e.target.value);
-    setVisites((prev) =>
-      prev.map((item) =>
-        item.visiteId === v.visiteId ? { ...item, type: newType } : item
-      )
-    );
-
-    try {
-      await axios.post(
-        "https://sewarwellnessclinic1.runasp.net/api/FilesPage/change-visit-type",
-        { visitId: v.visiteId, newType: newType }
-      );
-    } catch (err) {
-      alert("فشل تحديث نوع الزيارة");
-    }
-  }}
-  style={{
-    fontSize: "0.95rem",
-    fontWeight: "600",
-    width: "100%",
-    textAlign: "center",
-    // اللون الافتراضي يبقى أبيض
-    backgroundColor: "white",
-    color: "#333",
-  }}
->
-  <option value={1} style={{ backgroundColor: "#d1f2eb" }}>جلسة جديدة</option>
-  <option value={0} style={{ backgroundColor: "#ffe5d9" }}>جلسة مراجعة</option>
-</select>
-
-</td>
-
-
-
-
-
-
-
-
-<td
-  style={{
-    textAlign: "center",
-    verticalAlign: "middle",
-    width: "180px",
-    whiteSpace: "normal",
-    wordWrap: "break-word",
-    padding: "0", // مهم جداً ليأخذ نفس طول الأعمدة
-  }}
->
-  <div
-    style={{
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      gap: "5px",
-      height: "100%",        // 🔥 هذا هو اللي يخليه بنفس طول الصف
-      padding: "10px",       // يرجع حشوة الجدول
-      boxSizing: "border-box",
-    }}
-  >
-<span>{v.appointmentLocation || "غير محدد"}</span>
-  {isSchedulerAdmin && (
-
-<button
-  onClick={async () => {
-    const newAddress = prompt(
-      "أدخل عنوان الجلسة الجديد:",
-      v.appointmentLocation || ""
-    );
-
-    if (newAddress !== null) {
-      try {
-        console.log("📌 Sending update-address request...");
-        console.log(
-          "URL:",
-          `https://sewarwellnessclinic1.runasp.net/api/FilesPage/appointments/update-address/${v.appointmentId}`
-        );
-console.log("Sending PUT:", v.appointmentid, newAddress);
-const appointmentId = v.appointmentid || v.appointmentId || v.visiteId;
-
-     const res = await axios.put(
-  `https://sewarwellnessclinic1.runasp.net/api/FilesPage/appointments/update-address/${appointmentId}`,
-  { appointmentlocation: newAddress }
-);
-
-
-        console.log("✅ Server Response:", res.data);
-
-        // تحديث الواجهة مباشرة
-        setVisites((prev) =>
-          prev.map((item) =>
-            item.visiteId === v.visiteId
-              ? { ...item, appointmentLocation: newAddress }
-              : item
-          )
-        );
-      } catch (err) {
-        console.error("❌ UPDATE ADDRESS ERROR:", err.response?.data || err);
-        alert("فشل تحديث عنوان الجلسة.");
-      }
-    }
-  }}
-  style={{
-    border: "none",
-    background: "transparent",
-    cursor: "pointer",
-    color: accentColor,
-    fontSize: "1.2rem",
-  }}
-  title="تعديل العنوان"
->
-  ✏️
-</button>
-  )}
-
-  </div>
-</td>
-
-
-
-
-
-
-
-
-
-
-      <td>
+      <td data-label="اسم الجلسة">
         <textarea
           className="form-control text-center"
           value={v.sessionName || ""}
@@ -355,14 +266,13 @@ const appointmentId = v.appointmentid || v.appointmentId || v.visiteId;
               )
             )
           }
-        onKeyDown={async (e) => {
-  if (e.key === "Enter") {
-    await updateVisiteInstant(v.visiteId, v.cost, v.sessionName);
-    fetchVisites(); // 🔥 هذا يعيد تحميل البيانات ويحدث totalCost
-    e.target.blur();
-  }
-}}
-
+          onKeyDown={async (e) => {
+            if (e.key === "Enter") {
+              await updateVisiteInstant(v.visiteId, v.cost, v.sessionName);
+              fetchVisites();
+              e.target.blur();
+            }
+          }}
           style={{
             width: "100%",
             minHeight: "40px",
@@ -376,13 +286,7 @@ const appointmentId = v.appointmentid || v.appointmentId || v.visiteId;
           }}
         />
       </td>
-
-
-
-
-
-      
-      <td>
+      <td data-label="التكلفة">
         <input
           type="text"
           className="form-control text-center"
@@ -396,15 +300,14 @@ const appointmentId = v.appointmentid || v.appointmentId || v.visiteId;
               )
             )
           }
-        onKeyDown={async (e) => {
-  if (e.key === "Enter" && !e.shiftKey) {
-    await updateVisiteInstant(v.visiteId, v.cost, v.sessionName);
-    fetchVisites(); // 🔥
-    e.preventDefault();
-    e.target.blur();
-  }
-}}
-
+          onKeyDown={async (e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              await updateVisiteInstant(v.visiteId, v.cost, v.sessionName);
+              fetchVisites();
+              e.preventDefault();
+              e.target.blur();
+            }
+          }}
           style={{
             fontSize: "0.95rem",
             fontWeight: "600",
@@ -416,6 +319,7 @@ const appointmentId = v.appointmentid || v.appointmentId || v.visiteId;
     </tr>
   ))}
 </tbody>
+
 </table>
       </div>
     )}

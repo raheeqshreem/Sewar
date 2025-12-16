@@ -295,21 +295,23 @@ const token = user?.token;
           📁 ملفات المرضى
         </h3>
 
-        <div className="mb-4 d-flex justify-content-center">
-          <input
-            type="text"
-            className="form-control rounded-3 shadow-sm text-center"
-            placeholder="ابحث بالاسم أو رقم الهوية أو التاريخ ( dd/mm/yyyy )"
-            style={{
-              border: `2px solid ${accentColor}`,
-              width: "50%", // بدّل maxWidth إلى width عشان يلتزم بنسبة محددة
-              direction: "rtl",
-              textAlign: "center", // للتأكد من أن النص في الوسط
-            }}
-            value={searchTerm}
-            onChange={(e) => handleSearch(e.target.value)}
-          />
-        </div>
+       <div className="mb-4 d-flex justify-content-center">
+  <input
+    type="text"
+    className="form-control rounded-3 shadow-sm text-center"
+    placeholder="ابحث بالاسم أو رقم الهوية أو التاريخ ( dd/mm/yyyy )"
+    style={{
+      border: `2px solid ${accentColor}`,
+      width: "100%", // 👈 خلي العرض 100% افتراضي
+      maxWidth: "500px", // 👈 الحد الأقصى للعرض على الشاشات الكبيرة
+      direction: "rtl",
+      textAlign: "center",
+    }}
+    value={searchTerm}
+    onChange={(e) => handleSearch(e.target.value)}
+  />
+</div>
+
 
         {loading && (
           <div className="text-center text-secondary py-3">
@@ -329,14 +331,9 @@ const token = user?.token;
         )}
 
         {!loading && filteredFiles.length > 0 && (
-          <div className="table-responsive">
-            <table
-  className="table table-hover table-bordered text-center align-middle"
-              style={{
-                width: "100%", // 👈 الجدول يملأ كامل الصفحة
-                tableLayout: "fixed", // 👈 يجعل كل الأعمدة بنفس العرض
-              }}
-            >
+          <div className="table-responsive">  {/* <-- هنا */}
+    <table className="table table-hover table-bordered text-center align-middle" style={{ width: "100%", tableLayout: "fixed" }}>
+    
 
 
 

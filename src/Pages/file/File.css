@@ -252,3 +252,13 @@ table.table tbody tr[data-highlight="true"]:hover td {
     flex-shrink: 0;
   }
 }
+@media (max-width: 576px) {
+  .form-control::placeholder {
+    font-size: 0.85rem;  /* أصغر لتظهر كاملة */
+    white-space: nowrap;  /* تمنع الانكسار */
+    overflow: hidden;
+    text-overflow: ellipsis; /* ... في النهاية إذا طويل */
+  }
+}
+
+
