@@ -151,6 +151,8 @@ body {
 }
 
 
+
+
 @media (max-width: 576px) {
   .carouselItem img {
     height: 250px;
@@ -188,6 +190,46 @@ body {
     font-weight: 200;
     width: 230px;
   }
+
+
+
+
+.stethoscopeBackground {
+  position: absolute;
+  top: 50%;
+  right: 10%;             /* اقرب للوسط */
+  transform: translate(50%, -50%);
+  width: 90%;             /* أكبر حجم ممكن */
+  max-width: 1000px;      /* أقصى عرض */
+  opacity: 0.3;           /* شفافية مناسبة */
+  z-index: 0;
+  pointer-events: none;
+}
+
+.stethoscopeBackground img {
+  width: 100%;
+  height: auto;
+  transform: scale(1.3);  /* تكبير إضافي */
+  display: block;
+  animation: moveUpDown 4s ease-in-out infinite;
+}
+
+
+
+
+
+.doctorName {
+    font-size: 1.5rem;      /* تصغير الخط */
+    margin-top: 40px !important; /* تقليل المسافة من الأعلى */
+    text-align: center;      /* إذا حبيت يكون بالمنتصف */
+  }
+
+  .textSectionWithBg {
+    margin-top: 50px !important; /* نزّل النص بالكامل تحت الصورة بشكل مناسب */
+  }
+
+
+
 }
 
 @media (min-width: 577px) and (max-width: 992px) {
@@ -221,9 +263,7 @@ body {
     font-weight: 200;
     width: 550px;
   }
-   .stethoscopeBackground img{
-    width: 80%;
-  }
+  
 }
 
 /* الشاشات الكبيرة */
@@ -465,7 +505,28 @@ body {
     max-width: 250px; /* Smaller on mobile */
     aspect-ratio: 1 / 1.2;
   }
+
+  .stethoscopeBackground img {
+    width: 100%;
+    height: auto;
+    transform: scale(1.3);
+    display: block;
+    animation: moveUpDownMobile 4s ease-in-out infinite;
+  }
 }
+
+/* حركة أكبر على الموبايل */
+@keyframes moveUpDownMobile {
+50% {
+  transform: translateY(-250px);
+}
+100% {
+  transform: translateY(200px);
+}
+
+}
+
+
 
 @media (min-width: 577px) and (max-width: 992px) {
   .doctorImageWrapper {

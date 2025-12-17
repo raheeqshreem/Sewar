@@ -414,57 +414,41 @@ export default function Home() {
                 isDoctorSectionVisible ? styles.slideInFromRight : styles.hidden
               } `}
             >
-              <div className={`${styles.stethoscopeBackground}`}>
-                <img
-                  src="https://www.rehabeg.clinic/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Ftool.505cdf52.png&w=1200&q=75"
-                  alt="stethoscope background"
-                />
-              </div>
-              <h2
-                className="fw-bold display-5 m-3 "
-                style={{ color: "#343a40" }}
-              >
-                الأخصائية سوار شريم
-              </h2>
-              <h3 className="fw-normal mb-4 fs-4" style={{ color: " #2a7371" }}>
-                استشارية العلاج الطبيعي
-              </h3>
-              <ul className="list-unstyled fs-5" style={{ paddingRight: 0 }}>
-                <li className="mb-2 d-flex justify-content-end align-items-center">
-                  <span>
-                    بكالوريوس العلاج الطبيعي والتأهيل جامعة النجاح الوطنية{" "}
-                  </span>
-                  <span
-                    className="ms-2"
-                    style={{ color: "#fd7e14", fontSize: "1.5rem" }}
-                  >
-                    •
-                  </span>
-                </li>
-                <li className="mb-2 d-flex justify-content-end align-items-center">
-                  <span>
-                    مدرس بكلية العلاج الطبيعي جامعة أكتوبر للعلوم الحديثة
-                    والآداب (MSA)
-                  </span>
-                  <span
-                    className="ms-2"
-                    style={{ color: "#fd7e14", fontSize: "1.5rem" }}
-                  >
-                    •
-                  </span>
-                </li>
-                <li className="d-flex justify-content-end align-items-center">
-                  <span>
-                    دبلومة التغذية العلاجية المعهد القومي للتغذية جامعة القاهرة
-                  </span>
-                  <span
-                    className="ms-2"
-                    style={{ color: "#fd7e14", fontSize: "1.5rem" }}
-                  >
-                    •
-                  </span>
-                </li>
-              </ul>
+             <div
+  className={styles.stethoscopeBackground}
+  style={{ marginTop: "50px" }}  // تزيد الرقم لتنزّل الصورة أكثر
+>
+  <img
+    src="https://www.rehabeg.clinic/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Ftool.505cdf52.png&w=1200&q=75"
+    alt="stethoscope background"
+  />
+</div>
+
+           <h2 className="fw-bold display-5 m-3 doctorName">
+  الأخصائية سوار شريم
+</h2>
+
+
+<p
+  className="fs-5 text-end textSectionWithBg"
+  style={{
+    paddingLeft: "0",
+    paddingRight: "15px",    // مسافة صغيرة من اليمين عشان ما يلصق الحافة
+    lineHeight: 2,         // تباعد أسطر أصغر على الموبايل
+    direction: "rtl",
+    maxWidth: "95%",          // تقريبًا ملء الشاشة مع هامش بسيط
+    margin: "40px auto 0 auto", // مسافة من الأعلى أقل
+    fontSize: "0.9rem",       // تصغير الخط قليلاً للموبايل
+    textAlign: "justify",      // نص منسق بشكل جيد
+  }}
+>
+  حاصلة على درجة البكالوريوس في العلاج الطبيعي من جامعة النجاح الوطنية،
+  ومرخّصة رسميًا لمزاولة مهنة العلاج الطبيعي.
+  تمتلك خبرة عملية تمتد لثلاث سنوات في مجال العلاج الطبيعي، وتسعى إلى تقديم خدمات علاجية وتأهيلية شاملة تهدف إلى تخفيف الألم، تحسين الحركة، واستعادة الوظيفة الحركية، من خلال خطط علاج فردية وباستخدام أحدث الأساليب العلاجية بما يناسب احتياجات كل مريض.
+</p>
+
+
+
             </div>
           </div>
           {/* بعد قسم الدكتور */}

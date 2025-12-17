@@ -133,7 +133,7 @@ export default function ViewAppointments() {
                         localStorage.setItem("selectedIDNumber", child.idnumber);
                         navigate("/appointment", { state: { asPatient: true } });
                       }}>
-                      <PlusCircle size={18} /> إضافة موعد
+                      <PlusCircle size={18} /> إضافة موعد  
                     </Button>
                   </div>
 
@@ -183,7 +183,7 @@ export default function ViewAppointments() {
             style={{ backgroundColor: "#006d6d", borderColor: "beige", color: "beige", borderRadius: "10px", display: "flex", alignItems: "center", gap: "8px", padding: "10px 20px", fontWeight: "600", boxShadow: "0 4px 12px rgba(0,0,0,0.15)", transition: "all 0.2s ease" }}
             onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#008b8b"; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 6px 15px rgba(0,0,0,0.2)"; }}
             onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#008b8b"; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)"; }}>
-            <PlusCircle size={20} /> إضافة موعد
+            <PlusCircle size={20} /> إضافة موعد لمريض جديد
           </button>
         </div>
       </Container>
