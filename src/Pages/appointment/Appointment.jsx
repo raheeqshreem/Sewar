@@ -4,6 +4,31 @@ import { useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import axios from "axios";
 
+
+
+const modalOverlay = {
+  position: "fixed",
+  inset: 0,
+  background: "rgba(0,0,0,0.5)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  zIndex: 9999,
+};
+
+const modalBox = {
+  background: "white",
+  borderRadius: "12px",
+  padding: "30px",
+  width: "320px",
+  textAlign: "center",
+};
+
+const confirmBtn = {
+  backgroundColor: "#2a7371",
+  color: "beige",
+  border: "none",
+};
 function Appointment() {
 
   const location = useLocation();
@@ -16,10 +41,31 @@ const editMode = location.state?.editMode || false;
   console.log(asPatient); // true إذا ضغط السكرتير على "إضافة موعد"
 
  // 🟢 هذا الجزء الجديد: Scroll لفوق عند الدخول
+useEffect(() => {
+  window.scrollTo({
+    top: 0,
+    left: 0,
+    behavior: "smooth", // لو بدك بدون حركة احذفها
+  });
+}, []);
+
+
+useEffect(() => {
+  const savedData = localStorage.getItem("cancelCheckResult");
+  if (savedData) {
+    const data = JSON.parse(savedData);
+    if (data && Object.keys(data).length > 0) {
+      setCancelCheckResult(data); // خزّن البيانات لاستخدامها لاحقًا
+    }
+  }
+}, []);
+
+
+
 
 useEffect(() => {
   if (editMode && fromViewEdit) {
-    const appointmentId = localStorage.getItem("selectedAppointmentId");
+const appointmentId = restoreSlot.appointmentId;
     const childId = localStorage.getItem("selectedChildId");
     const email = localStorage.getItem("selectedEmail");
 
@@ -50,17 +96,43 @@ useEffect(() => {
   const [showTempDeleteModal, setShowTempDeleteModal] = useState(false); // مودال حذف الموعد المؤقت
   const [editTarget, setEditTarget] = useState(null);
   const navigate = useNavigate();
-
+const [cancelMode, setCancelMode] = useState(false); 
+const [cancelCheckResult, setCancelCheckResult] = useState(null);
+const [showCancelConfirmModal, setShowCancelConfirmModal] = useState(false);
+const [showPatientModal, setShowPatientModal] = useState(false);
+const [editCompleted, setEditCompleted] = useState(false);
+const [showRestoreModal, setShowRestoreModal] = useState(false);
+const [restoreSlot, setRestoreSlot] = useState(null);
 const user = JSON.parse(localStorage.getItem("user"));
 console.log(JSON.parse(localStorage.getItem("user")));
 const isSecretary = user?.userType === "scheduler_admin"; // تحقق إذا المستخدم سكرتير
 const showBookButton = isSecretary ? asPatient : true;
+const userType = user?.userType?.toLowerCase(); // doctor / patient / doctor_admin
+const isDoctor = userType === "doctor" || userType === "doctor_admin";
+const isCancelMode =
+  (isDoctor) ||
+  (isSecretary && !showBookButton);
+const disableTableClick =
+  editCompleted || (isCancelMode && !editMode);
 
   const DISPLAY_COUNT = 6; // السبت - الخميس
 
   useEffect(() => {
     fetchAppointments();
   }, []);
+
+
+
+useEffect(() => {
+  // ✅ شغّل السكروول عند أي حالة دخول من صفحة المواعيد
+  if (editMode && fromViewEdit || asPatient) {
+    // رفع الصفحة للأعلى
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+}, [editMode, fromViewEdit, asPatient]);
+
+
+
 
  const fetchAppointments = async () => {
   try {
@@ -138,10 +210,19 @@ for (let i = 9; i < 17; i++) {
   const prevWeek = () => { if(weekOffset>0) setWeekOffset(prev => prev-1); };
 
 const handleSelect = (day, time) => {
+  if (!cancelMode && disableTableClick) return;
+
   const slot = { day, time: time.label };
 
+  if (cancelMode) {
+    // ❌ لا نرسل للباك بعد، فقط نحدد الموعد
+    setSelectedSlot(slot);
+    setShowCancelConfirmModal(true); // عرض مودال التأكيد
+    return; // خروج
+  }
+
   // إذا نفس الموعد المؤقت، فتح مودال الحذف
-  if(tempSelectedSlot && tempSelectedSlot.day === slot.day && tempSelectedSlot.time === slot.time){
+  if (tempSelectedSlot && tempSelectedSlot.day === slot.day && tempSelectedSlot.time === slot.time) {
     setShowTempDeleteModal(true);
     return;
   }
@@ -149,23 +230,24 @@ const handleSelect = (day, time) => {
   setTempSelectedSlot(slot);
   setSelectedSlot(slot);
 
-
-  // ✅ تمرير تلقائي للزر بعد التأكد أنه موجود
-setTimeout(() => {
-  if (bookButtonRef.current) {
-    bookButtonRef.current.scrollIntoView({ 
-      behavior: "smooth", 
-      block: "center" 
-    });
-  }
-}, 300); // زيادة الوقت عشان الصفحة تجهز على الجوال
+  // تمرير تلقائي للزر بعد التأكد أنه موجود
+  setTimeout(() => {
+    if (bookButtonRef.current) {
+      bookButtonRef.current.scrollIntoView({ 
+        behavior: "smooth", 
+        block: "center" 
+      });
+    }
+  }, 300);
 
   // عرض مودال التأكيد لأي حالة تعديل
-  if(editMode || fromViewEdit || editTarget){
+  if (editMode || fromViewEdit || editTarget){
     setPendingChange(slot);
     setShowConfirmModal(true);
   }
 };
+
+
 
 
 
@@ -231,7 +313,22 @@ if (isSecretary) {
 
 };
 
+const handleCancelClick = () => {
+  setCancelMode(true);
+  setSelectedSlot(null);
+  setTempSelectedSlot(null);
 
+  toast("لإلغاء موعد من قبل الأخصائية، يرجى اختيار موعد من الجدول", {
+    duration: 6000,
+    style: {
+      background: "#fff3cd",
+      color: "#856404",
+      fontWeight: "bold",
+      fontSize: "16px",
+      textAlign: "center",
+    },
+  });
+};
 
 
   const handleDelete = async (appointmentId) => {
@@ -250,25 +347,41 @@ if (isSecretary) {
     }
   };
 
- const confirmUpdate = async () => {
-  if(!editTarget || !pendingChange) return; // <-- هنا المشكلة
+const confirmUpdate = async () => {
+  if (!editTarget || !pendingChange) return;
   const token = localStorage.getItem("token") || JSON.parse(localStorage.getItem("user"))?.token;
+
   try {
-    const res = await axios.post("https://sewarwellnessclinic1.runasp.net/api/Child/update-appointment", {
-      oldAppointmentId: editTarget.appointmentId,
-      newDay: pendingChange.day,
-      newTime: pendingChange.time,
-      confirmChange:true
-    }, { headers:{ Authorization:`Bearer ${token}` }});
+    const res = await axios.post(
+      "https://sewarwellnessclinic1.runasp.net/api/Child/update-appointment",
+      {
+        oldAppointmentId: editTarget.appointmentId,
+        newDay: pendingChange.day,
+        newTime: pendingChange.time,
+        confirmChange: true
+      },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
     toast.success(res.data.message || "تم تعديل الموعد بنجاح");
+
+    // 👇 حفظ الـ appointmentId المعدّل لتسليط الضوء
+    const updatedAppointmentId = editTarget.appointmentId;
+
+    // نظّف المتغيرات
     setEditTarget(null);
     setPendingChange(null);
     setShowConfirmModal(false);
-    fetchAppointments();
+
+    // ✅ احفظ في localStorage وارجع لصفحة ViewAppointments مع state
+    localStorage.setItem("highlightAppointmentId", updatedAppointmentId);
+    navigate("/viewappointments", { state: { highlightAppointmentId: updatedAppointmentId } });
+
   } catch {
     toast.error("فشل تعديل الموعد");
   }
 };
+
 
   const now = new Date();
 
@@ -276,6 +389,106 @@ if (isSecretary) {
 
 
 
+useEffect(() => {
+  if (editMode && fromViewEdit) {
+    const appointmentId = localStorage.getItem("selectedAppointmentId");
+    const childId = localStorage.getItem("selectedChildId");
+
+    if (!appointmentId || !childId) {
+      toast.error("لم يتم العثور على بيانات الموعد القديم");
+      return;
+    }
+
+    // 👇 خزّني الموعد القديم
+    setEditTarget({
+      appointmentId: appointmentId,
+      childId: childId,
+    });
+  }
+}, [editMode, fromViewEdit]);
+
+
+
+
+const fixPhoneNumber = (phone) => {
+  if (!phone) return "";
+
+  // إذا الزائد موجودة بالآخر
+  if (phone.endsWith("+")) {
+    return "+" + phone.slice(0, -1);
+  }
+
+  // إذا ما في +
+  if (!phone.startsWith("+")) {
+    return "+" + phone;
+  }
+
+  return phone;
+};
+
+
+const handleRestoreAppointment = async () => {
+  try {
+   const token = localStorage.getItem("token");
+
+// 1️⃣ اقرأ كل المواعيد الملغية
+const canceledAppointments =
+  JSON.parse(localStorage.getItem("canceledAppointments")) || {};
+
+// 2️⃣ هات بيانات الموعد اللي بدنا نرجعه
+const storedResetResponse =
+  canceledAppointments[restoreSlot.appointmentId];
+
+// 3️⃣ حماية
+if (!storedResetResponse) {
+  toast.error("بيانات الموعد غير موجودة");
+  return;
+}
+
+
+
+const params = {
+  parentId: storedResetResponse?.data?.applicationUserId?.toString() || "1",
+  childId: storedResetResponse?.data?.childId || 1,
+  visitTypee: storedResetResponse?.data?.visitTypee?.toString() || "1",
+  day: storedResetResponse?.data?.date || "1",
+  time: storedResetResponse?.data?.timee?.toString() || "1",
+  placee: storedResetResponse?.data?.placee || 0,
+  address: storedResetResponse?.data?.address?.toString() || "1",
+  dateTime: storedResetResponse?.data?.dateTime,
+  timeSpan: storedResetResponse?.data?.timeSlott?.toString() || "1",
+  isbooked: storedResetResponse?.data?.isbookes ?? true,
+  appointmentid: restoreSlot.appointmentId,
+  exsist: storedResetResponse?.exists ?? false
+};
+
+    console.log("🔹 البيانات المرسلة للباك:", params);
+
+    await axios.post(
+      "https://sewarwellnessclinic1.runasp.net/api/Child/restore-appointment",
+      null,
+      {
+        params,
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+delete canceledAppointments[restoreSlot.appointmentId];
+
+localStorage.setItem(
+  "canceledAppointments",
+  JSON.stringify(canceledAppointments)
+);
+
+    toast.success("تمت إزالة إلغاء الحجز بنجاح ✅");
+    setShowRestoreModal(false);
+    setRestoreSlot(null);
+    setCancelMode(false);
+    fetchAppointments();
+  } catch (err) {
+    console.error("❌ خطأ أثناء restore:", err);
+    toast.error("فشل إعادة الموعد");
+  }
+};
 
   return (
     <div dir="rtl" className="container py-4" style={{ margin:"150px auto", minHeight:"100%", fontFamily:"Tahoma", backgroundColor:"#e6f9f8" }}>
@@ -299,14 +512,37 @@ if (isSecretary) {
 
                 const userBooked = userAppointments.find(a => a.day === day.date && a.time === time.label);
                 const isBooked = allAppointments.some(a => a.day === day.date && a.time === time.label);
-
+const canceledAppointment = allAppointments.find(
+  a =>
+    a.day === day.date &&
+    a.time === time.label &&
+    a.iscanceled === true
+);
                 let bgColor = "#f5f5f5";
                 let color = "#333";
-                if (isPast) { bgColor = "#ddd"; color = "#888"; }
-                else if (userBooked) { bgColor = "#ff6b6b"; color = "white"; }
-                else if (isBooked) { bgColor = "#ccc"; color = "#555"; }
-                else if (tempSelectedSlot?.day === day.date && tempSelectedSlot?.time === time.label) { bgColor = "#f7c8e0"; color = "#2a7371"; }
-
+             if (isPast) {
+  bgColor = "#ddd";
+  color = "#888";
+}
+else if (userBooked) {
+  bgColor = "#ff6b6b";
+  color = "white";
+}
+else if (canceledAppointment) {
+  bgColor = "#bdbdbd";   // رمادي غامق
+  color = "#444";
+}
+else if (isBooked) {
+  bgColor = "#ccc";
+  color = "#555";
+}
+else if (
+  tempSelectedSlot?.day === day.date &&
+  tempSelectedSlot?.time === time.label
+) {
+  bgColor = "#f7c8e0";
+  color = "#2a7371";
+}
                if (userBooked) {
   const isPastUserBooked = new Date(day.dateObj);
   isPastUserBooked.setHours(time.hour, 0, 0, 0);
@@ -377,10 +613,27 @@ toast("⚠️ اختر الموعد الجديد من الجدول ", {
                     style={{
                       backgroundColor: bgColor,
                       color,
-                      cursor: isPast || isBooked ? "not-allowed" : "pointer",
-                    }}
-                    onClick={() => { if(isPast || isBooked) return; handleSelect(day.date, time); }}
-                    title={isPast || isBooked ? "لا يمكنك حجز هذا الموعد":""}
+cursor: isPast || (isBooked && !cancelMode) ? "not-allowed" : "pointer",                    }}
+onClick={() => {
+  if (isPast) return;
+
+// 🔴 موعد ملغي (رمادي) → إزالة الإلغاء
+// 🔵 موعد ملغى مسبقاً → إزالة الإلغاء
+if (canceledAppointment && cancelMode) {
+  setRestoreSlot({
+    day: day.date,
+    time: time.label,
+    appointmentId: canceledAppointment.id
+  });
+  setShowRestoreModal(true);
+  return;
+}
+
+  // 🔥 اسمحي بالضغط إذا كنا بوضع الإلغاء
+  if (isBooked && !cancelMode) return;
+
+  handleSelect(day.date, time);
+}}                    title={isPast || isBooked ? "لا يمكنك حجز هذا الموعد":""}
                   >
                     {tempSelectedSlot?.day === day.date && tempSelectedSlot?.time === time.label && <Check size={14} color="#2a7371" strokeWidth={3} />}
                     {time.label}
@@ -392,20 +645,32 @@ toast("⚠️ اختر الموعد الجديد من الجدول ", {
         ))}
       </div>
 
-   <div className="text-center mt-4 d-flex justify-content-center gap-3">
-  {/* زر عرض جميع المواعيد / احجز موعدك */}
+<div className="text-center mt-4 d-flex justify-content-center gap-3">
+
+  {/* الزر الأساسي */}
   <button
-    ref={bookButtonRef}  // <-- هذا المرجع
+  ref={bookButtonRef}
+  onClick={isDoctor ? handleCancelClick : handleBookClick}
+  className="btn px-4 py-2 fw-bold"
+  style={{ backgroundColor:"#2a7371", color:"beige", border:"none" }}
+>
+  {isDoctor
+    ? "إلغاء موعد من قبل الأخصائية"
+    : showBookButton
+      ? "احجز موعدك"
+      : "عرض جميع المواعيد"}
+</button>
 
-    onClick={handleBookClick}
-    className="btn px-4 py-2 fw-bold"
-    style={{ backgroundColor:"#2a7371", color:"beige", border:"none" }}
-      title="لتثبيت حجزك اضغط هنا" // <-- يظهر عند تمرير الماوس
-
-  >
-    {showBookButton ? "احجز موعدك" : "عرض جميع المواعيد"}
-  </button>
-
+  {/* 🔴 زر إلغاء موعد من قبل الأخصائية — للسكرتير فقط */}
+  {isSecretary && !showBookButton && (
+    <button
+      onClick={handleCancelClick}
+      className="btn px-4 py-2 fw-bold"
+      style={{ backgroundColor:"#2a7371", color:"beige", border:"none" }}
+    >
+      إلغاء موعد من قبل الأخصائية
+    </button>
+  )}
 
 </div>
       {/* مودال تعديل الموعد */}
@@ -427,7 +692,7 @@ toast("⚠️ اختر الموعد الجديد من الجدول ", {
           نعم
         </button>
         <button 
-          onClick={()=>{ setShowConfirmModal(false); setEditTarget(null); setPendingChange(null); }} 
+          onClick={()=>{ setShowConfirmModal(false);  setPendingChange(null); }} 
           className="btn btn-secondary" 
           style={{ backgroundColor:"#ccc", color:"#333", padding:"10px 25px", fontWeight:"bold", fontSize:"16px", borderRadius:"8px" }}
         >
@@ -465,6 +730,228 @@ toast("⚠️ اختر الموعد الجديد من الجدول ", {
           </div>
         </div>
       )}
+
+
+
+{showCancelConfirmModal && selectedSlot && (
+  <div style={modalOverlay}>
+    <div
+      style={{
+        background: "white",
+        borderRadius: "18px",
+        padding: "35px 30px",
+        width: "360px",
+        textAlign: "center",
+        boxShadow: "0 15px 40px rgba(0,0,0,0.25)",
+      }}
+    >
+      {/* أيقونة */}
+      <div
+        style={{
+          width: "70px",
+          height: "70px",
+          borderRadius: "50%",
+          background: "#fff3cd",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          margin: "0 auto 15px",
+          fontSize: "32px",
+        }}
+      >
+        ⚠️
+      </div>
+
+      {/* العنوان */}
+      <h5 style={{ color: "#2a7371", fontWeight: "bold", marginBottom: "10px" }}>
+        إلغاء موعد من قبل الأخصائية
+      </h5>
+
+      {/* الوصف */}
+      <p style={{ color: "#555", fontSize: "15px", lineHeight: "1.7" }}>
+        هل أنتِ متأكدة من رغبتك في إلغاء الموعد التالي؟
+      </p>
+
+      {/* تفاصيل الموعد */}
+      <div
+        style={{
+          background: "#f1fafa",
+          borderRadius: "10px",
+          padding: "10px",
+          margin: "15px 0",
+          fontWeight: "bold",
+          color: "#2a7371",
+        }}
+      >
+        {selectedSlot.day} <br /> {selectedSlot.time}
+      </div>
+
+      {/* الأزرار */}
+      <div className="d-flex justify-content-center gap-3 mt-3">
+        <button
+          className="btn"
+          style={{
+            backgroundColor: "#2a7371",
+            color: "beige",
+            border: "none",
+            padding: "8px 22px",
+            fontWeight: "bold",
+            borderRadius: "8px",
+          }}
+   onClick={() => {
+  console.log("🟢 المودال الأول: بدأ الإلغاء", selectedSlot);
+
+  // 1️⃣ اغلق المودال الأول مباشرة
+  setShowCancelConfirmModal(false);
+  console.log("🟢 المودال الأول: تم إغلاقه");
+  const params = {
+    day: selectedSlot.day,
+    time: selectedSlot.time,
+  };
+  console.log("📤 البيانات المرسلة لـ create-or-reset-appointment:", params);
+
+  // 2️⃣ أرسل الطلب
+  axios.post(
+    "https://sewarwellnessclinic1.runasp.net/api/Child/create-or-reset-appointment",
+    null,
+    {
+      params: { day: selectedSlot.day, time: selectedSlot.time },
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+    }
+  )
+  .then(res => {
+  console.log("🟢 استلمنا الرد من الباك:", res.data);
+// 1️⃣ اقرأ المواعيد الملغية المخزنة مسبقًا
+const canceledAppointments =
+  JSON.parse(localStorage.getItem("canceledAppointments")) || {};
+
+// 2️⃣ خزّن الموعد الحالي باستخدام appointmentId
+canceledAppointments[res.data.newAppointmentId] = res.data;
+
+// 3️⃣ احفظ الكل في localStorage
+localStorage.setItem(
+  "canceledAppointments",
+  JSON.stringify(canceledAppointments)
+);
+
+// 4️⃣ (اختياري) احتفظ ببيانات المريض للمودال فقط
+localStorage.setItem(
+  "cancelCheckResult",
+  JSON.stringify(res.data.data)
+);
+
+          // ⬅️ الرد الكامل
+if (res.data?.exists) {
+  toast.success("تم إلغاء الموعد بنجاح ✅"); // الإشعار قبل فتح المودال
+  setTimeout(() => setShowPatientModal(true), 50);
+} else {
+  setCancelMode(false);
+  fetchAppointments();
+  toast.success("تم إلغاء الموعد بنجاح ✅"); 
+}
+
+})
+
+  .catch(err => {
+    console.error("❌ خطأ أثناء الإلغاء:", err);
+    toast.error("فشل إلغاء الموعد");
+  });
+}}
+
+
+
+
+        >
+          نعم، إلغاء الموعد
+        </button>
+
+        <button
+          className="btn btn-light"
+          style={{
+            padding: "8px 22px",
+            fontWeight: "bold",
+            borderRadius: "8px",
+          }}
+          onClick={() => {
+            setShowCancelConfirmModal(false);
+          }}
+        >
+          تراجع
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+{showPatientModal && cancelCheckResult && (
+  <div style={modalOverlay}>
+    <div style={modalBox}>
+      <h5>👤 بيانات المريض</h5>
+      <p><strong>الاسم:</strong> {cancelCheckResult.fullname}</p>
+      <p style={{ margin: 0 }}>
+        <strong>رقم الهاتف: </strong>
+        <span dir="ltr" style={{ unicodeBidi: "isolate" }}>
+          {fixPhoneNumber(cancelCheckResult.phoneNumber)}
+        </span>
+      </p>
+      <a
+        href={`https://wa.me/${cancelCheckResult.phoneNumber}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="btn btn-success mt-3"
+      >
+        💬 تواصل عبر واتساب
+      </a>
+
+      <div className="mt-3">
+        <button
+          className="btn btn-secondary"
+          onClick={() => {
+            setShowPatientModal(false);
+            setCancelMode(false);
+            fetchAppointments();
+          }}
+        >
+          إغلاق
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+
+
+{showRestoreModal && restoreSlot && (
+  <div style={modalOverlay}>
+    <div style={modalBox}>
+      <h6 style={{ color:"#2a7371", fontWeight:"bold" }}>
+        هل تريد إزالة إلغاء حجز هذا الموعد؟
+      </h6>
+
+      <p className="mt-2">
+        {restoreSlot.day}<br/>
+        {restoreSlot.time}
+      </p>
+
+      <div className="d-flex justify-content-center gap-3 mt-3">
+        <button
+          style={confirmBtn}
+          className="btn"
+          onClick={handleRestoreAppointment}
+        >
+          نعم
+        </button>
+
+        <button
+          className="btn btn-secondary"
+          onClick={() => setShowRestoreModal(false)}
+        >
+          إلغاء
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
     </div>
   );

@@ -15,6 +15,12 @@ export default function Profile() {
 const user = JSON.parse(localStorage.getItem("user"));
 const userType = user?.userType?.toLowerCase();  // doctor / patient / doctor_admin
 const isDoctor = userType === "doctor" || userType === "doctor_admin";
+const [year, setYear] = useState(new Date().getFullYear());
+const [month, setMonth] = useState("");
+const [week, setWeek] = useState("");
+const [totalRevenue, setTotalRevenue] = useState(null);
+const [revenueLoading, setRevenueLoading] = useState(false);
+const [revenueError, setRevenueError] = useState("");
 
   // -------------------- إضافة ستايت التعديل --------------------
   const [showEdit, setShowEdit] = useState(false);
@@ -101,6 +107,34 @@ const handleUpdate = async (values) => {
     setUpdateMsg("حدث خطأ أثناء تحديث البيانات أو كلمة المرور");
   } finally {
     setSaving(false);
+  }
+};
+const fetchRevenue = async () => {
+  try {
+    setRevenueLoading(true);
+    setRevenueError("");
+    setTotalRevenue(null);
+
+    const token = JSON.parse(localStorage.getItem("user"))?.token;
+
+    const params = { year };
+
+    if (month) params.month = month;
+    if (month && week) params.weekInMonth = week;
+
+    const res = await axios.get(
+      "https://sewarwellnessclinic1.runasp.net/api/FilesPage/calculate-revenue",
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        params,
+      }
+    );
+
+    setTotalRevenue(res.data.totalRevenue);
+  } catch (err) {
+    setRevenueError("حدث خطأ أثناء جلب التكاليف");
+  } finally {
+    setRevenueLoading(false);
   }
 };
 
@@ -396,7 +430,11 @@ const handleUpdate = async (values) => {
       <div
         className="p-3 rounded-3 shadow-sm d-flex justify-content-between align-items-center"
         style={{ background: "#f7faf9", cursor: "pointer" }}
-        onClick={() => navigate("/OurSpecialties")} // الرابط لصفحة التخصصات
+onClick={() =>
+  navigate("/", {
+    state: { scrollTo: "our-specialties" },
+  })
+}
       >
         <span style={{ color: accentColor, fontWeight: "500" }}>
           🩺 عرض تخصصات المركز
@@ -406,6 +444,11 @@ const handleUpdate = async (values) => {
     </div>
     </>
   )}
+
+
+
+
+
 
   {/* === إذا كان المستخدم دكتور → يظهر زر واحد فقط === */}
   {isDoctor && (
@@ -427,7 +470,11 @@ const handleUpdate = async (values) => {
       <div
         className="p-3 rounded-3 shadow-sm d-flex justify-content-between align-items-center"
         style={{ background: "#f7faf9", cursor: "pointer" }}
-        onClick={() => navigate("/OurSpecialties")} // الرابط لصفحة التخصصات
+onClick={() =>
+  navigate("/", {
+    state: { scrollTo: "our-specialties" },
+  })
+}
       >
         <span style={{ color: accentColor, fontWeight: "500" }}>
           🩺 عرض تخصصات المركز
@@ -437,6 +484,108 @@ const handleUpdate = async (values) => {
     </div>
 </>
   )}
+
+
+{isDoctor && (
+  <div className="col-12">
+    <div
+      className="card shadow-lg p-4 rounded-4"
+      style={{
+        background: "#e6f4f3",
+        border: "1px solid rgba(42,115,113,0.2)",
+      }}
+    >
+      <h5 className="mb-4 text-center" style={{ color: accentColor, fontWeight: "600" }}>
+        💰 حساب التكاليف
+      </h5>
+
+      {/* السنة */}
+      <div className="mb-3">
+        <label className="form-label" style={{ fontWeight: "500", color: accentColor }}>
+          السنة
+        </label>
+        <select
+          className="form-select"
+          value={year}
+          onChange={(e) => setYear(e.target.value)}
+        >
+          {Array.from(
+            { length: new Date().getFullYear() - 2025 + 1 },
+            (_, i) => 2025 + i
+          ).map((y) => (
+            <option key={y} value={y}>{y}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* الشهر */}
+      <div className="mb-3">
+        <label className="form-label" style={{ fontWeight: "500", color: accentColor }}>
+          الشهر (اختياري)
+        </label>
+        <select
+          className="form-select"
+          value={month}
+          onChange={(e) => {
+            setMonth(e.target.value);
+            setWeek("");
+          }}
+        >
+          <option value="">-- اختر الشهر --</option>
+          {[...Array(12)].map((_, i) => (
+            <option key={i + 1} value={i + 1}>
+              {i + 1}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* الأسبوع */}
+      <div className="mb-3">
+        <label className="form-label" style={{ fontWeight: "500", color: accentColor }}>
+          الأسبوع (اختياري)
+        </label>
+        <select
+          className="form-select"
+          value={week}
+          disabled={!month}
+          onChange={(e) => setWeek(e.target.value)}
+        >
+          <option value="">-- اختر الأسبوع --</option>
+          {[1, 2, 3, 4].map((w) => (
+            <option key={w} value={w}>الأسبوع {w}</option>
+          ))}
+        </select>
+      </div>
+
+      <button
+        className="btn w-100 mb-3"
+        style={{
+          background: accentColor,
+          color: "white",
+          fontWeight: "500",
+          boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+        }}
+        onClick={fetchRevenue}
+      >
+        عرض التكاليف
+      </button>
+
+      {/* النتيجة */}
+      <div className="text-center mt-3">
+        {revenueLoading && (
+          <div className="spinner-border text-success" />
+        )}
+        {revenueError && <p className="text-danger">{revenueError}</p>}
+        {totalRevenue !== null && (
+          <h4 style={{ color: accentColor, fontWeight: "600" }}>
+            💵 {totalRevenue.toLocaleString()} ₪
+          </h4>
+        )}
+      </div>
+    </div>
+  </div>
+)}
 
 </div>
 

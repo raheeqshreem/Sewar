@@ -1,16 +1,40 @@
-import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Spinner, Card, Container, Badge, Form, Button, OverlayTrigger, Tooltip } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { PlusCircle, Trash2, Edit } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { useLocation } from "react-router-dom";
+import { useEffect, useState, useRef, useLayoutEffect } from "react";
 
 export default function ViewAppointments() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
+
+const location = useLocation();
+const highlightAppointmentId =
+  location.state?.highlightAppointmentId || localStorage.getItem("highlightAppointmentId");
+
+const highlightRef = useRef(null);
+
+useEffect(() => {
+  console.log("HighlightAppointmentId:", highlightAppointmentId);
+  console.log("highlightRef.current:", highlightRef.current);
+
+  if (highlightAppointmentId && highlightRef.current) {
+    const timer = setTimeout(() => {
+      console.log("Scrolling to appointment:", highlightRef.current);
+      highlightRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+      window.history.replaceState({}, document.title);
+      localStorage.removeItem("highlightAppointmentId");
+    }, 500);
+    return () => clearTimeout(timer);
+  }
+}, [data, highlightAppointmentId]);
+
+
 
   const fetchAppointments = async (searchValue = "") => {
     setLoading(true);
@@ -47,6 +71,21 @@ export default function ViewAppointments() {
     fetchAppointments(search);
   };
 
+  useEffect(() => {
+  console.log("data appointments:", data.map(c => c.upcomingAppointments.map(a => a.id)));
+}, [data]);
+useLayoutEffect(() => {
+  if (!data || !highlightAppointmentId) return;
+
+  // حاول إيجاد العنصر بالـ ID
+  const element = document.getElementById(`appointment-${highlightAppointmentId}`);
+  if (element) {
+    element.scrollIntoView({ behavior: "smooth", block: "center" });
+    localStorage.removeItem("highlightAppointmentId");
+  }
+}, [data, highlightAppointmentId]);
+
+
   const handleDeleteAppointment = async (childId, appointmentId) => {
     if (!window.confirm("هل أنت متأكد من حذف هذا الموعد؟")) return;
     try {
@@ -70,6 +109,7 @@ export default function ViewAppointments() {
       alert("حدث خطأ أثناء حذف الموعد ❌");
     }
   };
+  
 
   const colors = ["#ffe6e6", "#e6f7ff", "#fff0e6", "#e6ffe6", "#fff7e6", "#f0e6ff"];
 
@@ -138,38 +178,69 @@ export default function ViewAppointments() {
                   </div>
 
                   {/* المواعيد */}
-                  <div className="border-top pt-3 d-flex flex-column gap-3">
-                    {child.upcomingAppointments.map((app) => (
-                      <div key={app.id} className="p-3 bg-white rounded d-flex justify-content-between align-items-center" style={{ boxShadow: "0 3px 8px rgba(0,0,0,0.15)" }}>
-                        <span className="fw-bold text-dark">{app.day}</span>
-                        <Badge bg="info" text="dark">{app.time}</Badge>
-                        <small className="fw-bold text-dark ms-3">
-                          <span style={{ color: "#070707ff" }}>نوع الزيارة:</span> {app.visitTypee === 0 ? "مراجعة" : " جديدة"}
-                        </small>
+                 {/* المواعيد */}
+<div className="border-top pt-3 d-flex flex-column gap-3">
+  {child.upcomingAppointments.map((app) => {
+  const isHighlighted = Number(app.id) === Number(highlightAppointmentId); // ✅
+  console.log("Checking appointment:", app.id, "isHighlighted?", isHighlighted);
 
-                        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                          {/* أيقونة الحذف */}
-                          <OverlayTrigger placement="top" overlay={<Tooltip id={`tooltip-${app.id}`}>حذف الموعد</Tooltip>}>
-                            <Button variant="link" size="lg" onClick={() => handleDeleteAppointment(child.id, app.id)} style={{ color: "red", fontSize: "1.6rem", padding: "0" }}>
-                              <Trash2 size={28} />
-                            </Button>
-                          </OverlayTrigger>
+    return (
+<div
+  id={`appointment-${app.id}`}  // ← هنا
+  className="p-3 rounded d-flex justify-content-between align-items-center"
+  style={{
+    backgroundColor: Number(app.id) === Number(highlightAppointmentId) ? "#d1f7d6" : "white",
+    border: Number(app.id) === Number(highlightAppointmentId) ? "3px solid #2a7371" : "none",
+  }}
+>
 
-                          {/* أيقونة التعديل */}
-                          <OverlayTrigger placement="top" overlay={<Tooltip id={`tooltip-edit-${app.id}`}>تعديل الموعد</Tooltip>}>
-                            <Button variant="link" size="lg" onClick={() => {
-                              localStorage.setItem("selectedChildId", child.id);
-                              localStorage.setItem("selectedAppointmentId", app.id);
-                              toast("⚠️ اختر موعدًا يناسبك من الجدول لتعديله", { duration: 5000, style: { background: "#fff0e0", color: "#8b4500", fontWeight: "bold", fontSize: "20px", border: "2px solid #ffb84d", textAlign: "center" } });
-                              navigate("/appointment", { state: { editMode: true, fromViewEdit: true } });
-                            }} style={{ color: "#2a7371", fontSize: "1.6rem", padding: "0" }}>
-                              <Edit size={28} />
-                            </Button>
-                          </OverlayTrigger>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+
+
+
+        <span className="fw-bold text-dark">{app.day}</span>
+        <Badge bg="info" text="dark">{app.time}</Badge>
+        <small className="fw-bold text-dark ms-3">
+          <span style={{ color: "#070707ff" }}>نوع الزيارة:</span> {app.visitTypee === 0 ? "مراجعة" : " جديدة"}
+        </small>
+
+        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+          {/* أيقونة الحذف */}
+          <OverlayTrigger placement="top" overlay={<Tooltip id={`tooltip-${app.id}`}>حذف الموعد</Tooltip>}>
+            <Button
+              variant="link"
+              size="lg"
+              onClick={() => handleDeleteAppointment(child.id, app.id)}
+              style={{ color: "red", fontSize: "1.6rem", padding: "0" }}
+            >
+              <Trash2 size={28} />
+            </Button>
+          </OverlayTrigger>
+
+          {/* أيقونة التعديل */}
+          <OverlayTrigger placement="top" overlay={<Tooltip id={`tooltip-edit-${app.id}`}>تعديل الموعد</Tooltip>}>
+            <Button
+              variant="link"
+              size="lg"
+              onClick={() => {
+                localStorage.setItem("selectedChildId", child.id);
+                localStorage.setItem("selectedAppointmentId", app.id);
+                toast("⚠️ اختر موعدًا يناسبك من الجدول لتعديله", {
+                  duration: 5000,
+                  style: { background: "#fff0e0", color: "#8b4500", fontWeight: "bold", fontSize: "20px", border: "2px solid #ffb84d", textAlign: "center" },
+                });
+                navigate("/appointment", { state: { editMode: true, fromViewEdit: true , highlightAppointmentId: app.id } });
+              }}
+              style={{ color: "#2a7371", fontSize: "1.6rem", padding: "0" }}
+            >
+              <Edit size={28} />
+            </Button>
+          </OverlayTrigger>
+        </div>
+      </div>
+    );
+  })}
+</div>
+
                 </Card.Body>
               </Card>
             ))}

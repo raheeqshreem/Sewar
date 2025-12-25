@@ -56,6 +56,14 @@ const token = user?.token;
       setLoading(false);
     }
   };
+  useEffect(() => {
+  window.scrollTo({
+    top: 0,
+    left: 0,
+    behavior: "smooth", // لو بدك بدون حركة احذفها
+  });
+}, []);
+
 
   useEffect(() => {
     fetchFiles();

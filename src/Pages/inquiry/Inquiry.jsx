@@ -16,6 +16,14 @@ const userType = user?.userType?.toLowerCase(); // doctor / patient / doctor_adm
 const isDoctor = userType === "doctor" || userType === "doctor_admin";
 
 useEffect(() => {
+  window.scrollTo({
+    top: 0,
+    left: 0,
+    behavior: "smooth", // لو بدك بدون حركة احذفها
+  });
+}, []);
+
+useEffect(() => {
   if (!user || !user.token) return;
 
   // ✅ فقط للمريض
