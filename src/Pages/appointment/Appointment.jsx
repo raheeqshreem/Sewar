@@ -61,27 +61,25 @@ useEffect(() => {
 }, []);
 
 
+const [restoreSlot, setRestoreSlot] = useState(null);
 
 
 useEffect(() => {
-  if (editMode && fromViewEdit) {
-const appointmentId = restoreSlot.appointmentId;
+  // ✅ تحقق من وجود restoreSlot أولاً
+  if (editMode && fromViewEdit && restoreSlot !== null) {
+    const appointmentId = restoreSlot.appointmentId;
     const childId = localStorage.getItem("selectedChildId");
     const email = localStorage.getItem("selectedEmail");
 
     if (appointmentId) {
-  setEditTarget({ 
-    appointmentId: parseInt(appointmentId), 
-    childId: childId ? parseInt(childId) : null,
-    email: email || null
-  });
-}
-
-
-
-
+      setEditTarget({ 
+        appointmentId: parseInt(appointmentId), 
+        childId: childId ? parseInt(childId) : null,
+        email: email || null
+      });
+    }
   }
-}, [editMode, fromViewEdit]);
+}, [editMode, fromViewEdit, restoreSlot]);
 
 
   const [weekOffset, setWeekOffset] = useState(0);
@@ -102,7 +100,6 @@ const [showCancelConfirmModal, setShowCancelConfirmModal] = useState(false);
 const [showPatientModal, setShowPatientModal] = useState(false);
 const [editCompleted, setEditCompleted] = useState(false);
 const [showRestoreModal, setShowRestoreModal] = useState(false);
-const [restoreSlot, setRestoreSlot] = useState(null);
 const user = JSON.parse(localStorage.getItem("user"));
 console.log(JSON.parse(localStorage.getItem("user")));
 const isSecretary = user?.userType === "scheduler_admin"; // تحقق إذا المستخدم سكرتير
