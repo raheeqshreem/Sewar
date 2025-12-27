@@ -360,24 +360,40 @@ const confirmUpdate = async () => {
       { headers: { Authorization: `Bearer ${token}` } }
     );
 
-    toast.success(res.data.message || "تم تعديل الموعد بنجاح");
+    toast.success("تم تعديل الموعد بنجاح");
 
-    // 👇 حفظ الـ appointmentId المعدّل لتسليط الضوء
-    const updatedAppointmentId = editTarget.appointmentId;
-
-    // نظّف المتغيرات
+    // تنظيف المتغيرات
     setEditTarget(null);
     setPendingChange(null);
     setShowConfirmModal(false);
 
-    // ✅ احفظ في localStorage وارجع لصفحة ViewAppointments مع state
-    localStorage.setItem("highlightAppointmentId", updatedAppointmentId);
-    navigate("/viewappointments", { state: { highlightAppointmentId: updatedAppointmentId } });
+    if (isSecretary) {
+      // السكرتير يروح للصفحة ViewAppointments
+      navigate("/viewappointments", { state: { highlightAppointmentId: res.data.updatedAppointmentId || editTarget.appointmentId } });
+    } else {
+      // المريض يبقى في نفس الصفحة ويحدث الجدول مباشرة
+      setAllAppointments(prev => {
+        return prev.map(app =>
+          app.id === editTarget.appointmentId
+            ? { ...app, day: pendingChange.day, time: pendingChange.time }
+            : app
+        );
+      });
+
+      setUserAppointments(prev => {
+        return prev.map(app =>
+          app.appointmentId === editTarget.appointmentId
+            ? { ...app, day: pendingChange.day, time: pendingChange.time }
+            : app
+        );
+      });
+    }
 
   } catch {
     toast.error("فشل تعديل الموعد");
   }
 };
+
 
 
   const now = new Date();
