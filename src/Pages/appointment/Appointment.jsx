@@ -848,10 +848,15 @@ localStorage.setItem(
 );
 
 // 4️⃣ (اختياري) احتفظ ببيانات المريض للمودال فقط
+// خزني في state مباشرة
+setCancelCheckResult(res.data.data);
+
+// (اختياري) خزني في localStorage إذا بدك احتفاظ مؤقت
 localStorage.setItem(
   "cancelCheckResult",
   JSON.stringify(res.data.data)
 );
+
 
           // ⬅️ الرد الكامل
 if (res.data?.exists) {
