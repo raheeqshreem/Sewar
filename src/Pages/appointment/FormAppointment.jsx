@@ -64,6 +64,21 @@ const parentId = location.state?.parentId || parentIdFromStorage || null;
 console.log("📌 ParentID:", parentId);
 
 
+useEffect(() => {
+  return () => {
+    // هذا الكود ينفّذ تلقائياً عند مغادرة الصفحة لأي سبب
+    localStorage.removeItem("formData");
+    localStorage.removeItem("answers");
+    localStorage.removeItem("sessionPlace");
+    localStorage.removeItem("homeAddress");
+    localStorage.removeItem("uploadedImages");
+    localStorage.removeItem("selectedIDNumber");
+    localStorage.removeItem("selectedChildId");
+    localStorage.removeItem("selectedEmail");
+
+    console.log("🧹 تم حذف بيانات الحجز لأن المستخدم غادر الصفحة بدون تثبيت");
+  };
+}, []);
 
 
 // استرجاع formData و answers و sessionPlace و homeAddress و الصور من localStorage
@@ -1089,8 +1104,20 @@ const handleFinalSubmit = (e) => {
           >
            <button
   type="button"
-  onClick={() => navigate("/appointment")}
-  style={{
+onClick={() => {
+    // مسح البيانات
+    localStorage.removeItem("formData");
+    localStorage.removeItem("answers");
+    localStorage.removeItem("sessionPlace");
+    localStorage.removeItem("homeAddress");
+    localStorage.removeItem("uploadedImages");
+    localStorage.removeItem("selectedIDNumber");
+    localStorage.removeItem("selectedChildId");
+    localStorage.removeItem("selectedEmail");
+
+    // الانتقال لصفحة ثانية
+    navigate("/appointment");
+  }}  style={{
     position: "absolute",
     top: "10px",
     right: "10px",

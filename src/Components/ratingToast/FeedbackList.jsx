@@ -5,6 +5,8 @@ import { useNavigate } from "react-router-dom";
 import Zoom from 'react-medium-image-zoom'
 import 'react-medium-image-zoom/dist/styles.css'
 import Modal from "react-modal";
+import { useLocation } from "react-router-dom";
+
 const FeedbackList = () => {
   const [feedbacks, setFeedbacks] = useState([]);
   const [visibleCount, setVisibleCount] = useState(5); // عدد التعليقات المعروضة
@@ -12,9 +14,11 @@ const FeedbackList = () => {
   const [zoomVideo, setZoomVideo] = useState(null);
   const [initialLoading, setInitialLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
+  const initialScrollId = location.state?.scrollToId || null;
   const user = JSON.parse(localStorage.getItem("user"));
   const API_BASE = "https://sewarwellnessclinic1.runasp.net";
-
+const [scrollToId, setScrollToId] = useState(null);
   const sortData = (data) =>
     data.sort((a, b) => {
       const roleA = a.role?.toLowerCase?.() || "";
@@ -38,27 +42,81 @@ const FeedbackList = () => {
     }
   }, []);
 
+  // بعد fetchFeedbacks
+useEffect(() => {
+  if (initialScrollId) {
+    setScrollToId(initialScrollId);
+  }
+}, [initialScrollId]);
+
   useEffect(() => {
     fetchFeedbacks();
   }, [fetchFeedbacks]);
+useEffect(() => {
+  if (!scrollToId) return;
+
+  // انتظر قليلًا حتى يتم تحديث feedbacks بالـ DOM
+  const timer = setTimeout(() => {
+    const target = document.getElementById(`feedback-${scrollToId}`);
+    if (!target) return;
+
+    target.scrollIntoView({ behavior: "smooth", block: "center" });
+
+    // حفظ القيم الأصلية
+    const originalBorder = target.style.border;
+    const originalBoxShadow = target.style.boxShadow;
+    const originalFontWeight = target.style.fontWeight;
+
+    // تمييز التعليق
+    target.style.border = "2px solid orange";
+    target.style.boxShadow = "0 0 15px orange";
+    target.style.fontWeight = "700";
+    target.style.transition = "all 0.5s ease";
+
+    // بعد ثانيتين أرجع للوضع الطبيعي
+    setTimeout(() => {
+      target.style.border = originalBorder || "1px solid #ddd";
+      target.style.boxShadow = originalBoxShadow || "none";
+      target.style.fontWeight = originalFontWeight || "400";
+    }, 2000);
+
+    // بعد استخدامه مرة واحدة، نمنع إعادة التلوين عند أي re-render
+    setScrollToId(null);
+  }, 200); // انتظر قليلًا حتى يتم إضافة التعليق الجديد في DOM
+
+  return () => clearTimeout(timer);
+}, [scrollToId, feedbacks]);
+
 
   useEffect(() => {
-    const handleScrollToFeedback = (e) => {
-      const { id } = e.detail;
-      if (!id) return;
-      setTimeout(() => {
-        const target = document.getElementById(`feedback-${id}`);
-        if (target) {
-          target.scrollIntoView({ behavior: "smooth", block: "center" });
-          target.style.boxShadow = "0 0 10px 3px #2a7371";
-          setTimeout(() => (target.style.boxShadow = "none"), 2000);
-        }
-      }, 500);
-    };
-    window.addEventListener("scrollToFeedback", handleScrollToFeedback);
-    return () =>
-      window.removeEventListener("scrollToFeedback", handleScrollToFeedback);
-  }, []);
+  const handleScrollToFeedback = (e) => {
+    const { id } = e.detail;
+    if (!id) return;
+
+    setTimeout(() => {
+      const target = document.getElementById(`feedback-${id}`);
+      console.log("Scrolling to element:", target);
+      if (target) {
+        target.scrollIntoView({ behavior: "smooth", block: "center" });
+
+        // ✅ نضيف تمييز برتقالي
+        target.style.border = "2px solid orange"; // أو لون أي عنصر تحبه
+        target.style.transition = "border 0.5s ease";
+
+        // ✅ بعد ثانيتين نرجع للوضع الطبيعي
+        setTimeout(() => {
+          target.style.border = "1px solid #ddd"; // لون الحدود الأصلي
+        }, 2000);
+      } else {
+        console.warn("العنصر غير موجود للسكروول:", id);
+      }
+    }, 500); // وقت انتظار حتى تحميل التعليقات
+  };
+
+  window.addEventListener("scrollToFeedback", handleScrollToFeedback);
+  return () =>
+    window.removeEventListener("scrollToFeedback", handleScrollToFeedback);
+}, []);
 
   const getUsernameFromEmail = (email) =>
     email ? email.split("@")[0] : "مستخدم مجهول";

@@ -122,16 +122,17 @@ const WriteFeedback = () => {
         "Content-Type": "multipart/form-data",
       };
 
-      if (id) {
-        await axios.put(`${API_BASE}/api/Ranking/${id}`, formData, { headers });
-        alert("✅ تم تعديل تقييمك بنجاح");
-      } else {
-        await axios.post(`${API_BASE}/api/Ranking?ts=${Date.now()}`, formData, { headers });
-        alert("✅ تم إرسال تقييمك بنجاح");
-      }
-
-      navigate("/feedback");
-    } catch (err) {
+    if (id) {
+  await axios.put(`${API_BASE}/api/Ranking/${id}`, formData, { headers });
+  alert("✅ تم تعديل تقييمك بنجاح");
+  navigate("/feedback", { state: { scrollToId: id } }); // scroll إلى التقييم المعدل
+} else {
+  const res = await axios.post(`${API_BASE}/api/Ranking?ts=${Date.now()}`, formData, { headers });
+  const newId = res.data.id; // <- تأكد أن API يرجع id
+  alert("✅ تم إرسال تقييمك بنجاح");
+  navigate("/feedback", { state: { scrollToId: newId } }); // scroll إلى التقييم الجديد
+}
+}catch (err) {
       console.error("❌ فشل الإرسال:", err);
       alert("❌ فشل الإرسال، حاول مرة أخرى");
     }

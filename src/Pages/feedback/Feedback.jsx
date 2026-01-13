@@ -1,18 +1,25 @@
-import RatingToast from "../../Components/ratingToast/RatingToast";
-import {useEffect } from "react";
-
+import { useEffect, useRef } from "react";
+import { useLocation } from "react-router-dom";
+import RatingToast from "../../Components/ratingToast/RatingToast"; // صحح المسار حسب مكان الملف
 export default function Feedback() {
-  useEffect(() => {
-  window.scrollTo({
-    top: 0,
-    left: 0,
-    behavior: "smooth", // لو بدك بدون حركة احذفها
-  });
-}, []);
+  const location = useLocation();
+  const scrollRef = useRef(null);
+
+useEffect(() => {
+  if (location.state?.scrollToId) {
+    setTimeout(() => {
+      const el = document.getElementById(`feedback-${location.state.scrollToId}`);
+      console.log("Scroll target element after delay:", el);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }, 300); // 300ms انتظار لتحميل العناصر
+  }
+}, [location]);
 
   return (
     <div>
-      <RatingToast />
+      <RatingToast scrollRef={scrollRef} />
     </div>
   );
 }
